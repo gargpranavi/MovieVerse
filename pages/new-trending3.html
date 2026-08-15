@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New & Trending — MovieVerse</title>
+    <meta name="description" content="Discover the latest releases, trending titles, and movies popular this week on MovieVerse.">
+    <meta name="theme-color" content="#080808">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="../css/new-trending3.css">
+
+    <style>
+        /* Top loading bar */
+        #page-loader {
+            position: fixed; top: 0; left: 0; z-index: 99999;
+            height: 3px; width: 0%;
+            background: linear-gradient(135deg, #F5C563, #D9A441, #A87D28);
+            box-shadow: 0 0 10px rgba(217,164,65,0.7);
+            transition: width 0.4s ease;
+        }
+        #root:empty::before {
+            content: '';
+            display: block;
+            height: 400px;
+        }
+    </style>
+
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <!-- Gold top loading bar -->
+    <div id="page-loader"></div>
+
+    <main class="page-container" id="main-content">
+        <div id="root"></div>
+    </main>
+
+    <noscript>
+        <p style="color:#D9A441;text-align:center;padding:60px;font-family:sans-serif;">
+            Please enable JavaScript to view MovieVerse content.
+        </p>
+    </noscript>
+
+    <script>
+        // Animate loader bar
+        const loader = document.getElementById('page-loader');
+        loader.style.width = '40%';
+        window.addEventListener('load', () => {
+            loader.style.width = '100%';
+            setTimeout(() => loader.style.opacity = '0', 400);
+        });
+    </script>
+
+    <!-- Data -->
+    <script src="../data/new-trending3.js"></script>
+    <!-- Components -->
+    <script type="text/babel" src="../components/MovieComponents3.jsx"></script>
+    <!-- Page Logic -->
+    <script type="text/babel" src="../js/new-trending3.js"></script>
+</body>
+</html>
