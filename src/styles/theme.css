@@ -1,0 +1,29 @@
+/* MovieVerse – shared design tokens */
+:root {
+  --gold-light: #f5c842;
+  --gold-mid: #d4a017;
+  --gold-dark: #b8860b;
+  --gold-muted: rgba(212, 160, 23, 0.55);
+
+  --bg-void: #000000;
+  --bg-base: #050507;
+  --bg-panel: #0a0a0c;
+  --bg-elevated: #121212;
+  --bg-hover: rgba(255, 255, 255, 0.06);
+
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-top: rgba(255, 255, 255, 0.14);
+
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.75);
+  --text-muted: rgba(255, 255, 255, 0.42);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --sidebar-width: 240px;
+  --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --shadow-gold: 0 4px 24px rgba(212, 160, 23, 0.35);
+}

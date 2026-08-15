@@ -1,0 +1,140 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 4%; /* increased vertical padding */
+  background: var(--bg-base); /* Changed to solid background so it doesn't overlap hero transparently */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  transition: padding 0.3s ease, background-color 0.3s ease;
+  height: 90px; /* fixed height for predictability */
+  box-sizing: border-box;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.scrolled {
+  padding: 16px 4%;
+  height: 75px;
+  background-color: #030304;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  color: var(--gold-mid);
+}
+
+.brandName {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px; /* increased from 24px */
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.navLink {
+  color: #e5e5e5;
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px; /* increased from 14px */
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.navLink:hover {
+  color: var(--gold-light);
+}
+
+.navLink.active {
+  color: #fff;
+  font-weight: 700;
+  border-bottom: 2px solid var(--gold-mid);
+  padding-bottom: 4px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 28px; /* increased gap */
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  padding: 6px;
+  transition: color 0.3s ease, transform 0.2s;
+}
+
+.iconBtn:hover {
+  color: var(--gold-light);
+  transform: scale(1.1);
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background-color: var(--gold-mid);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bg-base);
+}
+
+.profileBtn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.avatar {
+  width: 42px; /* increased from 32px */
+  height: 42px;
+  border-radius: 50%; /* circular avatar looks more professional */
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.3s;
+}
+
+.profileBtn:hover .avatar {
+  border-color: var(--gold-mid);
+}
+
+@media (max-width: 900px) {
+  .nav {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 16px 4%;
+    height: 80px;
+  }
+  
+  .brandName {
+    font-size: 24px;
+  }
+}
