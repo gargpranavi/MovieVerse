@@ -49,6 +49,15 @@ export default function MovieCard({ movie, rank }) {
         {rank && <span className={styles.rank}>{rank}</span>}
         <img src={imageUrl} alt={movie.title} className={styles.cardImage} />
         
+        {/* Persistent Add to Watchlist Button */}
+        <button 
+          className={styles.addToListBtn} 
+          onClick={(e) => { e.stopPropagation(); alert('Added to Watchlist!'); }}
+          aria-label="Add to Watchlist"
+        >
+          <PlusIcon />
+        </button>
+
         {/* Slide & Glow Overlay */}
         <div className={styles.cardOverlay}>
           <h3 className={styles.cardTitle}>{movie.title}</h3>

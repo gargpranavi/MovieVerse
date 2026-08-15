@@ -4,6 +4,7 @@ import HomePage from './pages/Home/HomePage.jsx'
 import MoviesPage from './pages/Movies/MoviesPage.jsx'
 import TvSeriesPage from './pages/TvSeries/TvSeriesPage.jsx'
 import MovieDetailsPage from './pages/MovieDetails/MovieDetailsPage.jsx'
+import AiFeaturesPage from './pages/AiFeatures/AiFeaturesPage.jsx'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route path="/movies" element={<MoviesPage />} />
       <Route path="/tv-series" element={<TvSeriesPage />} />
       <Route path="/movie/:id" element={<MovieDetailsPage />} />
+      <Route path="/ai-features" element={<AiFeaturesPage />} />
 
       {/* Placeholder routes – sidebar links land here for now */}
       <Route path="/search" element={<HomePage />} />

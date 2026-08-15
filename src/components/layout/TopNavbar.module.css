@@ -86,8 +86,12 @@
 }
 
 .iconBtn:hover {
-  color: var(--gold-light);
-  transform: scale(1.1);
+  color: #D4A017;
+  transform: translateY(-2px);
+}
+
+.activeIcon {
+  color: #D4A017;
 }
 
 .notificationBadge {

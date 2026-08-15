@@ -138,6 +138,33 @@
   color: var(--text-secondary);
 }
 
+.addToListBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
+}
+
+.addToListBtn:hover {
+  background: var(--gold-light);
+  color: var(--bg-void);
+  border-color: var(--gold-light);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.4);
+}
+
 .match { 
   color: var(--gold-light); 
 }
