@@ -1,16 +1,125 @@
-# React + Vite
+# 🎬 Filmoria — Movie Discovery & Watchlist Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> A collaborative movie platform built with **React + Vite** by a 3-member team.
+> Explore movies, manage your watchlist, track what you've watched, and discover trending films & actors.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Getting Started
 
-## React Compiler
+```bash
+# Install dependencies
+npm install
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# Start dev server
+npm run dev
+```
 
-## Expanding the Oxlint configuration
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+---
+
+## 👥 Team Structure & Branches
+
+| Branch | Member | Responsibility |
+|--------|--------|----------------|
+| `feature/movie-discovery` | Member 1 | Home, Explore Movies, Search & Filters, Movie Details |
+| `feature/user-watchlist`  | Member 2 | Login, Register, Watchlist, Watched Movies, Profile |
+| `feature/trending-exploration` | Member 3 | Trending, Popular, Actors, Directors, Similar Movies |
+
+---
+
+## 📁 Project Structure
+
+```text
+member2/
+│
+├── pages/
+│   ├── login2.jsx
+│   ├── register2.jsx
+│   ├── watchlist2.jsx
+│   ├── watched2.jsx
+│   └── profile2.jsx
+│
+├── css/
+│   ├── login2.css
+│   ├── register2.css
+│   ├── watchlist2.css
+│   ├── watched2.css
+│   └── profile2.css
+│
+├── js/
+│   ├── login2.js
+│   ├── register2.js
+│   ├── watchlist2.js
+│   ├── watched2.js
+│   └── profile2.js
+│
+├── components/
+│   ├── LoginForm2.jsx
+│   ├── RegisterForm2.jsx
+│   ├── WatchlistCard2.jsx
+│   ├── Rating2.jsx
+│   ├── ReviewCard2.jsx
+│   ├── ProfileCard2.jsx
+│   ├── StatusBadge2.jsx
+│   └── EmptyState2.jsx
+│
+└── data/
+    ├── users2.js
+    └── user-movies2.js
+```
+
+---
+
+## 🗺️ Routes
+
+| Route | Page | Status |
+|-------|------|--------|
+| `/login` | Login Page | ✅ Done |
+| `/watchlist` | Watchlist Page | ✅ Done |
+| `/watched` | Watched Movies | 🔜 Day 2 |
+| `/profile` | My Profile | 🔜 Day 3 |
+| `/register` | Register | 🔜 Upcoming |
+
+---
+
+## 🎨 Design System
+
+- **Color Palette:** Deep black (`#050503`) + Gold (`#D4A017` / `#F5C842`)
+- **Typography:** `Outfit` (headings) + `Inter` (body)
+- **Style:** Glassmorphism, dark cards, ambient gold glows
+- **Animations:** Hover lift, shimmer, toast notifications
+
+---
+
+## 📦 Tech Stack
+
+- **React 19** — UI components & state
+- **React Router v7** — Client-side routing
+- **Vite 8** — Build tool & dev server
+- **CSS Modules** — Scoped component styling
+- **localStorage** — Client-side persistence for watchlist & watched data
+
+---
+
+## 📅 Progress Log (Member 2)
+
+### ✅ Day 1 — Watchlist Foundation
+- Created `/watchlist` route
+- Built `WatchlistPage2.jsx` with search, sort, and toast notifications
+- Built `WatchlistCard2.jsx` with poster, rating badge, genre tags, and action buttons
+- Created mock movie data in `user-movies2.js`
+- localStorage integration for persist/remove/move-to-watched
+- Fully responsive grid layout
+
+### 🔜 Day 2 — Watched Movies
+- `WatchedPage2.jsx` + `WatchedPage2.module.css`
+- `Rating2.jsx` star rating component
+- `ReviewCard2.jsx`
+
+### 🔜 Day 3 — Profile & Register
+- `ProfilePage2.jsx`
+- `ProfileCard2.jsx`, `StatusBadge2.jsx`
+- `RegisterPage2.jsx`
+
