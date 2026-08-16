@@ -1,10 +1,6 @@
-// Reusable React Components for MovieVerse Member 3 Pages
-// Babel standalone — JSX compiled in-browser
-
-/* ── MOVIE CARD ───────────────────────────────── */
 const MovieCard3 = ({ movie, rank, onSelect }) => {
     return (
-        <div className="movie-card" onClick={() => onSelect && onSelect(movie)}>
+        <div className="movie-card" onClick={() => onSelect(movie)}>
             <div className="card-poster-wrapper">
                 <img src={movie.poster} alt={movie.title} loading="lazy" className="card-poster" />
                 {rank && <div className="card-rank">{rank}</div>}
@@ -13,18 +9,17 @@ const MovieCard3 = ({ movie, rank, onSelect }) => {
                 </div>
             </div>
             <div className="card-info">
-                <h3 className="card-title" title={movie.title}>{movie.title}</h3>
+                <h3 className="card-title">{movie.title}</h3>
                 <div className="card-meta">
                     <span>{movie.year}</span>
                     <span className="card-rating"><span className="star-icon">★</span>{movie.rating}</span>
                 </div>
-                <div className="card-genres">{(movie.genre || []).slice(0, 2).join(' · ')}</div>
+                <div className="card-genres">{movie.genre.slice(0, 2).join(' · ')}</div>
             </div>
         </div>
     );
 };
 
-/* ── HERO ─────────────────────────────────────── */
 const HeroMovie3 = ({ movie, badgeText }) => {
     if (!movie) return null;
     return (
@@ -39,7 +34,7 @@ const HeroMovie3 = ({ movie, badgeText }) => {
                 <div className="hero-meta">
                     <span>{movie.year}</span>
                     <span className="meta-dot">•</span>
-                    <span>{(Array.isArray(movie.genre) ? movie.genre : [movie.genre]).join(', ')}</span>
+                    <span>{movie.genre.join(', ')}</span>
                     <span className="meta-dot">•</span>
                     <span>{movie.runtime}</span>
                     <span className="meta-dot">•</span>
@@ -61,19 +56,15 @@ const HeroMovie3 = ({ movie, badgeText }) => {
     );
 };
 
-/* ── SECTION TITLE ────────────────────────────── */
-const SectionTitle3 = ({ title, showViewAll = true, onViewAll }) => (
+const SectionTitle3 = ({ title, showViewAll }) => (
     <div className="section-header">
         <h2 className="section-title">{title}</h2>
         {showViewAll && (
-            <button className="view-all-btn" onClick={onViewAll}>
-                View All <span className="arrow">›</span>
-            </button>
+            <button className="view-all-btn">View All <span className="arrow">›</span></button>
         )}
     </div>
 );
 
-/* ── CATEGORY TABS ────────────────────────────── */
 const CategoryTabs3 = ({ categories, activeCategory, onChange, label }) => (
     <div className="category-tabs-container">
         {label && <div className="tabs-label">{label}</div>}
@@ -81,24 +72,25 @@ const CategoryTabs3 = ({ categories, activeCategory, onChange, label }) => (
             {categories.map(cat => (
                 <button
                     key={cat}
-                    className={`tab-item${activeCategory === cat ? ' active' : ''}`}
+                    className={activeCategory === cat ? 'tab-item active' : 'tab-item'}
                     onClick={() => onChange(cat)}
-                >{cat}</button>
+                >
+                    {cat}
+                </button>
             ))}
         </div>
     </div>
 );
 
-/* ── MOVIE SECTION ────────────────────────────── */
-const MovieSection3 = ({ title, movies, onSelectMovie, showViewAll = true, showRanks = false }) => (
+const MovieSection3 = ({ title, movies, onSelectMovie, showViewAll, showRanks }) => (
     <section className="movie-section">
         <SectionTitle3 title={title} showViewAll={showViewAll} />
         <div className="movie-grid">
-            {movies.map((movie, idx) => (
+            {movies.map((movie, index) => (
                 <MovieCard3
                     key={movie.id}
                     movie={movie}
-                    rank={showRanks ? idx + 1 : null}
+                    rank={showRanks ? index + 1 : null}
                     onSelect={onSelectMovie}
                 />
             ))}
@@ -106,7 +98,6 @@ const MovieSection3 = ({ title, movies, onSelectMovie, showViewAll = true, showR
     </section>
 );
 
-/* ── PAGE HEADER ──────────────────────────────── */
 const PageHeader3 = ({ title, subtitle }) => (
     <div className="page-header">
         <div>
@@ -117,7 +108,6 @@ const PageHeader3 = ({ title, subtitle }) => (
     </div>
 );
 
-/* ── STATS STRIP (slim pill version) ────────────── */
 const StatsBar3 = ({ stats }) => (
     <div className="stats-strip">
         {stats.map((s, i) => (
@@ -132,10 +122,8 @@ const StatsBar3 = ({ stats }) => (
     </div>
 );
 
-/* ── GOLD DIVIDER ─────────────────────────────── */
 const GoldDivider3 = () => <div className="gold-divider"></div>;
 
-/* ── DETAILS MODAL ────────────────────────────── */
 const MovieDetailsModal3 = ({ movie, onClose }) => {
     if (!movie) return null;
     return (
@@ -155,7 +143,7 @@ const MovieDetailsModal3 = ({ movie, onClose }) => {
                             <span className="modal-meta-item">{movie.language}</span>
                         </div>
                         <div className="modal-genres">
-                            {(movie.genre || []).map((g, i) => <span key={i} className="genre-pill">{g}</span>)}
+                            {movie.genre.map((g, i) => <span key={i} className="genre-pill">{g}</span>)}
                         </div>
                         <p className="modal-description">{movie.description}</p>
                         <div className="modal-actions">
@@ -172,8 +160,12 @@ const MovieDetailsModal3 = ({ movie, onClose }) => {
     );
 };
 
-// Expose to window
-Object.assign(window, {
-    MovieCard3, HeroMovie3, SectionTitle3, CategoryTabs3,
-    MovieSection3, MovieDetailsModal3, PageHeader3, StatsBar3, GoldDivider3
-});
+window.MovieCard3       = MovieCard3;
+window.HeroMovie3       = HeroMovie3;
+window.SectionTitle3    = SectionTitle3;
+window.CategoryTabs3    = CategoryTabs3;
+window.MovieSection3    = MovieSection3;
+window.MovieDetailsModal3 = MovieDetailsModal3;
+window.PageHeader3      = PageHeader3;
+window.StatsBar3        = StatsBar3;
+window.GoldDivider3     = GoldDivider3;
