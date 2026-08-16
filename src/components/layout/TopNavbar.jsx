@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { NavLink } from 'react-router-dom'
 import styles from './TopNavbar.module.css'
 
@@ -29,6 +29,12 @@ function FilmReelIcon() {
 
 export default function TopNavbar() {
   const [isScrolled, setIsScrolled] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [isSearching, setIsSearching] = useState(false)
+  
+  const inputRef = useRef(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,6 +43,58 @@ export default function TopNavbar() {
 
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    if (searchOpen && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [searchOpen])
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([])
+      return
+    }
+
+    setIsSearching(true)
+    const delayDebounce = setTimeout(() => {
+      fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(searchQuery)}`)
+        .then(res => res.json())
+        .then(data => {
+          const mapped = data.map(item => ({
+            id: item.show.id.toString(),
+            title: item.show.name,
+            year: item.show.premiered ? item.show.premiered.substring(0, 4) : '2023',
+            rating: item.show.rating?.average || null,
+            image: item.show.image ? item.show.image.medium : null
+          }))
+          setSearchResults(mapped)
+          setIsSearching(false)
+        })
+        .catch(err => {
+          console.error(err)
+          setIsSearching(false)
+        })
+    }, 300)
+
+    return () => clearTimeout(delayDebounce)
+  }, [searchQuery])
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      // If the clicked target is no longer in the DOM, ignore it (prevents closures on re-renders)
+      if (!document.body.contains(e.target)) return
+
+      // Find the parent element with searchContainer class
+      if (!e.target.closest(`.${styles.searchContainer}`)) {
+        setSearchResults([])
+        setSearchOpen(false)
+        setSearchQuery('')
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
   }, [])
 
   return (
@@ -63,12 +121,62 @@ export default function TopNavbar() {
       </div>
 
       <div className={styles.right}>
-        <button className={styles.iconBtn} aria-label="Search">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </button>
+        <div className={styles.searchContainer}>
+          <input
+            ref={inputRef}
+            type="text"
+            className={`${styles.searchInput} ${searchOpen ? styles.searchInputActive : ''}`}
+            placeholder="Search movies & shows..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          <button 
+            className={styles.iconBtn} 
+            onClick={() => setSearchOpen(!searchOpen)} 
+            aria-label="Search"
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+          
+          {searchOpen && searchQuery && (
+            <div className={styles.searchResults}>
+              {isSearching ? (
+                <div className={styles.searchNoResults}>Searching...</div>
+              ) : searchResults.length > 0 ? (
+                searchResults.map(show => (
+                  <NavLink 
+                    key={show.id} 
+                    to={`/movie/${show.id}`} 
+                    className={styles.searchResultItem}
+                    onClick={() => {
+                      setSearchResults([])
+                      setSearchOpen(false)
+                      setSearchQuery('')
+                    }}
+                  >
+                    <img 
+                      src={show.image || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=200&q=80&auto=format&fit=crop'} 
+                      alt={show.title} 
+                      className={styles.searchResultImage} 
+                    />
+                    <div className={styles.searchResultInfo}>
+                      <span className={styles.searchResultTitle}>{show.title}</span>
+                      <span className={styles.searchResultMeta}>
+                        {show.year} {show.rating ? `• ★ ${show.rating}` : ''}
+                      </span>
+                    </div>
+                  </NavLink>
+                ))
+              ) : (
+                <div className={styles.searchNoResults}>No results found</div>
+              )}
+            </div>
+          )}
+        </div>
         
         <button className={styles.iconBtn} aria-label="Grid View">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -112,3 +220,4 @@ export default function TopNavbar() {
     </nav>
   )
 }
+

@@ -2,6 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 30px; /* Ensures left side menu and right side icons never touch */
   padding: 24px 4%; /* increased vertical padding */
   background: var(--bg-base); /* Changed to solid background so it doesn't overlap hero transparently */
   position: fixed;
@@ -142,3 +143,117 @@
     font-size: 24px;
   }
 }
+
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.searchInput {
+  width: 0;
+  opacity: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 10px 0;
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.searchInputActive {
+  width: 260px;
+  opacity: 1;
+  padding: 10px 20px;
+  border-color: var(--gold-mid);
+  box-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
+}
+
+.searchResults {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: rgba(10, 10, 12, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), var(--shadow-gold);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+/* Custom scrollbar for search results */
+.searchResults::-webkit-scrollbar {
+  width: 6px;
+}
+.searchResults::-webkit-scrollbar-track {
+  background: transparent;
+}
+.searchResults::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+.searchResults::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-mid);
+}
+
+.searchResultItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-decoration: none;
+  color: white;
+}
+
+.searchResultItem:hover {
+  background: rgba(212, 160, 23, 0.1);
+}
+
+.searchResultImage {
+  width: 40px;
+  height: 55px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.searchResultInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.searchResultTitle {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.searchResultMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.searchNoResults {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+

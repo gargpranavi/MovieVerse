@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
 import styles from './MovieCard.module.css'
 
 function PlayIcon() {
@@ -14,6 +16,14 @@ function PlusIcon() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
   )
 }
@@ -36,11 +46,29 @@ function ChevronDownIcon() {
 
 export default function MovieCard({ movie, rank }) {
   const navigate = useNavigate()
+  const [inWatchlist, setInWatchlist] = useState(false)
+
+  useEffect(() => {
+    setInWatchlist(isInWatchlist(movie.id))
+
+    const handleUpdate = () => {
+      setInWatchlist(isInWatchlist(movie.id))
+    }
+
+    window.addEventListener('watchlistUpdated', handleUpdate)
+    return () => window.removeEventListener('watchlistUpdated', handleUpdate)
+  }, [movie.id])
+
   // Use dummy image if movie.image is not provided in mock data
   const imageUrl = movie.image || `https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80&auto=format&fit=crop`
   
   const handleCardClick = () => {
     navigate(`/movie/${movie.id}`)
+  }
+
+  const handleWatchlistToggle = (e) => {
+    e.stopPropagation()
+    toggleWatchlist(movie)
   }
 
   return (
@@ -49,15 +77,6 @@ export default function MovieCard({ movie, rank }) {
         {rank && <span className={styles.rank}>{rank}</span>}
         <img src={imageUrl} alt={movie.title} className={styles.cardImage} />
         
-        {/* Persistent Add to Watchlist Button */}
-        <button 
-          className={styles.addToListBtn} 
-          onClick={(e) => { e.stopPropagation(); alert('Added to Watchlist!'); }}
-          aria-label="Add to Watchlist"
-        >
-          <PlusIcon />
-        </button>
-
         {/* Slide & Glow Overlay */}
         <div className={styles.cardOverlay}>
           <h3 className={styles.cardTitle}>{movie.title}</h3>
@@ -79,7 +98,14 @@ export default function MovieCard({ movie, rank }) {
 
           <div className={styles.controls}>
             <button className={styles.playBtn} onClick={(e) => { e.stopPropagation(); handleCardClick(); }}><PlayIcon /></button>
-            <button className={styles.circleBtn} onClick={(e) => e.stopPropagation()}><PlusIcon /></button>
+            <button 
+              className={styles.circleBtn} 
+              onClick={handleWatchlistToggle}
+              title={inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+              aria-label={inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+            >
+              {inWatchlist ? <CheckIcon /> : <PlusIcon />}
+            </button>
             <button className={styles.circleBtn} onClick={(e) => e.stopPropagation()}><ThumbsUpIcon /></button>
             <button className={styles.circleBtn} style={{ marginLeft: 'auto' }} onClick={(e) => { e.stopPropagation(); handleCardClick(); }}><ChevronDownIcon /></button>
           </div>

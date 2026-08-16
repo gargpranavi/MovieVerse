@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
+import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
 import styles from './MovieDetailsPage.module.css'
 
 function PlayIcon() {
@@ -16,6 +17,14 @@ function PlusIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
   )
 }
@@ -42,6 +51,7 @@ export default function MovieDetailsPage() {
   const navigate = useNavigate()
   const [movie, setMovie] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [inWatchlist, setInWatchlist] = useState(false)
 
   useEffect(() => {
     fetch(`https://api.tvmaze.com/shows/${id}`)
@@ -50,7 +60,7 @@ export default function MovieDetailsPage() {
         return res.json()
       })
       .then(show => {
-        setMovie({
+        const mappedMovie = {
           id: show.id.toString(),
           title: show.name,
           year: show.premiered ? show.premiered.substring(0, 4) : '2023',
@@ -63,7 +73,9 @@ export default function MovieDetailsPage() {
           language: show.language,
           network: show.network ? show.network.name : show.webChannel ? show.webChannel.name : 'Unknown Network',
           status: show.status,
-        })
+        }
+        setMovie(mappedMovie)
+        setInWatchlist(isInWatchlist(mappedMovie.id))
         setLoading(false)
       })
       .catch(err => {
@@ -71,6 +83,17 @@ export default function MovieDetailsPage() {
         setLoading(false)
       })
   }, [id])
+
+  useEffect(() => {
+    if (!movie) return
+    
+    const handleUpdate = () => {
+      setInWatchlist(isInWatchlist(movie.id))
+    }
+
+    window.addEventListener('watchlistUpdated', handleUpdate)
+    return () => window.removeEventListener('watchlistUpdated', handleUpdate)
+  }, [movie])
 
   if (loading) {
     return (
@@ -91,6 +114,10 @@ export default function MovieDetailsPage() {
         </div>
       </DashboardLayout>
     )
+  }
+
+  const handleWatchlistToggle = () => {
+    toggleWatchlist(movie)
   }
 
   return (
@@ -149,8 +176,12 @@ export default function MovieDetailsPage() {
               <button className={styles.btnPlay}>
                 <PlayIcon /> Play Now
               </button>
-              <button className={styles.btnWatchlist}>
-                <PlusIcon /> Add to Watchlist
+              <button 
+                className={styles.btnWatchlist}
+                onClick={handleWatchlistToggle}
+              >
+                {inWatchlist ? <CheckIcon /> : <PlusIcon />}
+                {inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
               </button>
             </div>
           </div>
@@ -159,3 +190,4 @@ export default function MovieDetailsPage() {
     </DashboardLayout>
   )
 }
+
