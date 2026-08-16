@@ -1,42 +1,91 @@
 /* =============================================
    Filmoria – WatchlistPage2.jsx
    Member 2 | Watchlist Page
-   Fetches real data from feecq.github.io API
+   Day 2 – TVMaze API  |  localStorage-backed
+
+   localStorage keys
+   ─────────────────
+   "watchlist"         → Array of full TVMaze show objects
+   "filmoria_watched"  → Array of shows marked as watched
+
+   Default Shows
+   ─────────────
+   6 popular TVMaze shows are ALWAYS seeded back into the watchlist
+   on every page load — even after the user deletes or watches them.
+
+   Flow
+   ────
+   Page load  →  fetch defaults  →  merge into localStorage  →  show grid
+   Add show   →  saves to localStorage  →  survives refresh  ✅
+   Remove / Mark watched  →  localStorage updated immediately
+   Refresh    →  defaults re-merged + user additions preserved  ✅
    ============================================= */
 
 import { useState, useEffect } from 'react'
 import WatchlistCard2 from '../components/WatchlistCard2.jsx'
-import styles from './WatchlistPage2.module.css'
+import EmptyState      from '../components/EmptyState.jsx'
+import styles          from './WatchlistPage2.module.css'
 
-/* ── API URL ─────────────────────────────────── */
-const API_URL = 'https://feecq.github.io/api/movies.json'
+/* ── TVMaze API URLs (same as team) ──────────── */
+const SHOWS_API  = 'https://api.tvmaze.com/shows'
+const MOVIES_API = 'https://api.tvmaze.com/search/shows?q=movie'
 
-/* ── LocalStorage keys ───────────────────────── */
-const LS_WATCHLIST = 'filmoria_watchlist'
+/* ── localStorage keys ───────────────────────── */
+const LS_WATCHLIST = 'watchlist'           // shared key for all team members
 const LS_WATCHED   = 'filmoria_watched'
 
-/* ── Icons ───────────────────────────────────── */
+/* ── Default show IDs (TVMaze) ───────────────────
+   These 6 popular shows are ALWAYS restored on refresh.
+   IDs: Person of Interest, True Detective, Grimm,
+        Supernatural, Vikings, Fargo
+   ─────────────────────────────────────────────── */
+const DEFAULT_SHOW_IDS = [2, 5, 10, 19, 29, 32]
+
+/* ══════════════════════════════════════════════
+   localStorage helpers
+   ══════════════════════════════════════════════ */
+
+/** Load watchlist from localStorage (returns array of show objects) */
+function loadWatchlist() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_WATCHLIST) || '[]')
+  } catch {
+    return []
+  }
+}
+
+/** Save watchlist to localStorage */
+function saveWatchlist(list) {
+  try {
+    localStorage.setItem(LS_WATCHLIST, JSON.stringify(list))
+  } catch { /* ignore */ }
+}
+
+/** Load watched list */
+function loadWatched() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_WATCHED) || '[]')
+  } catch {
+    return []
+  }
+}
+
+/** Save watched list */
+function saveWatched(list) {
+  try {
+    localStorage.setItem(LS_WATCHED, JSON.stringify(list))
+  } catch { /* ignore */ }
+}
+
+/* ══════════════════════════════════════════════
+   Inline SVG icons
+   ══════════════════════════════════════════════ */
+
 function BookmarkIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-    </svg>
-  )
-}
-
-function FilmIcon() {
-  return (
-    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="2.18"/>
-      <line x1="7" y1="2" x2="7" y2="22"/>
-      <line x1="17" y1="2" x2="17" y2="22"/>
-      <line x1="2" y1="12" x2="22" y2="12"/>
-      <line x1="2" y1="7" x2="7" y2="7"/>
-      <line x1="2" y1="17" x2="7" y2="17"/>
-      <line x1="17" y1="17" x2="22" y2="17"/>
-      <line x1="17" y1="7" x2="22" y2="7"/>
     </svg>
   )
 }
@@ -51,123 +100,131 @@ function SearchIcon() {
   )
 }
 
-function SpinnerIcon() {
+function PlusIcon() {
   return (
-    <svg className={styles.spinnerSvg} viewBox="0 0 50 50" aria-hidden="true">
-      <circle className={styles.spinnerCircle} cx="25" cy="25" r="20"
-              fill="none" strokeWidth="4"/>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
   )
 }
 
-/* ── localStorage helpers ────────────────────── */
-function getWatched() {
-  try { return JSON.parse(localStorage.getItem(LS_WATCHED) || '[]') } catch { return [] }
-}
-function setWatched(list) {
-  try { localStorage.setItem(LS_WATCHED, JSON.stringify(list)) } catch { /* ignore */ }
-}
-
-/* ── EmptyState ──────────────────────────────── */
-function EmptyState() {
-  return (
-    <div className={styles.emptyState} role="status" aria-live="polite">
-      <div className={styles.emptyIcon}><FilmIcon /></div>
-      <h2 className={styles.emptyTitle}>Your watchlist is empty</h2>
-      <p className={styles.emptyText}>
-        Movies you want to watch will appear here.<br/>
-        Start exploring and add some films!
-      </p>
-      <a href="/explore" className={styles.exploreBtn} id="exploreFromWatchlist">
-        Explore Movies
-      </a>
-    </div>
-  )
-}
-
-/* ── Skeleton loader card ────────────────────── */
+/* ── Skeleton loader card ─────────────────────── */
 function SkeletonCard() {
   return <div className={styles.skeleton} aria-hidden="true" />
 }
 
-/* ── Toast ───────────────────────────────────── */
+/* ── Toast notification ──────────────────────── */
 function Toast({ message, visible }) {
   return (
-    <div className={`${styles.toast} ${visible ? styles.toastVisible : ''}`}
-         role="status" aria-live="polite">
+    <div
+      className={`${styles.toast} ${visible ? styles.toastVisible : ''}`}
+      role="status"
+      aria-live="polite"
+    >
       {message}
     </div>
   )
 }
 
-/* ── Main Page ───────────────────────────────── */
-export default function WatchlistPage2() {
-  const [allMovies, setAllMovies] = useState([])   // full list from API
-  const [removed, setRemoved]     = useState([])   // IDs removed by user
-  const [loading, setLoading]     = useState(true)
-  const [error, setError]         = useState(null)
-  const [search, setSearch]       = useState('')
-  const [sortBy, setSortBy]       = useState('default')
-  const [toast, setToast]         = useState({ message: '', visible: false })
 
-  /* ── Fetch from API ──────────────────────── */
+/* ══════════════════════════════════════════════
+   Main WatchlistPage2 Component
+   ══════════════════════════════════════════════ */
+export default function WatchlistPage2() {
+  /* ── State ─────────────────────────────────── */
+  const [watchlist,   setWatchlist]   = useState([])   // show objects
+  const [search,      setSearch]      = useState('')
+  const [sortBy,      setSortBy]      = useState('default')
+  const [toast,       setToast]       = useState({ message: '', visible: false })
+  const [hoveredId,   setHoveredId]   = useState(null)  // tracks hovered card
+
+  /* ── On mount: fetch default shows + merge into watchlist ─
+     Default shows are ALWAYS present after every refresh,
+     even if the user previously deleted or watched them.
+     User-added shows are preserved alongside them.
+     ──────────────────────────────────────────────────────── */
   useEffect(() => {
-    fetch(API_URL)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP error: ${res.status}`)
-        return res.json()
+    const existing = loadWatchlist()
+    setWatchlist(existing)   // show saved items immediately
+
+    // Fetch the 6 default shows from TVMaze and merge them back
+    Promise.all(
+      DEFAULT_SHOW_IDS.map(id =>
+        fetch(`https://api.tvmaze.com/shows/${id}`).then(r => r.json())
+      )
+    )
+      .then(defaults => {
+        setWatchlist(prev => {
+          // Build a map from current list
+          const map = new Map(prev.map(s => [s.id, s]))
+          // Always (re-)insert each default show
+          defaults.forEach(show => {
+            if (show?.id) map.set(show.id, show)
+          })
+          // Defaults first, then any user-added shows that aren't defaults
+          const defaultIds = new Set(DEFAULT_SHOW_IDS)
+          const merged = [
+            ...defaults.filter(s => s?.id),
+            ...[...map.values()].filter(s => !defaultIds.has(s.id)),
+          ]
+          saveWatchlist(merged)   // persist the merged list
+          return merged
+        })
       })
-      .then(data => {
-        setAllMovies(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        setError(err.message)
-        setLoading(false)
+      .catch(() => {
+        // If fetch fails, still show whatever was in localStorage
+        setWatchlist(loadWatchlist())
       })
   }, [])
 
-  /* ── Toast helper ─── */
+  /* ── Toast helper ─────────────────────────── */
   function showToast(msg) {
     setToast({ message: msg, visible: true })
     setTimeout(() => setToast(t => ({ ...t, visible: false })), 2800)
   }
 
-  /* ── Remove from watchlist ─── */
+  /* ── Remove show from watchlist ───────────── */
   function handleRemove(id) {
-    const updated = [...removed, id]
-    setRemoved(updated)
+    setWatchlist(prev => {
+      const updated = prev.filter(s => s.id !== id)
+      saveWatchlist(updated)             // ← localStorage.setItem
+      return updated
+    })
     showToast('Removed from watchlist')
   }
 
-  /* ── Mark as watched ─── */
-  function handleMarkWatched(id) {
-    const movie = allMovies.find(m => m.id === id)
-    if (movie) {
-      const watched = getWatched()
-      const alreadyWatched = watched.some(m => m.id === id)
-      if (!alreadyWatched) {
-        setWatched([...watched, { ...movie, watchedDate: new Date().toISOString().split('T')[0] }])
-      }
+  /* ── Mark as watched (moves to watched list) ── */
+  function handleMarkWatched(show) {
+    // Save to watched list
+    const watched = loadWatched()
+    if (!watched.some(s => s.id === show.id)) {
+      saveWatched([
+        ...watched,
+        { ...show, watchedDate: new Date().toISOString().split('T')[0] }
+      ])
     }
-    // Also remove from watchlist view
-    const updated = [...removed, id]
-    setRemoved(updated)
+    // Remove from watchlist
+    handleRemove(show.id)
     showToast('✓ Moved to Watched')
   }
 
-  /* ── Active watchlist = all API movies minus removed ones ─── */
-  const watchlist = allMovies.filter(m => !removed.includes(m.id))
-
-  /* ── Filtered + sorted ─── */
+  /* ── Filtered + sorted watchlist ─────────── */
   const displayed = watchlist
-    .filter(m => m.movie.toLowerCase().includes(search.toLowerCase()))
+    .filter(s =>
+      (s.name ?? '').toLowerCase().includes(search.toLowerCase())
+    )
     .sort((a, b) => {
-      if (sortBy === 'rating') return b.rating - a.rating
-      if (sortBy === 'title')  return a.movie.localeCompare(b.movie)
-      return 0  // default = API order
+      if (sortBy === 'rating') return (b.rating?.average ?? 0) - (a.rating?.average ?? 0)
+      if (sortBy === 'title')  return (a.name ?? '').localeCompare(b.name ?? '')
+      return 0 // default = insertion order
     })
 
+
+  /* ════════════════════════════════════════════
+     Render
+     ════════════════════════════════════════════ */
   return (
     <div className={styles.page}>
 
@@ -185,7 +242,7 @@ export default function WatchlistPage2() {
             <div>
               <h1 className={styles.pageTitle}>My Watchlist</h1>
               <p className={styles.pageSubtitle}>
-                {loading ? 'Loading…' : `${watchlist.length} ${watchlist.length === 1 ? 'movie' : 'movies'} saved`}
+                {watchlist.length} {watchlist.length === 1 ? 'show' : 'shows'} saved
               </p>
             </div>
           </div>
@@ -202,7 +259,6 @@ export default function WatchlistPage2() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 aria-label="Search watchlist"
-                disabled={loading}
               />
             </div>
 
@@ -214,59 +270,49 @@ export default function WatchlistPage2() {
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
                 aria-label="Sort watchlist"
-                disabled={loading}
               >
                 <option value="default">Default</option>
                 <option value="rating">Rating ↓</option>
                 <option value="title">Title A–Z</option>
               </select>
             </div>
+
           </div>
         </div>
       </header>
 
-      {/* ── Main content ────────────────────── */}
+      {/* ── Main content ──────────────────────── */}
       <main className={styles.main} id="watchlistMain">
 
-        {/* Loading skeletons */}
-        {loading && (
-          <div className={styles.grid} aria-label="Loading movies" aria-busy="true">
-            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
-          </div>
-        )}
-
-        {/* Error state */}
-        {!loading && error && (
-          <div className={styles.errorState} role="alert">
-            <p>⚠️ Could not load movies: <strong>{error}</strong></p>
-            <button className={styles.retryBtn} onClick={() => window.location.reload()}>
-              Retry
-            </button>
-          </div>
-        )}
-
         {/* Empty state */}
-        {!loading && !error && watchlist.length === 0 && <EmptyState />}
+        {watchlist.length === 0 && <EmptyState />}
 
         {/* No search results */}
-        {!loading && !error && watchlist.length > 0 && displayed.length === 0 && search && (
+        {watchlist.length > 0 && displayed.length === 0 && search && (
           <div className={styles.noResults} role="status">
-            No movies matched "<strong>{search}</strong>"
+            No shows matched "<strong>{search}</strong>"
           </div>
         )}
 
         {/* Movie grid */}
-        {!loading && !error && displayed.length > 0 && (
-          <div className={styles.grid} role="list" aria-label="Watchlist movies">
-            {displayed.map((movie, index) => (
+        {displayed.length > 0 && (
+          <div className={styles.grid} role="list" aria-label="Watchlist shows">
+            {displayed.map((show, index) => (
               <div
-                key={movie.id}
+                key={show.id}
                 role="listitem"
                 className={styles.cardDrop}
-                style={{ animationDelay: `${index * 0.07}s` }}
+                style={{
+                  animationDelay: `${index * 0.06}s`,
+                  /* Hovered card rises above ALL others */
+                  zIndex: hoveredId === show.id ? 500 : hoveredId !== null ? 0 : 1,
+                  position: 'relative',
+                }}
+                onMouseEnter={() => setHoveredId(show.id)}
+                onMouseLeave={() => setHoveredId(null)}
               >
                 <WatchlistCard2
-                  movie={movie}
+                  show={show}
                   onRemove={handleRemove}
                   onMarkWatched={handleMarkWatched}
                 />

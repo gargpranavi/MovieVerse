@@ -76,10 +76,10 @@ member2/
 
 | Route | Page | Status |
 |-------|------|--------|
-| `/login` | Login Page | ✅ Done |
-| `/watchlist` | Watchlist Page | ✅ Done |
-| `/watched` | Watched Movies | 🔜 Day 2 |
-| `/profile` | My Profile | 🔜 Day 3 |
+| `/login` | Login Page | ✅ Done (Day 1) |
+| `/watchlist` | Watchlist Page | ✅ Done (Day 2) |
+| `/watched` | Watched Movies | 🔜 Day 3 |
+| `/profile` | My Profile | 🔜 Day 4 |
 | `/register` | Register | 🔜 Upcoming |
 
 ---
@@ -88,8 +88,8 @@ member2/
 
 - **Color Palette:** Deep black (`#050503`) + Gold (`#D4A017` / `#F5C842`)
 - **Typography:** `Outfit` (headings) + `Inter` (body)
-- **Style:** Glassmorphism, dark cards, ambient gold glows
-- **Animations:** Hover lift, shimmer, toast notifications
+- **Style:** Glassmorphism, dark cards, ambient gold glows, Amazon Prime/Netflix hover cards
+- **Animations:** Hover scale-up, z-index elevation, drop-down info panel, toast notifications
 
 ---
 
@@ -99,26 +99,33 @@ member2/
 - **React Router v7** — Client-side routing
 - **Vite 8** — Build tool & dev server
 - **CSS Modules** — Scoped component styling
+- **TVMaze API** — Real-time shows data fetching (`https://api.tvmaze.com/shows`)
 - **localStorage** — Client-side persistence for watchlist & watched data
 
 ---
 
 ## 📅 Progress Log (Member 2)
 
-### ✅ Day 1 — Watchlist Foundation
-- Created `/watchlist` route
-- Built `WatchlistPage2.jsx` with search, sort, and toast notifications
-- Built `WatchlistCard2.jsx` with poster, rating badge, genre tags, and action buttons
-- Created mock movie data in `user-movies2.js`
-- localStorage integration for persist/remove/move-to-watched
-- Fully responsive grid layout
+### ✅ Day 1 — Watchlist & Login Foundation
+- Created `/login` and `/watchlist` routes
+- Built `LoginPage.jsx` with glassmorphic authentication UI
+- Initial watchlist structure
 
-### 🔜 Day 2 — Watched Movies
+### ✅ Day 2 — Watchlist + LocalStorage & TVMaze API
+- Connected Watchlist to TVMaze API (`https://api.tvmaze.com/shows`)
+- Persistent `localStorage` management (`localStorage.setItem("watchlist", ...)` & `getItem("watchlist")`)
+- Auto-seeded 6 permanent default TVMaze shows on page load
+- Implemented duplicate prevention logic
+- Built `EmptyState.jsx` with 🎬 empty watchlist illustration & CTA
+- Redesigned movie cards to Amazon Prime / Netflix hover style (landscape 16:9, drop-down info panel, z-index elevation)
+- Remove movie & Mark as Watched flow fully working
+
+### 🔜 Day 3 — Watched Movies
 - `WatchedPage2.jsx` + `WatchedPage2.module.css`
 - `Rating2.jsx` star rating component
 - `ReviewCard2.jsx`
 
-### 🔜 Day 3 — Profile & Register
+### 🔜 Day 4 — Profile & Register
 - `ProfilePage2.jsx`
 - `ProfileCard2.jsx`, `StatusBadge2.jsx`
 - `RegisterPage2.jsx`
