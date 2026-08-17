@@ -10,6 +10,41 @@ const NAV_ITEMS = [
   { to: '/watched', label: 'Watched' },
 ]
 
+const MOCK_NOTIFICATIONS = [
+  {
+    id: 1,
+    type: 'release',
+    title: "New Release!",
+    message: "Sintel (Premium Cinematic Movie) is now available to stream in 4K.",
+    time: "2 hours ago",
+    unread: true
+  },
+  {
+    id: 2,
+    type: 'trending',
+    title: "Trending in Your Region",
+    message: "Sherlock Holmes is trending #1 — don't miss out!",
+    time: "5 hours ago",
+    unread: true
+  },
+  {
+    id: 3,
+    type: 'watchlist',
+    title: "Watchlist Update",
+    message: "\"The Dark Knight\" you saved has a new episode available.",
+    time: "1 day ago",
+    unread: true
+  },
+  {
+    id: 4,
+    type: 'recommendation',
+    title: "Recommended For You",
+    message: "Based on your watch history, you might enjoy \"Inception\".",
+    time: "2 days ago",
+    unread: false
+  }
+]
+
 function FilmReelIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -33,8 +68,12 @@ export default function TopNavbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
+  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   
   const inputRef = useRef(null)
+
+  const unreadCount = notifications.filter(n => n.unread).length
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,19 +122,42 @@ export default function TopNavbar() {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      // If the clicked target is no longer in the DOM, ignore it (prevents closures on re-renders)
       if (!document.body.contains(e.target)) return
 
-      // Find the parent element with searchContainer class
+      // Handle search outside click
       if (!e.target.closest(`.${styles.searchContainer}`)) {
         setSearchResults([])
         setSearchOpen(false)
         setSearchQuery('')
       }
+
+      // Handle notifications outside click
+      if (!e.target.closest(`.${styles.notificationsContainer}`)) {
+        setIsNotificationsOpen(false)
+      }
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
+
+  const handleNotificationClick = () => {
+    setIsNotificationsOpen(!isNotificationsOpen)
+  }
+
+  const handleReadNotification = (e, id) => {
+    e.stopPropagation()
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n))
+  }
+
+  const handleMarkAllRead = (e) => {
+    e.stopPropagation()
+    setNotifications(prev => prev.map(n => ({ ...n, unread: false })))
+  }
+
+  const handleClearNotifications = (e) => {
+    e.stopPropagation()
+    setNotifications([])
+  }
 
   return (
     <nav className={`${styles.navbar} ${isScrolled ? styles.scrolled : ''}`}>
@@ -198,13 +260,128 @@ export default function TopNavbar() {
           </svg>
         </NavLink>
 
-        <button className={styles.iconBtn} aria-label="Notifications" style={{ position: 'relative' }}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-          </svg>
-          <span className={styles.notificationBadge}></span>
-        </button>
+        <div className={styles.notificationsContainer}>
+          <button 
+            className={`${styles.iconBtn} ${isNotificationsOpen ? styles.activeIcon : ''}`} 
+            aria-label="Notifications" 
+            style={{ position: 'relative' }}
+            onClick={handleNotificationClick}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            {unreadCount > 0 && (
+              <span className={styles.notificationBadge}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {isNotificationsOpen && (
+            <div className={styles.notificationsDropdown}>
+              {/* Header */}
+              <div className={styles.notificationsHeader}>
+                <div className={styles.notificationsHeaderLeft}>
+                  <span className={styles.dropdownTitle}>Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className={styles.unreadPill}>{unreadCount} new</span>
+                  )}
+                </div>
+                <div className={styles.notificationsHeaderActions}>
+                  {unreadCount > 0 && (
+                    <button className={styles.markAllBtn} onClick={handleMarkAllRead} title="Mark all as read">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      Mark all read
+                    </button>
+                  )}
+                  {notifications.length > 0 && (
+                    <button className={styles.clearBtn} onClick={handleClearNotifications} title="Clear all">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* List */}
+              <div className={styles.notificationsList}>
+                {notifications.length > 0 ? (
+                  notifications.map(item => (
+                    <div
+                      key={item.id}
+                      className={`${styles.notificationItem} ${item.unread ? styles.notificationUnread : ''}`}
+                      onClick={(e) => handleReadNotification(e, item.id)}
+                    >
+                      {/* Type icon */}
+                      <div className={`${styles.notifIcon} ${styles[`notifIcon_${item.type}`]}`}>
+                        {item.type === 'release' && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                          </svg>
+                        )}
+                        {item.type === 'trending' && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
+                          </svg>
+                        )}
+                        {item.type === 'watchlist' && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                          </svg>
+                        )}
+                        {item.type === 'recommendation' && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                          </svg>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className={styles.notificationContent}>
+                        <div className={styles.notificationTopRow}>
+                          <span className={styles.notificationItemTitle}>{item.title}</span>
+                          {item.unread && <span className={styles.unreadDot}></span>}
+                        </div>
+                        <p className={styles.notificationMessage}>{item.message}</p>
+                        <span className={styles.notificationTime}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }}>
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                          </svg>
+                          {item.time}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.emptyNotifications}>
+                    <div className={styles.emptyIconWrapper}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                      </svg>
+                    </div>
+                    <span className={styles.emptyTitle}>All caught up!</span>
+                    <span className={styles.emptySubtitle}>No new notifications right now.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              {notifications.length > 0 && (
+                <div className={styles.notificationsFooter}>
+                  <span>Showing {notifications.length} notification{notifications.length !== 1 ? 's' : ''}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className={styles.profileBtn}>
           <img 

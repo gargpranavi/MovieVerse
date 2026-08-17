@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
+import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
 import styles from './MovieDetailsPage.module.css'
 
 function PlayIcon() {
@@ -52,6 +53,7 @@ export default function MovieDetailsPage() {
   const [movie, setMovie] = useState(null)
   const [loading, setLoading] = useState(true)
   const [inWatchlist, setInWatchlist] = useState(false)
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false)
 
   useEffect(() => {
     fetch(`https://api.tvmaze.com/shows/${id}`)
@@ -173,7 +175,7 @@ export default function MovieDetailsPage() {
             </div>
 
             <div className={styles.actionRow}>
-              <button className={styles.btnPlay}>
+              <button className={styles.btnPlay} onClick={() => setIsPlayerOpen(true)}>
                 <PlayIcon /> Play Now
               </button>
               <button 
@@ -187,6 +189,12 @@ export default function MovieDetailsPage() {
           </div>
         </div>
       </div>
+
+      <VideoPlayerModal 
+        isOpen={isPlayerOpen} 
+        onClose={() => setIsPlayerOpen(false)} 
+        movieTitle={movie.title} 
+      />
     </DashboardLayout>
   )
 }
