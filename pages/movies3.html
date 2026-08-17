@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New & Trending — MovieVerse</title>
-    <meta name="description" content="Discover the latest releases, trending titles, and movies popular this week on MovieVerse.">
+    <title>Movies — MovieVerse</title>
+    <meta name="description" content="Browse the complete MovieVerse movie library. Filter by genre, year, rating, language and discover movies you'll love.">
     <meta name="theme-color" content="#080808">
 
     <!-- Google Fonts -->
@@ -13,10 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Page CSS -->
-    <link rel="stylesheet" href="../css/new-trending3.css">
+    <link rel="stylesheet" href="../css/movies3.css">
 
     <style>
-        /* Top loading bar */
         #page-loader {
             position: fixed; top: 0; left: 0; z-index: 99999;
             height: 3px; width: 0%;
@@ -31,13 +30,12 @@
         }
     </style>
 
-    <!-- React & Babel -->
+    <!-- React & Babel (CDN — no build step needed) -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-    <!-- Gold top loading bar -->
     <div id="page-loader"></div>
 
     <main class="page-container" id="main-content">
@@ -51,7 +49,6 @@
     </noscript>
 
     <script>
-        // Animate loader bar
         const loader = document.getElementById('page-loader');
         loader.style.width = '40%';
         window.addEventListener('load', () => {
@@ -61,10 +58,10 @@
     </script>
 
     <!-- Data -->
-    <script src="../data/new-trending3.js"></script>
-    <!-- Components -->
+    <script src="../data/movies3.js"></script>
+    <!-- Shared Components -->
     <script type="text/babel" src="../components/MovieComponents3.jsx"></script>
     <!-- Page Logic -->
-    <script type="text/babel" src="../js/new-trending3.jsx"></script>
+    <script type="text/babel" src="../js/movies3.jsx"></script>
 </body>
 </html>
