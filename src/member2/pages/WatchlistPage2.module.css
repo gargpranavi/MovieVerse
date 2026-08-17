@@ -193,32 +193,32 @@
 }
 
 /* ── Add Shows button ───────────────────────── */
-.addBtn {
+.navBtn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 9px 18px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(135deg, #b88b00, #D4A017);
-  color: #050503;
+  padding: 8px 16px;
+  border-radius: 9px;
+  border: 1px solid rgba(70, 211, 105, 0.35);
+  background: rgba(70, 211, 105, 0.10);
+  color: #46d369;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(212, 160, 23, 0.35);
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.2s ease;
+  transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
   white-space: nowrap;
 }
 
-.addBtn:hover {
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 8px 28px rgba(212, 160, 23, 0.5);
+.navBtn:hover {
+  background: rgba(70, 211, 105, 0.20);
+  border-color: #46d369;
+  transform: translateY(-1px);
 }
 
-.addBtn:active {
-  transform: translateY(0) scale(0.97);
+.navBtn:active {
+  transform: translateY(0);
 }
 
 /* ── Main content area ─────────────────────── */

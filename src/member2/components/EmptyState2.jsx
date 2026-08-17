@@ -1,10 +1,10 @@
 /* =============================================
-   Filmoria – EmptyState.jsx
+   Filmoria – EmptyState2.jsx
    Member 2 | Empty Watchlist State Component
    Day 2 – Watchlist + localStorage
    ============================================= */
 
-import styles from './EmptyState.module.css'
+import styles from './EmptyState2.module.css'
 
 /* ── Film reel SVG ──────────────────────────── */
 function FilmReelIcon() {
@@ -32,8 +32,8 @@ function FilmReelIcon() {
   )
 }
 
-/* ── EmptyState Component ────────────────────── */
-export default function EmptyState() {
+/* ── EmptyState2 Component ───────────────────── */
+export default function EmptyState2() {
   return (
     <div className={styles.wrapper} role="status" aria-live="polite">
       <div className={styles.iconRing}>

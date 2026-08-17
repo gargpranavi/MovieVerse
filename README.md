@@ -78,7 +78,7 @@ member2/
 |-------|------|--------|
 | `/login` | Login Page | ✅ Done (Day 1) |
 | `/watchlist` | Watchlist Page | ✅ Done (Day 2) |
-| `/watched` | Watched Movies | 🔜 Day 3 |
+| `/watched` | Watched Movies | ✅ Done (Day 3) |
 | `/profile` | My Profile | 🔜 Day 4 |
 | `/register` | Register | 🔜 Upcoming |
 
@@ -86,9 +86,9 @@ member2/
 
 ## 🎨 Design System
 
-- **Color Palette:** Deep black (`#050503`) + Gold (`#D4A017` / `#F5C842`)
+- **Color Palette:** Deep black (`#050503`) + Gold (`#D4A017` / `#F5C842`) + Emerald Green (`#46D369`)
 - **Typography:** `Outfit` (headings) + `Inter` (body)
-- **Style:** Glassmorphism, dark cards, ambient gold glows, Amazon Prime/Netflix hover cards
+- **Style:** Glassmorphism, dark cards, ambient glows, Amazon Prime/Netflix hover cards
 - **Animations:** Hover scale-up, z-index elevation, drop-down info panel, toast notifications
 
 ---
@@ -116,17 +116,20 @@ member2/
 - Persistent `localStorage` management (`localStorage.setItem("watchlist", ...)` & `getItem("watchlist")`)
 - Auto-seeded 6 permanent default TVMaze shows on page load
 - Implemented duplicate prevention logic
-- Built `EmptyState.jsx` with 🎬 empty watchlist illustration & CTA
+- Built `EmptyState2.jsx` with 🎬 empty watchlist illustration & CTA
 - Redesigned movie cards to Amazon Prime / Netflix hover style (landscape 16:9, drop-down info panel, z-index elevation)
 - Remove movie & Mark as Watched flow fully working
 
-### 🔜 Day 3 — Watched Movies
-- `WatchedPage2.jsx` + `WatchedPage2.module.css`
-- `Rating2.jsx` star rating component
-- `ReviewCard2.jsx`
+### ✅ Day 3 — Watched Movies System
+- Built `WatchedPage2.jsx` & `WatchedPage2.module.css` with `/watched` route
+- Created `StatusBadge2.jsx` component supporting `watched`, `running`, `ended`, and `genre` variants
+- Implemented move from Watchlist (`watchlist`) → Watched (`filmoria_watched`) with persistent date timestamp
+- Added empty state for watched movies with quick link back to watchlist
+- Added header navigation buttons between `/watchlist` and `/watched`
+- Standardized member2 folder format (`pages/`, `components/`, `css/`, `js/`, `data/`)
 
 ### 🔜 Day 4 — Profile & Register
 - `ProfilePage2.jsx`
-- `ProfileCard2.jsx`, `StatusBadge2.jsx`
+- `ProfileCard2.jsx`
 - `RegisterPage2.jsx`
 

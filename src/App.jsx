@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage      from './member2/pages/LoginPage.jsx'
 import WatchlistPage2 from './member2/pages/WatchlistPage2.jsx'
+import WatchedPage2   from './member2/pages/WatchedPage2.jsx'
 
 function App() {
   return (
@@ -9,13 +10,13 @@ function App() {
       <Route path="/"          element={<Navigate to="/login" replace />} />
       <Route path="/login"     element={<LoginPage />} />
 
-      {/* Member 2 – Watchlist & User Activity */}
+      {/* Member 2 – Watchlist & Watched */}
       <Route path="/watchlist" element={<WatchlistPage2 />} />
+      <Route path="/watched"   element={<WatchedPage2 />} />
 
       {/* More routes will be added by each member here */}
       {/* <Route path="/home"     element={<HomePage />} /> */}
       {/* <Route path="/register" element={<RegisterPage />} /> */}
-      {/* <Route path="/watched"  element={<WatchedPage2 />} /> */}
       {/* <Route path="/profile"  element={<ProfilePage2 />} /> */}
     </Routes>
   )

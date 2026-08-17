@@ -1,6 +1,8 @@
 /* =============================================
    Filmoria – WatchlistCard2.jsx
-   Member 2 | Amazon Prime-style Watchlist Card
+   Member 2 | Amazon Prime-style card
+   Used on: /watchlist (all buttons)
+            /watched   (no "mark watched" btn, shows watched date)
    ============================================= */
 
 import styles from './WatchlistCard2.module.css'
@@ -38,18 +40,38 @@ function InfoIcon() {
   )
 }
 
+function EyeIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  )
+}
+
 /* ══════════════════════════════════════════════
    WatchlistCard2
-   Props: show, onRemove(id), onMarkWatched(show)
+   Props:
+     show            — TVMaze show object (may include .watchedDate)
+     onRemove(id)    — called when remove button clicked
+     onMarkWatched   — optional; if omitted, "Mark Watched" btn is hidden
+     removeLabel     — optional; custom tooltip for remove button
    ══════════════════════════════════════════════ */
-export default function WatchlistCard2({ show, onRemove, onMarkWatched }) {
-  const id      = show?.id
-  const title   = show?.name              ?? 'Unknown'
-  const rating  = show?.rating?.average   ?? null
-  const poster  = show?.image?.original   ?? show?.image?.medium ?? null
-  const genres  = show?.genres            ?? []
-  const summary = stripHtml(show?.summary ?? '').slice(0, 130)
-  const status  = show?.status            ?? ''
+export default function WatchlistCard2({
+  show,
+  onRemove,
+  onMarkWatched,
+  removeLabel = 'Remove from Watchlist',
+}) {
+  const id          = show?.id
+  const title       = show?.name              ?? 'Unknown'
+  const rating      = show?.rating?.average   ?? null
+  const poster      = show?.image?.original   ?? show?.image?.medium ?? null
+  const genres      = show?.genres            ?? []
+  const summary     = stripHtml(show?.summary ?? '').slice(0, 130)
+  const status      = show?.status            ?? ''
+  const watchedDate = show?.watchedDate       ?? null   // set on /watched page
 
   return (
     <article className={styles.card} id={`watchlist-card-${id}`}>
@@ -71,12 +93,19 @@ export default function WatchlistCard2({ show, onRemove, onMarkWatched }) {
           <span className={styles.fallbackLetter}>{title.charAt(0)}</span>
         </div>
 
-        {/* Running ribbon */}
+        {/* Status ribbon */}
         {status === 'Running' && (
           <div className={styles.ribbon}>● Now Airing</div>
         )}
 
-        {/* Rating (shows on hover) */}
+        {/* Watched ribbon (only on /watched page) */}
+        {watchedDate && (
+          <div className={`${styles.ribbon} ${styles.ribbonWatched}`}>
+            <EyeIcon /> Watched
+          </div>
+        )}
+
+        {/* Rating badge (shows on hover) */}
         {rating && (
           <div className={styles.ratingBadge}>★ {rating}</div>
         )}
@@ -84,6 +113,13 @@ export default function WatchlistCard2({ show, onRemove, onMarkWatched }) {
 
       {/* ══ Info panel — drops below on hover ═══ */}
       <div className={styles.infoPanel}>
+
+        {/* Watched date strip (only on /watched page) */}
+        {watchedDate && (
+          <div className={styles.watchedDateStrip}>
+            <EyeIcon /> Watched on {watchedDate}
+          </div>
+        )}
 
         {/* Action buttons */}
         <div className={styles.actionRow}>
@@ -94,21 +130,23 @@ export default function WatchlistCard2({ show, onRemove, onMarkWatched }) {
               className={styles.btnPlay}
               onClick={() => window.open(`https://www.tvmaze.com/shows/${id}`, '_blank')}
               aria-label={`Watch ${title}`}
-              title="Watch"
+              title="Watch on TVMaze"
             >
               <div className={styles.playTriangle} />
             </button>
 
-            {/* Mark watched */}
-            <button
-              className={`${styles.iconBtn} ${styles.btnWatched}`}
-              id={`markWatched-${id}`}
-              onClick={() => onMarkWatched(show)}
-              aria-label={`Mark ${title} as watched`}
-              title="Mark as Watched"
-            >
-              <CheckIcon />
-            </button>
+            {/* Mark watched — only on /watchlist page */}
+            {onMarkWatched && (
+              <button
+                className={`${styles.iconBtn} ${styles.btnWatched}`}
+                id={`markWatched-${id}`}
+                onClick={() => onMarkWatched(show)}
+                aria-label={`Mark ${title} as watched`}
+                title="Mark as Watched"
+              >
+                <CheckIcon />
+              </button>
+            )}
 
             {/* Remove */}
             <button
@@ -116,13 +154,13 @@ export default function WatchlistCard2({ show, onRemove, onMarkWatched }) {
               id={`remove-${id}`}
               onClick={() => onRemove(id)}
               aria-label={`Remove ${title}`}
-              title="Remove from Watchlist"
+              title={removeLabel}
             >
               <RemoveIcon />
             </button>
           </div>
 
-          {/* More info chevron */}
+          {/* More info */}
           <button
             className={styles.iconBtn}
             aria-label="More info"

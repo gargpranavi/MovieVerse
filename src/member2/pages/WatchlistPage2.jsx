@@ -22,8 +22,9 @@
    ============================================= */
 
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import WatchlistCard2 from '../components/WatchlistCard2.jsx'
-import EmptyState      from '../components/EmptyState.jsx'
+import EmptyState2     from '../components/EmptyState2.jsx'
 import styles          from './WatchlistPage2.module.css'
 
 /* ── TVMaze API URLs (same as team) ──────────── */
@@ -277,6 +278,15 @@ export default function WatchlistPage2() {
               </select>
             </div>
 
+            {/* Navigation to Watched */}
+            <Link to="/watched" className={styles.navBtn} title="View Watched Movies">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span>Watched</span>
+            </Link>
+
           </div>
         </div>
       </header>
@@ -285,7 +295,7 @@ export default function WatchlistPage2() {
       <main className={styles.main} id="watchlistMain">
 
         {/* Empty state */}
-        {watchlist.length === 0 && <EmptyState />}
+        {watchlist.length === 0 && <EmptyState2 />}
 
         {/* No search results */}
         {watchlist.length > 0 && displayed.length === 0 && search && (

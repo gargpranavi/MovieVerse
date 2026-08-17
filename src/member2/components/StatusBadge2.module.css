@@ -1,0 +1,77 @@
+/* =============================================
+   Filmoria – StatusBadge2.module.css
+   Member 2 | Status Badge Styles
+   Day 3 – Watched Movies
+   ============================================= */
+
+/* ── Base badge ──────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+/* Medium size */
+.md {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* Icon wrapper */
+.icon {
+  display: flex;
+  align-items: center;
+}
+
+/* ── Type variants ───────────────────────────── */
+
+/* ✅ Watched — green */
+.watched {
+  background: rgba(70, 211, 105, 0.15);
+  border: 1px solid rgba(70, 211, 105, 0.35);
+  color: #46d369;
+}
+
+/* 🔴 Now Airing — pulsing red dot */
+.running {
+  background: rgba(229, 9, 20, 0.12);
+  border: 1px solid rgba(229, 9, 20, 0.3);
+  color: #ff4d58;
+  animation: runningPulse 2s ease-in-out infinite;
+}
+
+@keyframes runningPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+/* ⬜ Ended — muted */
+.ended {
+  background: rgba(180, 180, 200, 0.08);
+  border: 1px solid rgba(180, 180, 200, 0.18);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* 🏷 Genre — subtle outline */
+.genre {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Custom / fallback */
+.custom {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+}
