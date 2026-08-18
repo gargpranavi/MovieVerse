@@ -23,6 +23,7 @@
 
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import WatchlistCard2 from '../components/WatchlistCard2.jsx'
 import EmptyState2     from '../components/EmptyState2.jsx'
 import styles          from './WatchlistPage2.module.css'
@@ -139,7 +140,6 @@ export default function WatchlistPage2() {
   const [search,      setSearch]      = useState('')
   const [sortBy,      setSortBy]      = useState('default')
   const [toast,       setToast]       = useState({ message: '', visible: false })
-  const [hoveredId,   setHoveredId]   = useState(null)  // tracks hovered card
 
   /* ── On mount: fetch default shows + merge into watchlist ─
      Default shows are ALWAYS present after every refresh,
@@ -227,113 +227,102 @@ export default function WatchlistPage2() {
      Render
      ════════════════════════════════════════════ */
   return (
-    <div className={styles.page}>
+    <DashboardLayout>
+      <div className={styles.page}>
 
-      {/* ── Ambient background ──────────────── */}
-      <div className={styles.bgScene} aria-hidden="true">
-        <div className={styles.bgGlow1} />
-        <div className={styles.bgGlow2} />
-      </div>
-
-      {/* ── Page header ─────────────────────── */}
-      <header className={styles.pageHeader}>
-        <div className={styles.headerContent}>
-          <div className={styles.headerLeft}>
-            <div className={styles.headerIcon}><BookmarkIcon /></div>
-            <div>
-              <h1 className={styles.pageTitle}>My Watchlist</h1>
-              <p className={styles.pageSubtitle}>
-                {watchlist.length} {watchlist.length === 1 ? 'show' : 'shows'} saved
-              </p>
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div className={styles.controls}>
-            <div className={styles.searchWrapper}>
-              <span className={styles.searchIcon}><SearchIcon /></span>
-              <input
-                id="watchlistSearch"
-                className={styles.searchInput}
-                type="search"
-                placeholder="Search your watchlist…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                aria-label="Search watchlist"
-              />
+        {/* ── Page header ─────────────────────── */}
+        <header className={styles.pageHeader}>
+          <div className={styles.headerContent}>
+            <div className={styles.headerLeft}>
+              <div className={styles.headerIcon}><BookmarkIcon /></div>
+              <div>
+                <h1 className={styles.pageTitle}>My Watchlist</h1>
+                <p className={styles.pageSubtitle}>
+                  {watchlist.length} {watchlist.length === 1 ? 'show' : 'shows'} saved
+                </p>
+              </div>
             </div>
 
-            <div className={styles.sortWrapper}>
-              <label htmlFor="watchlistSort" className={styles.sortLabel}>Sort by</label>
-              <select
-                id="watchlistSort"
-                className={styles.sortSelect}
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-                aria-label="Sort watchlist"
-              >
-                <option value="default">Default</option>
-                <option value="rating">Rating ↓</option>
-                <option value="title">Title A–Z</option>
-              </select>
-            </div>
-
-            {/* Navigation to Watched */}
-            <Link to="/watched" className={styles.navBtn} title="View Watched Movies">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <span>Watched</span>
-            </Link>
-
-          </div>
-        </div>
-      </header>
-
-      {/* ── Main content ──────────────────────── */}
-      <main className={styles.main} id="watchlistMain">
-
-        {/* Empty state */}
-        {watchlist.length === 0 && <EmptyState2 />}
-
-        {/* No search results */}
-        {watchlist.length > 0 && displayed.length === 0 && search && (
-          <div className={styles.noResults} role="status">
-            No shows matched "<strong>{search}</strong>"
-          </div>
-        )}
-
-        {/* Movie grid */}
-        {displayed.length > 0 && (
-          <div className={styles.grid} role="list" aria-label="Watchlist shows">
-            {displayed.map((show, index) => (
-              <div
-                key={show.id}
-                role="listitem"
-                className={styles.cardDrop}
-                style={{
-                  animationDelay: `${index * 0.06}s`,
-                  /* Hovered card rises above ALL others */
-                  zIndex: hoveredId === show.id ? 500 : hoveredId !== null ? 0 : 1,
-                  position: 'relative',
-                }}
-                onMouseEnter={() => setHoveredId(show.id)}
-                onMouseLeave={() => setHoveredId(null)}
-              >
-                <WatchlistCard2
-                  show={show}
-                  onRemove={handleRemove}
-                  onMarkWatched={handleMarkWatched}
+            {/* Controls */}
+            <div className={styles.controls}>
+              <div className={styles.searchWrapper}>
+                <span className={styles.searchIcon}><SearchIcon /></span>
+                <input
+                  id="watchlistSearch"
+                  className={styles.searchInput}
+                  type="search"
+                  placeholder="Search your watchlist…"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  aria-label="Search watchlist"
                 />
               </div>
-            ))}
-          </div>
-        )}
-      </main>
 
-      {/* ── Toast ─────────────────────────────── */}
-      <Toast message={toast.message} visible={toast.visible} />
-    </div>
+              <div className={styles.sortWrapper}>
+                <label htmlFor="watchlistSort" className={styles.sortLabel}>Sort by</label>
+                <select
+                  id="watchlistSort"
+                  className={styles.sortSelect}
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value)}
+                  aria-label="Sort watchlist"
+                >
+                  <option value="default">Default</option>
+                  <option value="rating">Rating ↓</option>
+                  <option value="title">Title A–Z</option>
+                </select>
+              </div>
+
+              {/* Navigation to Watched */}
+              <Link to="/watched" className={styles.navBtn} title="View Watched Movies">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <span>Watched</span>
+              </Link>
+
+            </div>
+          </div>
+        </header>
+
+        {/* ── Main content ──────────────────────── */}
+        <main className={styles.main} id="watchlistMain">
+
+          {/* Empty state */}
+          {watchlist.length === 0 && <EmptyState2 />}
+
+          {/* No search results */}
+          {watchlist.length > 0 && displayed.length === 0 && search && (
+            <div className={styles.noResults} role="status">
+              No shows matched "<strong>{search}</strong>"
+            </div>
+          )}
+
+          {/* Movie grid */}
+          {displayed.length > 0 && (
+            <div className={styles.grid} role="list" aria-label="Watchlist shows">
+              {displayed.map((show, index) => (
+                <div
+                  key={show.id}
+                  role="listitem"
+                  className={styles.cardDrop}
+                  style={{ animationDelay: `${index * 0.06}s` }}
+                >
+                  <WatchlistCard2
+                    show={show}
+                    onRemove={handleRemove}
+                    onMarkWatched={handleMarkWatched}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+
+        {/* ── Toast ─────────────────────────────── */}
+        <Toast message={toast.message} visible={toast.visible} />
+      </div>
+    </DashboardLayout>
   )
 }

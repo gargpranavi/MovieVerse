@@ -25,26 +25,9 @@
 }
 
 /* ── Ambient background ─────────────────────── */
-.bgScene {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image: url('/watchlist_bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-}
-
-.bgScene::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(5, 5, 3, 0.65);
-}
-
-.bgGlow1 { display: none; }
-.bgGlow2 { display: none; }
+.bgScene { display: none; }
+.bgGlow1  { display: none; }
+.bgGlow2  { display: none; }
 
 /* ── Page header ────────────────────────────── */
 .pageHeader {
@@ -232,13 +215,12 @@
   overflow: visible;
 }
 
-/* ── Movie / Show grid (Netflix landscape) ────── */
+/* ── Movie / Show grid (portrait 5-col — mirrors home page) ── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;               /* visible gap between cards */
-  overflow: visible;       /* NEVER clip hover info panels */
-  padding-bottom: 16px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
+  padding-bottom: 40px;
 }
 
 /* ── Card drop-in animation ──────────────────── */
@@ -306,11 +288,11 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* ── Skeleton loader ────────────────────────── */
+/* ── Skeleton (portrait) ────────────────────── */
 .skeleton {
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2 / 3;
   background: linear-gradient(
     90deg,
     rgba(255,255,255,0.04) 0%,
@@ -327,12 +309,17 @@
 }
 
 /* ── Responsive ─────────────────────────────── */
-/* Desktop already has 3 cols set on .grid */
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+}
 
 @media (max-width: 900px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
   }
 }
 
@@ -353,13 +340,13 @@
 
   .grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 10px;
   }
 }
 
 @media (max-width: 480px) {
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
 

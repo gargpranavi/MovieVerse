@@ -1,51 +1,62 @@
 /* =============================================
    MovieVerse – WatchlistCard2.jsx
-   Member 2 | Amazon Prime-style card
+   Member 2 | Netflix-style portrait card
+   (matches MovieCard.jsx design from member 1)
+
+   Day 4 — Rating & Reviews integrated.
+
    Used on: /watchlist (all buttons)
-            /watched   (no "mark watched" btn, shows watched date)
+            /watched   (no "mark watched" btn, shows watched date ribbon)
    ============================================= */
 
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { isInWatchlist } from '../../utils/watchlist.js'
+import Rating from './Rating.jsx'
+import ReviewCard from './ReviewCard.jsx'
 import styles from './WatchlistCard2.module.css'
 
-/* ── Helpers ─────────────────────────────────── */
-function stripHtml(html) {
-  return html ? html.replace(/<[^>]*>/g, '').trim() : ''
+/* ── Icons ───────────────────────────────────── */
+function PlayIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 5v14l11-7L8 5z" />
+    </svg>
+  )
 }
 
-/* ── Icons ───────────────────────────────────── */
 function CheckIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12"/>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
     </svg>
   )
 }
 
-function RemoveIcon() {
+function TrashIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-  )
-}
-
-function InfoIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="6 9 12 15 18 9"/>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
     </svg>
   )
 }
 
 function EyeIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
     </svg>
   )
 }
@@ -64,85 +75,119 @@ export default function WatchlistCard2({
   onMarkWatched,
   removeLabel = 'Remove from Watchlist',
 }) {
+  const navigate = useNavigate()
+
   const id          = show?.id
   const title       = show?.name              ?? 'Unknown'
-  const rating      = show?.rating?.average   ?? null
+  const tvRating    = show?.rating?.average   ?? null
   const poster      = show?.image?.original   ?? show?.image?.medium ?? null
   const genres      = show?.genres            ?? []
-  const summary     = stripHtml(show?.summary ?? '').slice(0, 130)
   const status      = show?.status            ?? ''
-  const watchedDate = show?.watchedDate       ?? null   // set on /watched page
+  const ageRating   = 'U/A 16+'
+  const runtime     = show?.runtime           ?? show?.averageRuntime ?? null
+  const duration    = runtime ? `${runtime} min` : null
+  const watchedDate = show?.watchedDate       ?? null
+
+  const [inWatchlist, setInWatchlist] = useState(false)
+
+  useEffect(() => {
+    setInWatchlist(isInWatchlist(id?.toString()))
+
+    const handleUpdate = () => setInWatchlist(isInWatchlist(id?.toString()))
+    window.addEventListener('watchlistUpdated', handleUpdate)
+    return () => window.removeEventListener('watchlistUpdated', handleUpdate)
+  }, [id])
+
+  const imageUrl = poster || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80'
+
+  const handleCardClick = () => {
+    navigate(`/movie/${id}`)
+  }
+
+  const handleRemoveClick = (e) => {
+    e.stopPropagation()
+    onRemove(id)
+  }
+
+  const handleMarkWatchedClick = (e) => {
+    e.stopPropagation()
+    onMarkWatched(show)
+  }
 
   return (
-    <article className={styles.card} id={`watchlist-card-${id}`}>
+    <div className={styles.cardContainer} onClick={handleCardClick} id={`watchlist-card-${id}`}>
+      <div className={styles.cardImageWrapper}>
 
-      {/* ── Thumbnail ─────────────────────────── */}
-      <div className={styles.thumb}>
-
-        {/* Poster */}
-        {poster
-          ? <img src={poster} alt={title} className={styles.img} loading="lazy"
-              onError={e => {
-                e.currentTarget.style.display = 'none'
-                e.currentTarget.nextSibling.style.display = 'flex'
-              }}
-            />
-          : null
-        }
-        <div className={styles.fallback} style={{ display: poster ? 'none' : 'flex' }}>
-          <span className={styles.fallbackLetter}>{title.charAt(0)}</span>
-        </div>
-
-        {/* Status ribbon */}
-        {status === 'Running' && (
-          <div className={styles.ribbon}>● Now Airing</div>
-        )}
-
-        {/* Watched ribbon (only on /watched page) */}
+        {/* Watched ribbon badge */}
         {watchedDate && (
-          <div className={`${styles.ribbon} ${styles.ribbonWatched}`}>
+          <div className={styles.watchedRibbon}>
             <EyeIcon /> Watched
           </div>
         )}
 
-        {/* Rating badge (shows on hover) */}
-        {rating && (
-          <div className={styles.ratingBadge}>★ {rating}</div>
+        {/* Status dot — Running */}
+        {status === 'Running' && !watchedDate && (
+          <div className={styles.liveRibbon}>● Airing</div>
         )}
-      </div>
 
-      {/* ══ Info panel — drops below on hover ═══ */}
-      <div className={styles.infoPanel}>
+        <img
+          src={imageUrl}
+          alt={title}
+          className={styles.cardImage}
+          onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80' }}
+        />
 
-        {/* Watched date strip (only on /watched page) */}
-        {watchedDate && (
-          <div className={styles.watchedDateStrip}>
-            <EyeIcon /> Watched on {watchedDate}
+        {/* Hover overlay */}
+        <div className={styles.cardOverlay}>
+          <h3 className={styles.cardTitle}>{title}</h3>
+
+          <div className={styles.metaInfo}>
+            {tvRating && <span className={styles.matchText}>★ {tvRating}</span>}
+            <span className={styles.ageBadge}>{ageRating}</span>
+            {duration && <span>{duration}</span>}
           </div>
-        )}
 
-        {/* Action buttons */}
-        <div className={styles.actionRow}>
-          <div className={styles.actionLeft}>
+          <div className={styles.genres}>
+            {genres.slice(0, 3).map((genre, i) => (
+              <span key={i}>
+                {genre}
+                {i < Math.min(genres.length, 3) - 1 && <span className={styles.dot}>•</span>}
+              </span>
+            ))}
+          </div>
 
-            {/* Play */}
+          {watchedDate && (
+            <div className={styles.watchedDateInOverlay}>
+              <EyeIcon /> Watched on {watchedDate}
+            </div>
+          )}
+
+          {/* ── Day 4: Star Rating ─────────────── */}
+          <div className={styles.ratingSection} onClick={e => e.stopPropagation()}>
+            <span className={styles.ratingLabel}>Rate:</span>
+            <Rating movieId={id?.toString()} size="sm" />
+          </div>
+
+          {/* ── Action buttons ─────────────────── */}
+          <div className={styles.controls}>
+            {/* Play / More Info */}
             <button
-              className={styles.btnPlay}
-              onClick={() => window.open(`https://www.tvmaze.com/shows/${id}`, '_blank')}
-              aria-label={`Watch ${title}`}
-              title="Watch on TVMaze"
+              className={styles.playBtn}
+              onClick={(e) => { e.stopPropagation(); handleCardClick() }}
+              aria-label={`Play ${title}`}
+              title="More Info"
             >
-              <div className={styles.playTriangle} />
+              <PlayIcon />
             </button>
 
-            {/* Mark watched — only on /watchlist page */}
+            {/* Mark as Watched — only on /watchlist */}
             {onMarkWatched && (
               <button
-                className={`${styles.iconBtn} ${styles.btnWatched}`}
-                id={`markWatched-${id}`}
-                onClick={() => onMarkWatched(show)}
+                className={styles.circleBtn}
+                onClick={handleMarkWatchedClick}
                 aria-label={`Mark ${title} as watched`}
                 title="Mark as Watched"
+                id={`markWatched-${id}`}
               >
                 <CheckIcon />
               </button>
@@ -150,49 +195,33 @@ export default function WatchlistCard2({
 
             {/* Remove */}
             <button
-              className={`${styles.iconBtn} ${styles.btnRemove}`}
-              id={`remove-${id}`}
-              onClick={() => onRemove(id)}
+              className={`${styles.circleBtn} ${styles.removeBtn}`}
+              onClick={handleRemoveClick}
               aria-label={`Remove ${title}`}
               title={removeLabel}
+              id={`remove-${id}`}
             >
-              <RemoveIcon />
+              <TrashIcon />
+            </button>
+
+            {/* More info chevron */}
+            <button
+              className={styles.circleBtn}
+              style={{ marginLeft: 'auto' }}
+              onClick={(e) => { e.stopPropagation(); handleCardClick() }}
+              aria-label={`More info about ${title}`}
+              title="More Info"
+            >
+              <ChevronDownIcon />
             </button>
           </div>
 
-          {/* More info */}
-          <button
-            className={styles.iconBtn}
-            aria-label="More info"
-            title="More info"
-          >
-            <InfoIcon />
-          </button>
+          {/* ── Day 4: Review button + panel ───── */}
+          <div className={styles.reviewSection}>
+            <ReviewCard movieId={id?.toString()} movieTitle={title} />
+          </div>
         </div>
-
-        {/* Title */}
-        <h3 className={styles.title}>{title}</h3>
-
-        {/* Meta */}
-        <div className={styles.meta}>
-          {rating && <span className={styles.metaRating}>★ {rating}</span>}
-          {rating && status && <span className={styles.metaDot}>•</span>}
-          {status && (
-            <span className={`${styles.metaStatus} ${status === 'Running' ? styles.running : styles.ended}`}>
-              {status}
-            </span>
-          )}
-          {genres.slice(0, 2).map((g, i) => (
-            <span key={g} className={styles.metaGenre}>
-              {i > 0 && <span className={styles.metaDot}> • </span>}{g}
-            </span>
-          ))}
-        </div>
-
-        {/* Summary */}
-        {summary && <p className={styles.summary}>{summary}{summary.length >= 130 ? '…' : ''}</p>}
       </div>
-
-    </article>
+    </div>
   )
 }
