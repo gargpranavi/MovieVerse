@@ -1,18 +1,18 @@
 /* =============================================
-   Filmoria – WatchedPage2.jsx
+   MovieVerse – WatchedPage2.jsx
    Member 2 | Watched Movies Page
    Day 3 – Watched Movies System
 
    localStorage keys
    ─────────────────
-   "filmoria_watched"  → Array of watched show objects (each has .watchedDate)
+   "movieverse_watched"  → Array of watched show objects (each has .watchedDate)
 
    Flow
    ────
-   /watchlist → Mark as Watched → moves show to "filmoria_watched" in localStorage
-   /watched   → shows everything in "filmoria_watched"
+   /watchlist → Mark as Watched → moves show to "movieverse_watched" in localStorage
+   /watched   → shows everything in "movieverse_watched"
    Refresh    → watched list auto-loaded from localStorage ✅
-   Remove     → removed from "filmoria_watched" localStorage ✅
+   Remove     → removed from "movieverse_watched" localStorage ✅
    ============================================= */
 
 import { useState, useEffect } from 'react'
@@ -23,7 +23,7 @@ import EmptyState2     from '../components/EmptyState2.jsx'
 import styles          from './WatchedPage2.module.css'
 
 /* ── localStorage key ────────────────────────── */
-const LS_WATCHED = 'filmoria_watched'
+const LS_WATCHED = 'movieverse_watched'
 
 /* ══════════════════════════════════════════════
    localStorage helpers

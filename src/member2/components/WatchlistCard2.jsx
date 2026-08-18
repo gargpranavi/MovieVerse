@@ -1,5 +1,5 @@
 /* =============================================
-   Filmoria – WatchlistCard2.jsx
+   MovieVerse – WatchlistCard2.jsx
    Member 2 | Amazon Prime-style card
    Used on: /watchlist (all buttons)
             /watched   (no "mark watched" btn, shows watched date)

@@ -1,5 +1,5 @@
 /* =============================================
-   Filmoria – watched2.js
+   MovieVerse – watched2.js
    Member 2 | Day 3 Watched Movies JS Exports
    ============================================= */
 

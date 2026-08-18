@@ -107,7 +107,7 @@ export default function LoginPage() {
 
   /* ── Load remembered identifier ─────────── */
   useEffect(() => {
-    const saved = localStorage.getItem('filmoria_saved_identifier')
+    const saved = localStorage.getItem('movieverse_saved_identifier')
     if (saved) {
       setIdentifier(saved)
       setRememberMe(true)
@@ -117,9 +117,9 @@ export default function LoginPage() {
   /* ── Sync remember-me to localStorage ────── */
   useEffect(() => {
     if (rememberMe && identifier.trim()) {
-      localStorage.setItem('filmoria_saved_identifier', identifier.trim())
+      localStorage.setItem('movieverse_saved_identifier', identifier.trim())
     } else if (!rememberMe) {
-      localStorage.removeItem('filmoria_saved_identifier')
+      localStorage.removeItem('movieverse_saved_identifier')
     }
   }, [rememberMe, identifier])
 
@@ -171,7 +171,7 @@ export default function LoginPage() {
             <div className={styles.brandLogo} aria-hidden="true">
               <FilmReelIcon />
             </div>
-            <h1 className={styles.brandName}>Filmoria</h1>
+            <h1 className={styles.brandName}>MovieVerse</h1>
             <p className={styles.brandTagline}>Discover &bull; Watch &bull; Remember</p>
           </header>
 

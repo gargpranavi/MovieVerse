@@ -1,5 +1,5 @@
 /* =============================================
-   Filmoria – StatusBadge2.jsx
+   MovieVerse – StatusBadge2.jsx
    Member 2 | Reusable Status / Watched Badge
    Day 3 – Watched Movies
 

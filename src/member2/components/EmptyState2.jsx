@@ -1,5 +1,5 @@
 /* =============================================
-   Filmoria – EmptyState2.jsx
+   MovieVerse – EmptyState2.jsx
    Member 2 | Empty Watchlist State Component
    Day 2 – Watchlist + localStorage
    ============================================= */

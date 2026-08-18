@@ -1,4 +1,4 @@
-# 🎬 Filmoria — Movie Discovery & Watchlist Platform
+# 🎬 MovieVerse — Movie Discovery & Watchlist Platform
 
 > A collaborative movie platform built with **React + Vite** by a 3-member team.
 > Explore movies, manage your watchlist, track what you've watched, and discover trending films & actors.
@@ -123,7 +123,7 @@ member2/
 ### ✅ Day 3 — Watched Movies System
 - Built `WatchedPage2.jsx` & `WatchedPage2.module.css` with `/watched` route
 - Created `StatusBadge2.jsx` component supporting `watched`, `running`, `ended`, and `genre` variants
-- Implemented move from Watchlist (`watchlist`) → Watched (`filmoria_watched`) with persistent date timestamp
+- Implemented move from Watchlist (`watchlist`) → Watched (`movieverse_watched`) with persistent date timestamp
 - Added empty state for watched movies with quick link back to watchlist
 - Added header navigation buttons between `/watchlist` and `/watched`
 - Standardized member2 folder format (`pages/`, `components/`, `css/`, `js/`, `data/`)

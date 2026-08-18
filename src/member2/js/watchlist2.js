@@ -1,5 +1,5 @@
 /* =============================================
-   Filmoria – watchlist2.js
+   MovieVerse – watchlist2.js
    Member 2 | Day 2 Watchlist JS Logic & Exports
    ============================================= */
 

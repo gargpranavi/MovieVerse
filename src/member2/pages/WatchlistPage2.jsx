@@ -1,12 +1,12 @@
 /* =============================================
-   Filmoria – WatchlistPage2.jsx
+   MovieVerse – WatchlistPage2.jsx
    Member 2 | Watchlist Page
    Day 2 – TVMaze API  |  localStorage-backed
 
    localStorage keys
    ─────────────────
    "watchlist"         → Array of full TVMaze show objects
-   "filmoria_watched"  → Array of shows marked as watched
+   "movieverse_watched"  → Array of shows marked as watched
 
    Default Shows
    ─────────────
@@ -33,7 +33,7 @@ const MOVIES_API = 'https://api.tvmaze.com/search/shows?q=movie'
 
 /* ── localStorage keys ───────────────────────── */
 const LS_WATCHLIST = 'watchlist'           // shared key for all team members
-const LS_WATCHED   = 'filmoria_watched'
+const LS_WATCHED   = 'movieverse_watched'
 
 /* ── Default show IDs (TVMaze) ───────────────────
    These 6 popular shows are ALWAYS restored on refresh.

@@ -1,5 +1,5 @@
 /* =============================================
-   Filmoria – user-movies2.js
+   MovieVerse – user-movies2.js
    Member 2 | Mock Movie Data
    ============================================= */
 
