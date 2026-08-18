@@ -129,6 +129,32 @@
   background: rgba(212, 160, 23, 0.1);
 }
 
+/* ── Like button liked state ─────────────────── */
+.circleBtnLiked {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #ef4444 !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+}
+
+.circleBtnLiked:hover {
+  background: rgba(239, 68, 68, 0.22) !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.5);
+}
+
+/* Pop / bounce animation on like */
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.45); }
+  55%  { transform: scale(0.88); }
+  80%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+.likeAnimate {
+  animation: heartPop 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
 .metaInfo {
   display: flex;
   align-items: center;

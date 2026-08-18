@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import MovieCarousel from '../../components/MovieCarousel/MovieCarousel.jsx'
 import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
+import MovieInfoModal from '../../components/MovieInfoModal/MovieInfoModal.jsx'
 import styles from './HomePage.module.css'
 
 function PlayIcon() {
@@ -44,6 +45,7 @@ export default function HomePage() {
   const [shows, setShows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   useEffect(() => {
     fetch('https://api.tvmaze.com/shows')
@@ -118,7 +120,7 @@ export default function HomePage() {
                 <PlayIcon />
                 <span className={styles.btnText}>Play</span>
               </button>
-              <button type="button" className={styles.btnMoreInfo}>
+              <button type="button" className={styles.btnMoreInfo} onClick={() => setIsInfoOpen(true)}>
                 <InfoIcon />
                 <span className={styles.btnText}>More Info</span>
               </button>
@@ -147,6 +149,13 @@ export default function HomePage() {
         isOpen={isPlayerOpen} 
         onClose={() => setIsPlayerOpen(false)} 
         movieTitle={featured.title} 
+      />
+
+      <MovieInfoModal
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+        movie={featured}
+        onPlay={() => setIsPlayerOpen(true)}
       />
     </DashboardLayout>
   )
