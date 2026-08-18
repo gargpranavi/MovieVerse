@@ -1,19 +1,19 @@
 // Member 3 — Movies Page Logic
-const { useState, useEffect, useMemo } = React;
+const { useState, useEffect } = React;
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const TABS = ['All Movies', 'Trending', 'New Releases', 'Popular'];
 
 const SORT_OPTIONS = [
-    { value: 'default',        label: 'Default'       },
-    { value: 'rating_desc',    label: 'Highest Rated' },
-    { value: 'rating_asc',     label: 'Lowest Rated'  },
-    { value: 'year_desc',      label: 'Newest'        },
-    { value: 'year_asc',       label: 'Oldest'        },
-    { value: 'title_asc',      label: 'A – Z'         },
-    { value: 'title_desc',     label: 'Z – A'         },
-    { value: 'popularity_desc',label: 'Most Popular'  },
+    { value: 'default',        label: 'Default / Recommended' },
+    { value: 'rating_desc',    label: 'Highest Rated'         },
+    { value: 'rating_asc',     label: 'Lowest Rated'          },
+    { value: 'year_desc',      label: 'Newest First'          },
+    { value: 'year_asc',       label: 'Oldest First'          },
+    { value: 'title_asc',      label: 'A – Z'                 },
+    { value: 'title_desc',     label: 'Z – A'                 },
+    { value: 'popularity_desc',label: 'Most Popular'          },
 ];
 
 const RATING_OPTIONS = [
@@ -22,6 +22,7 @@ const RATING_OPTIONS = [
     { value: '8',   label: '8+ ⭐'       },
     { value: '7',   label: '7+ ⭐'       },
     { value: '6',   label: '6+ ⭐'       },
+    { value: '5',   label: '5+ ⭐'       },
 ];
 
 // ─── Derived helpers ──────────────────────────────────────────────────────────
@@ -84,7 +85,7 @@ const FilterSelect = ({ id, label, value, onChange, options }) => (
 );
 
 const FiltersBar = ({ genres, years, languages, genre, year, minRating, language, sort,
-    onGenre, onYear, onRating, onLanguage, onSort, onClear, resultCount }) => (
+    onGenre, onYear, onRating, onLanguage, onSort, onClear, resultCount, hasActiveFilters }) => (
     <div className="filters-section">
         <div className="filters-row">
             <FilterSelect
@@ -112,8 +113,13 @@ const FiltersBar = ({ genres, years, languages, genre, year, minRating, language
             </button>
         </div>
         <div className="result-count">
-            Showing <span className="result-count-number">{resultCount}</span>
-            {resultCount === 1 ? ' movie' : ' movies'}
+            {hasActiveFilters ? (
+                <><span className="result-count-number">{resultCount}</span>
+                {resultCount === 1 ? ' Movie Found' : ' Movies Found'}</>
+            ) : (
+                <><span className="result-count-number">{resultCount}</span>
+                {resultCount === 1 ? ' Movie' : ' Movies'}</>
+            )}
         </div>
     </div>
 );
@@ -156,22 +162,26 @@ function App() {
     const [sort,        setSort]        = useState('default');
     const [selectedMovie, setSelectedMovie] = useState(null);
 
-    // ── Derived filter options ──
-    const genres    = useMemo(() => getUnique(allMovies, 'genre'),    []);
-    const years     = useMemo(() => getUnique(allMovies, 'year').sort((a, b) => b - a), []);
-    const languages = useMemo(() => getUnique(allMovies, 'language'), []);
+    // ── Derived filter options (static — computed once on mount) ──
+    const [genres]    = useState(() => getUnique(allMovies, 'genre'));
+    const [years]     = useState(() => getUnique(allMovies, 'year').sort((a, b) => b - a));
+    const [languages] = useState(() => getUnique(allMovies, 'language'));
+
+    // ── Hero: most popular movie (static — computed once on mount) ──
+    const [heroMovie] = useState(() =>
+        [...allMovies].sort((a, b) => b.popularity - a.popularity)[0]
+    );
 
     // ── Filtered + sorted movies ──
-    const filteredMovies = useMemo(() => applyFilters({
-        movies: allMovies,
-        tab: activeTab,
-        genre, year, minRating, language, sort
-    }), [activeTab, genre, year, minRating, language, sort]);
+    const [filteredMovies, setFilteredMovies] = useState(() =>
+        applyFilters({ movies: allMovies, tab: activeTab, genre, year, minRating, language, sort })
+    );
 
-    // ── Hero: highest rated movie ──
-    const heroMovie = useMemo(() =>
-        [...allMovies].sort((a, b) => b.popularity - a.popularity)[0],
-    []);
+    useEffect(() => {
+        setFilteredMovies(
+            applyFilters({ movies: allMovies, tab: activeTab, genre, year, minRating, language, sort })
+        );
+    }, [activeTab, genre, year, minRating, language, sort]);
 
     // ── Stats ──
     const trending    = allMovies.filter(m => m.trending);
@@ -195,10 +205,14 @@ function App() {
 
     const handleTabChange = (tab) => {
         setActiveTab(tab);
-        setSort('default'); // reset sort when tab changes
+        // Sort is intentionally preserved when switching tabs
+        // (per spec: sort is preserved until user explicitly changes it)
     };
 
     const showRanks = activeTab === 'Trending' && !genre && !year && !minRating && !language;
+
+    // True when any filter (genre, year, rating, language) is active — used for result count label
+    const hasActiveFilters = !!genre || !!year || minRating > 0 || !!language;
 
     return (
         <div>
@@ -234,6 +248,7 @@ function App() {
                 onSort={setSort}
                 onClear={handleClearFilters}
                 resultCount={filteredMovies.length}
+                hasActiveFilters={hasActiveFilters}
             />
 
             {/* Movie Grid or No Results */}
