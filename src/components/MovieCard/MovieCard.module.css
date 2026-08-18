@@ -1,0 +1,191 @@
+.cardContainer {
+  position: relative;
+  flex: 0 0 calc(20% - 12px); /* 5 columns with 15px gap (15*4=60 / 5 = 12) */
+  min-width: calc(20% - 12px);
+  aspect-ratio: 2 / 3; /* Vertical Posters */
+  height: auto;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  z-index: 1;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  transition: box-shadow var(--transition), transform var(--transition);
+  border: 1px solid transparent;
+}
+
+.cardContainer:hover {
+  transform: translateY(-5px);
+  border-color: var(--gold-mid);
+  box-shadow: var(--shadow-gold);
+  z-index: 2;
+}
+
+.cardImageWrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition);
+}
+
+.cardContainer:hover .cardImage {
+  transform: scale(1.05);
+}
+
+.cardOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px 15px;
+  background: linear-gradient(to top, rgba(5,5,7,0.95) 0%, rgba(5,5,7,0.7) 60%, transparent 100%);
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardContainer:hover .cardOverlay {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank {
+  position: absolute;
+  left: -10px;
+  bottom: -15px;
+  font-size: 120px;
+  font-weight: 900;
+  color: var(--bg-void);
+  -webkit-text-stroke: 2px var(--gold-mid);
+  line-height: 1;
+  z-index: 2;
+}
+
+.controls {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.playBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+  color: var(--bg-void);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(212, 160, 23, 0.4);
+  transition: transform 0.2s;
+}
+
+.playBtn:hover {
+  transform: scale(1.1);
+}
+
+.circleBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-muted);
+  background: rgba(5, 5, 7, 0.6);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s;
+}
+
+.circleBtn:hover {
+  border-color: var(--gold-mid);
+  color: var(--gold-light);
+  background: rgba(212, 160, 23, 0.1);
+}
+
+.metaInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.addToListBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
+}
+
+.addToListBtn:hover {
+  background: var(--gold-light);
+  color: var(--bg-void);
+  border-color: var(--gold-light);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.4);
+}
+
+.match { 
+  color: var(--gold-light); 
+}
+
+.ageBadge {
+  border: 1px solid var(--text-muted);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+.genres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.dot {
+  color: var(--text-muted);
+  font-size: 8px;
+}
