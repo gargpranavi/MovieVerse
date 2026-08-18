@@ -1,154 +1,168 @@
-const MovieCard3 = ({ movie, rank, onSelect }) => {
-    return (
-        <div className="movie-card" onClick={() => onSelect(movie)}>
-            <div className="card-poster-wrapper">
-                <img src={movie.poster} alt={movie.title} loading="lazy" className="card-poster" />
-                {rank && <div className="card-rank">{rank}</div>}
-                <div className="card-overlay">
-                    <button className="view-details-btn">View Details</button>
-                </div>
-            </div>
-            <div className="card-info">
-                <h3 className="card-title">{movie.title}</h3>
-                <div className="card-meta">
-                    <span>{movie.year}</span>
-                    <span className="card-rating"><span className="star-icon">★</span>{movie.rating}</span>
-                </div>
-                <div className="card-genres">{movie.genre.slice(0, 2).join(' · ')}</div>
+// ═══════════════════════════════════════════════════════════
+//  MovieVerse – Member 3  |  Shared React Components
+//  Pixel-matched to teammate's Screenshot 2
+// ═══════════════════════════════════════════════════════════
+
+// ─── PosterCard3 ─────────────────────────────────────────
+// Pure portrait-poster card — no visible text at rest,
+// info + "View Details" only on hover (matches Screenshot 2).
+// Props: movie, rank, isFeatured, onSelect
+const PosterCard3 = ({ movie, rank, isFeatured, onSelect }) => (
+    <div
+        className={`poster-card${isFeatured ? ' featured' : ''}`}
+        onClick={() => onSelect(movie)}
+        title={movie.title}
+    >
+        {rank && <span className="poster-rank">#{rank}</span>}
+
+        <img
+            src={movie.poster}
+            alt={movie.title}
+            loading="lazy"
+        />
+
+        {/* Hover overlay — hidden at rest via CSS opacity:0 */}
+        <div className="poster-card-overlay">
+            <div className="poster-card-title">{movie.title}</div>
+            <div className="poster-card-meta">
+                <span>{movie.year}</span>
+                <span>•</span>
+                <span className="poster-card-rating">★ {movie.rating}</span>
             </div>
         </div>
-    );
-};
+    </div>
+);
 
-const HeroMovie3 = ({ movie, badgeText }) => {
-    if (!movie) return null;
+// ─── CarouselSection3 ────────────────────────────────────
+// Horizontal scroll row of PosterCard3 cards.
+// Props:
+//   title        – section heading text
+//   movies       – array
+//   onSelectMovie – callback(movie)
+//   showRanks    – bool, shows #1 #2 … gold badges
+//   featuredId   – id of the highlighted card (gold border)
+const CarouselSection3 = ({ title, movies, onSelectMovie, showRanks, featuredId }) => {
+    const trackRef = React.useRef(null);
+
+    const scrollNext = () => {
+        if (trackRef.current) {
+            // Scroll by ~5 card widths each click
+            const card = trackRef.current.querySelector('.poster-card');
+            const scrollAmount = card
+                ? (card.offsetWidth + 12) * 5
+                : 1000;
+            trackRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    };
+
+    if (!movies || movies.length === 0) return null;
+
     return (
-        <section className="hero-container">
-            <div className="hero-backdrop-wrapper">
-                <img src={movie.backdrop || movie.poster} alt={movie.title} className="hero-backdrop" />
-                <div className="hero-gradient-overlay"></div>
+        <section className="carousel-section">
+            <div className="section-header">
+                <h2 className="section-title">{title}</h2>
             </div>
-            <div className="hero-content">
-                {badgeText && <span className="hero-badge">{badgeText}</span>}
-                <h1 className="hero-title">{movie.title}</h1>
-                <div className="hero-meta">
-                    <span>{movie.year}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{movie.genre.join(', ')}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{movie.runtime}</span>
-                    <span className="meta-dot">•</span>
-                    <span className="hero-rating"><span className="star-icon">★</span>{movie.rating}</span>
+            <div className="carousel-track-wrapper">
+                <div className="carousel-track" ref={trackRef}>
+                    {movies.map((movie, index) => (
+                        <PosterCard3
+                            key={movie.id}
+                            movie={movie}
+                            rank={showRanks ? index + 1 : null}
+                            isFeatured={featuredId === movie.id}
+                            onSelect={onSelectMovie}
+                        />
+                    ))}
                 </div>
-                <p className="hero-description">{movie.description}</p>
-                <div className="hero-actions">
-                    <button className="btn btn-primary">
-                        <svg className="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        Watch Now
-                    </button>
-                    <button className="btn btn-secondary">
-                        <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
-                        Watchlist
-                    </button>
-                </div>
+                <button
+                    className="carousel-next-btn"
+                    onClick={scrollNext}
+                    aria-label="Scroll right"
+                >›</button>
             </div>
         </section>
     );
 };
 
-const SectionTitle3 = ({ title, showViewAll }) => (
-    <div className="section-header">
-        <h2 className="section-title">{title}</h2>
-        {showViewAll && (
-            <button className="view-all-btn">View All <span className="arrow">›</span></button>
-        )}
-    </div>
-);
-
-const CategoryTabs3 = ({ categories, activeCategory, onChange, label }) => (
-    <div className="category-tabs-container">
-        {label && <div className="tabs-label">{label}</div>}
-        <div className="category-tabs">
-            {categories.map(cat => (
-                <button
-                    key={cat}
-                    className={activeCategory === cat ? 'tab-item active' : 'tab-item'}
-                    onClick={() => onChange(cat)}
-                >
-                    {cat}
-                </button>
-            ))}
-        </div>
-    </div>
-);
-
-const MovieSection3 = ({ title, movies, onSelectMovie, showViewAll, showRanks }) => (
-    <section className="movie-section">
-        <SectionTitle3 title={title} showViewAll={showViewAll} />
-        <div className="movie-grid">
-            {movies.map((movie, index) => (
-                <MovieCard3
-                    key={movie.id}
-                    movie={movie}
-                    rank={showRanks ? index + 1 : null}
-                    onSelect={onSelectMovie}
-                />
-            ))}
-        </div>
-    </section>
-);
-
-const PageHeader3 = ({ title, subtitle }) => (
-    <div className="page-header">
-        <div>
-            <div className="page-header-subtitle">{subtitle}</div>
-            <h1 className="page-header-title">{title}</h1>
-        </div>
-        <div className="page-header-divider"></div>
-    </div>
-);
-
-const StatsBar3 = ({ stats }) => (
-    <div className="stats-strip">
-        {stats.map((s, i) => (
-            <React.Fragment key={i}>
-                <div className="strip-stat">
-                    <span className="strip-value">{s.value}</span>
-                    <span className="strip-label">{s.label}</span>
-                </div>
-                {i < stats.length - 1 && <span className="strip-divider">|</span>}
-            </React.Fragment>
-        ))}
-    </div>
-);
-
-const GoldDivider3 = () => <div className="gold-divider"></div>;
-
-const MovieDetailsModal3 = ({ movie, onClose }) => {
+// ─── HeroSection3 ────────────────────────────────────────
+// Full-width cinematic hero section.
+// Layout: image fills width/height, dark left gradient,
+// content anchored bottom-left (matching Screenshot 2).
+// Props: movie, genreLabel, typeLabel
+const HeroSection3 = ({ movie, genreLabel, typeLabel }) => {
     if (!movie) return null;
     return (
+        <section className="hero-section">
+            <img
+                className="hero-backdrop"
+                src={movie.backdrop || movie.poster}
+                alt={movie.title}
+            />
+            <div className="hero-overlay" />
+            <div className="hero-content">
+                {/* ALL-CAPS title — 60px bold, white */}
+                <h1 className="hero-title">{movie.title}</h1>
+
+                {/* "Genre • Type • Year" meta line */}
+                <div className="hero-meta">
+                    {genreLabel && <span>{genreLabel}</span>}
+                    {typeLabel  && (
+                        <><span className="hero-meta-dot">•</span><span>{typeLabel}</span></>
+                    )}
+                    {movie.year && (
+                        <><span className="hero-meta-dot">•</span><span>{movie.year}</span></>
+                    )}
+                </div>
+
+                {/* Description — 2 lines max */}
+                {movie.description && (
+                    <p className="hero-description">{movie.description}</p>
+                )}
+            </div>
+        </section>
+    );
+};
+
+// ─── GoldDivider3 ────────────────────────────────────────
+const GoldDivider3 = () => <div className="gold-divider" />;
+
+// ─── MovieDetailsModal3 ──────────────────────────────────
+// Full-screen modal shown when a card is clicked.
+// Props: movie, onClose
+const MovieDetailsModal3 = ({ movie, onClose }) => {
+    if (!movie) return null;
+
+    React.useEffect(() => {
+        const handler = (e) => { if (e.key === 'Escape') onClose(); };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [onClose]);
+
+    return (
         <div className="modal-backdrop" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <button className="modal-close-btn" onClick={onClose}>✕</button>
+            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
                 <div className="modal-body">
-                    <div className="modal-poster-col">
-                        <img src={movie.poster} alt={movie.title} className="modal-poster" />
-                    </div>
-                    <div className="modal-details-col">
+                    <img className="modal-poster" src={movie.poster} alt={movie.title} />
+                    <div className="modal-info">
                         <h2 className="modal-title">{movie.title}</h2>
-                        <div className="modal-meta">
+                        <div className="modal-badges">
                             <span className="modal-badge">{movie.year}</span>
-                            <span className="modal-badge gold-badge">★ {movie.rating}</span>
-                            <span className="modal-meta-item">{movie.runtime}</span>
-                            <span className="modal-meta-item">{movie.language}</span>
+                            <span className="modal-badge gold">★ {movie.rating}</span>
+                            {movie.runtime  && <span className="modal-badge">{movie.runtime}</span>}
+                            {movie.language && <span className="modal-badge">{movie.language}</span>}
                         </div>
                         <div className="modal-genres">
-                            {movie.genre.map((g, i) => <span key={i} className="genre-pill">{g}</span>)}
+                            {movie.genre.map((g, i) => (
+                                <span key={i} className="genre-pill">{g}</span>
+                            ))}
                         </div>
                         <p className="modal-description">{movie.description}</p>
                         <div className="modal-actions">
                             <button className="btn btn-primary">
-                                <svg className="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                <svg className="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
                                 Watch Now
                             </button>
                             <button className="btn btn-secondary">+ Watchlist</button>
@@ -160,12 +174,14 @@ const MovieDetailsModal3 = ({ movie, onClose }) => {
     );
 };
 
-window.MovieCard3       = MovieCard3;
-window.HeroMovie3       = HeroMovie3;
-window.SectionTitle3    = SectionTitle3;
-window.CategoryTabs3    = CategoryTabs3;
-window.MovieSection3    = MovieSection3;
+// ─── Expose to global scope (CDN React, no build step) ───
+window.PosterCard3        = PosterCard3;
+window.CarouselSection3   = CarouselSection3;
+window.HeroSection3       = HeroSection3;
+window.GoldDivider3       = GoldDivider3;
 window.MovieDetailsModal3 = MovieDetailsModal3;
-window.PageHeader3      = PageHeader3;
-window.StatsBar3        = StatsBar3;
-window.GoldDivider3     = GoldDivider3;
+
+// Legacy aliases
+window.MovieCard3       = PosterCard3;
+window.HeroMovie3       = HeroSection3;
+window.MovieSection3    = CarouselSection3;

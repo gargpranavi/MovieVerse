@@ -1,65 +1,83 @@
-const { useState, useEffect } = React;
-
-const CATEGORIES = ['All', 'Animation', 'Adventure', 'Comedy', 'Family'];
+// ═══════════════════════════════════════════════════════════
+//  MovieVerse – Member 3  |  Kids & Family Page
+// ═══════════════════════════════════════════════════════════
+const { useState } = React;
 
 function App() {
-
-    const [activeCategory, setActiveCategory] = useState('All');
     const [selectedMovie, setSelectedMovie] = useState(null);
-    const [filteredMovies, setFilteredMovies] = useState([]);
 
-    useEffect(() => {
-        if (activeCategory === 'All') {
-            setFilteredMovies(kidsMovies);
-        } else {
-            const result = kidsMovies.filter(m => m.category.includes(activeCategory));
-            setFilteredMovies(result);
-        }
-    }, [activeCategory]);
+    // Hero: fixed to first kids movie
+    const heroMovie = kidsMovies[0];
 
-    const heroMovie  = kidsMovies[0];
-    const favorites  = kidsMovies.filter(m => m.rating >= 8.0).slice(0, 10);
-    const animated   = kidsMovies.filter(m => m.category.includes('Animation')).slice(0, 10);
-    const familyList = kidsMovies.filter(m => m.category.includes('Family')).slice(0, 10);
-    const adventure  = kidsMovies.filter(m => m.category.includes('Adventure')).slice(0, 10);
+    // Carousel lists
+    const favorites = [...kidsMovies]
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 12);
 
-    const stats = [
-        { value: animated.length + '+',   label: 'Animated Films' },
-        { value: familyList.length + '+', label: 'Family Picks'   },
-        { value: '8.0+',                  label: 'Top Rated'      },
-        { value: '5+',                    label: 'Genres'         },
-    ];
+    const animated = kidsMovies
+        .filter(m => m.category && m.category.includes('Animation'))
+        .slice(0, 12);
+
+    const familyList = kidsMovies
+        .filter(m => m.category && m.category.includes('Family'))
+        .slice(0, 12);
+
+    const adventure = kidsMovies
+        .filter(m => m.category && m.category.includes('Adventure'))
+        .slice(0, 12);
+
+    const comedy = kidsMovies
+        .filter(m => m.category && m.category.includes('Comedy'))
+        .slice(0, 12);
 
     return (
-        <div>
-            <PageHeader3 title="Kids & Family" subtitle="Magical movies for everyone" />
-            <StatsBar3 stats={stats} />
-            <HeroMovie3 movie={heroMovie} badgeText="KIDS & FAMILY" />
-            <CategoryTabs3
-                categories={CATEGORIES}
-                activeCategory={activeCategory}
-                onChange={setActiveCategory}
-                label="BROWSE BY"
+        <div className="page-container">
+
+            <HeroSection3
+                movie={heroMovie}
+                genreLabel={heroMovie.genre[0]}
+                typeLabel="Kids & Family"
             />
 
-            {activeCategory === 'All' ? (
-                <>
-                    <MovieSection3 title="Kids Favorites"      movies={favorites}  onSelectMovie={setSelectedMovie} showRanks={true} showViewAll={true} />
-                    <GoldDivider3 />
-                    <MovieSection3 title="Animated Adventures" movies={animated}   onSelectMovie={setSelectedMovie} showViewAll={true} />
-                    <GoldDivider3 />
-                    <MovieSection3 title="Family Movies"       movies={familyList} onSelectMovie={setSelectedMovie} showViewAll={true} />
-                    <GoldDivider3 />
-                    <MovieSection3 title="Fun & Adventure"     movies={adventure}  onSelectMovie={setSelectedMovie} showViewAll={true} />
-                </>
-            ) : (
-                <MovieSection3
-                    title={activeCategory + ' — ' + filteredMovies.length + ' titles'}
-                    movies={filteredMovies}
-                    onSelectMovie={setSelectedMovie}
-                    showViewAll={true}
-                />
-            )}
+            <CarouselSection3
+                title="Kids Favorites"
+                movies={favorites}
+                onSelectMovie={setSelectedMovie}
+                showRanks={true}
+                featuredId={heroMovie.id}
+            />
+
+            <GoldDivider3 />
+
+            <CarouselSection3
+                title="Animated Adventures"
+                movies={animated}
+                onSelectMovie={setSelectedMovie}
+            />
+
+            <GoldDivider3 />
+
+            <CarouselSection3
+                title="Family Movies"
+                movies={familyList}
+                onSelectMovie={setSelectedMovie}
+            />
+
+            <GoldDivider3 />
+
+            <CarouselSection3
+                title="Fun & Adventure"
+                movies={adventure}
+                onSelectMovie={setSelectedMovie}
+            />
+
+            <GoldDivider3 />
+
+            <CarouselSection3
+                title="Comedy For Kids"
+                movies={comedy}
+                onSelectMovie={setSelectedMovie}
+            />
 
             {selectedMovie && (
                 <MovieDetailsModal3
