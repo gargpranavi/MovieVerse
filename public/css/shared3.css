@@ -1,0 +1,517 @@
+/* ═══════════════════════════════════════════════════════════
+   MovieVerse — Member 3  |  Shared Design System
+   Pixel-matched to teammate's Screenshot 2
+   Reference viewport: 1707px wide, 811px tall
+═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap');
+
+/* ────────────────────────────────────────────────────────
+   CSS VARIABLES  — single source of truth for all values
+   ──────────────────────────────────────────────────────── */
+:root {
+    /* Page geometry */
+    --page-pad:      36px;   /* left/right padding used everywhere */
+    --hero-h:        410px;  /* hero section height (no navbar above) */
+    --hero-pad-b:    28px;   /* hero content bottom padding */
+
+    /* Carousel */
+    --card-gap:      12px;   /* gap between poster cards */
+    --section-gap-t: 22px;   /* padding above "Trending Movies" heading */
+    --section-gap-b: 14px;   /* gap between heading and cards */
+
+    /* Colors */
+    --bg:            #0a0a0a;
+    --gold:          #D4A017;
+    --gold-light:    #F0C040;
+    --gold-gradient: linear-gradient(135deg, #F0C040 0%, #D4A017 55%, #A07810 100%);
+    --gold-glow:     rgba(212,160,23,0.35);
+    --border-gold:   rgba(212,160,23,0.55);
+    --border-subtle: rgba(212,160,23,0.18);
+    --text-pri:      #ffffff;
+    --text-sec:      rgba(255,255,255,0.80);
+    --text-dim:      rgba(255,255,255,0.68);
+
+    /* Shape */
+    --r-card:  8px;
+    --r-badge: 999px;
+    --r-md:    10px;
+    --r-lg:    16px;
+
+    /* Font */
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --ease: cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+/* ────────────────────────────────────────────────────────
+   RESET
+   ──────────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    background: var(--bg);
+    color: var(--text-pri);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+img { display: block; }
+
+.page-container { width: 100%; padding-bottom: 80px; }
+
+/* ═══════════════════════════════════════════════════════
+   ① HERO SECTION
+   Full-width image, dark cinematic gradient, text bottom-left.
+   Height matches Screenshot 2 exactly at desktop viewport.
+═══════════════════════════════════════════════════════ */
+.hero-section {
+    position: relative;
+    width: 100%;
+    height: var(--hero-h);
+    overflow: hidden;
+    /* gradient continues into page bg — seamless dark transition */
+    margin-bottom: 0;
+}
+
+/* Backdrop fills the whole hero */
+.hero-backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    /* slight brightness reduction; right side stays bright (see overlay) */
+    filter: brightness(0.88) saturate(0.9);
+}
+
+/* Two-layer gradient:
+   Layer 1: Strong diagonal from bottom-left → transparent right
+   Layer 2: Bottom fade to #0a0a0a (matches page bg = seamless transition) */
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            105deg,
+            rgba(10,10,10,0.92) 0%,
+            rgba(10,10,10,0.72) 28%,
+            rgba(10,10,10,0.22) 56%,
+            transparent 80%
+        ),
+        linear-gradient(
+            to top,
+            rgba(10,10,10,0.96) 0%,
+            rgba(10,10,10,0.60) 22%,
+            transparent 52%
+        );
+}
+
+/* Hero text — sits bottom-left */
+.hero-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 0 var(--page-pad) var(--hero-pad-b);
+    max-width: 540px;
+    z-index: 2;
+}
+
+/* Title: ALL-CAPS, Playfair Display serif — matches the elegant editorial
+   movie-poster look in Screenshot 2. High contrast thick/thin strokes.
+   clamp keeps it on 1-2 lines even for long titles. */
+.hero-title {
+    font-family: 'Playfair Display', serif;   /* EXPLICIT — NOT var(--font) */
+    font-size: clamp(36px, 3.8vw, 60px);
+    font-weight: 800;
+    font-style: normal;
+    letter-spacing: 0.5px;
+    line-height: 1.05;
+    color: var(--text-pri);
+    text-transform: uppercase;
+    text-shadow: 0 2px 18px rgba(0,0,0,0.75);
+    margin-bottom: 10px;
+}
+
+/* "Movie • Drama • 1999" — Screenshot 2: ~13px, rgba white, dots */
+.hero-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-sec);
+    margin-bottom: 8px;
+    line-height: 1;
+}
+.hero-meta-dot {
+    font-size: 11px;
+    color: var(--text-sec);
+    opacity: 0.7;
+}
+
+/* Description — 2 lines, 13px, dim white */
+.hero-description {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-dim);
+    line-height: 1.52;
+    max-width: 420px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ② CAROUSEL SECTION
+   Sits BELOW hero (no overlap). Background is same dark #0a0a0a
+   so the hero's bottom gradient creates a seamless join.
+═══════════════════════════════════════════════════════ */
+.carousel-section {
+    padding-top: var(--section-gap-t);
+}
+
+/* Section header — "Trending Movies" gold heading.
+   margin-bottom is 0 because carousel-track padding-top
+   provides the full gap (avoids top-clipping on hover). */
+.section-header {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--page-pad);
+    margin-bottom: 0;
+}
+
+/* "Trending Movies" — Screenshot 2: ~20px, bold, gold */
+/* "Trending Movies" — Playfair Display serif, gold, ~20px bold.
+   Explicitly NOT var(--font). Matches Screenshot 2's elegant heading. */
+.section-title {
+    font-family: 'Playfair Display', serif;   /* EXPLICIT — NOT var(--font) */
+    font-size: 20px;
+    font-weight: 700;
+    font-style: normal;
+    color: var(--gold-light);
+    letter-spacing: 0.2px;
+    line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ③ CAROUSEL TRACK
+═══════════════════════════════════════════════════════ */
+.carousel-track-wrapper {
+    position: relative;
+}
+
+.carousel-track {
+    display: flex;
+    gap: var(--card-gap);
+    /* padding-top: 20px gives the hover transform (translateY -6px + scale 1.025
+       ≈ 12px upward) room to expand WITHOUT being clipped by overflow-y:auto.
+       Since overflow-x:auto forces overflow-y to auto (CSS spec), we need this
+       padding buffer. The 20px top also replaces section-header margin-bottom
+       so the visual title→card gap is unchanged (was 14px+6px = 20px). */
+    padding: 20px var(--page-pad) 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.carousel-track::-webkit-scrollbar { display: none; }
+
+/* Right-edge fade — hints that more cards exist */
+.carousel-track-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 70px; height: 100%;
+    background: linear-gradient(to left, var(--bg) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* ── Scroll button "›" ── */
+.carousel-next-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    /* Screenshot 2: small dark circle, ~30px, gold border */
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(10,10,10,0.85);
+    border: 1px solid var(--border-gold);
+    color: var(--gold-light);
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.7);
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+.carousel-next-btn:hover {
+    background: var(--gold-gradient);
+    color: #080808;
+    transform: translateY(-50%) scale(1.12);
+    border-color: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ④ POSTER CARD
+   5 cards fill the viewport width exactly.
+   Formula: (viewport - 2*page_pad - 4*card_gap) / 5
+           = (min(100vw,1600px) - 72px - 48px) / 5
+           = (min(100vw,1600px) - 120px) / 5
+
+   At 1070px: (1070-120)/5 = 190px ← matches Screenshot 2
+   At 1707px: (1600-120)/5 = 296px ← correct scaling
+═══════════════════════════════════════════════════════ */
+.poster-card {
+    flex: 0 0 calc((min(100vw, 1600px) - 120px) / 5);
+    width:         calc((min(100vw, 1600px) - 120px) / 5);
+    border-radius: var(--r-card);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    /* Screenshot 2: cards have transparent border by default */
+    border: 2px solid transparent;
+    /* Smooth hover transform */
+    transition:
+        transform 0.28s var(--ease),
+        box-shadow 0.28s var(--ease),
+        border-color 0.18s ease;
+    flex-shrink: 0;
+}
+
+/* Hover: lift + gold glow */
+.poster-card:hover {
+    transform: translateY(-6px) scale(1.025);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.88), 0 0 16px var(--gold-glow);
+    border-color: var(--gold-light);
+    z-index: 4;
+}
+
+/* Featured (hero movie's card): gold border always visible */
+.poster-card.featured {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(212,160,23,0.5), 0 6px 24px var(--gold-glow);
+}
+
+/* Portrait poster — aspect 2:3 */
+.poster-card img {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.poster-card:hover img { transform: scale(1.06); }
+
+/* ── Card hover overlay — hidden at rest, visible on hover ── */
+.poster-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(10,10,10,0.92) 0%,
+        rgba(10,10,10,0.48) 38%,
+        transparent 72%
+    );
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 10px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.poster-card:hover .poster-card-overlay { opacity: 1; }
+
+.poster-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.poster-card-meta {
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.poster-card-rating { color: var(--gold-light); font-weight: 700; }
+
+/* ── Rank badge "#1" "#2" — gold pill, top-left ── */
+.poster-rank {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--gold-gradient);
+    color: #080808;
+    font-size: 10px;
+    font-weight: 900;
+    font-family: var(--font);
+    padding: 2px 7px;
+    border-radius: var(--r-badge);
+    z-index: 3;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.55);
+    line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ⑤ GOLD DIVIDER between sections
+═══════════════════════════════════════════════════════ */
+.gold-divider {
+    height: 1px;
+    margin: 6px var(--page-pad) 0;
+    background: linear-gradient(to right, transparent, var(--border-gold), transparent);
+    opacity: 0.4;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ⑥ MOVIE DETAILS MODAL
+═══════════════════════════════════════════════════════ */
+.modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(14px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: mvFade 0.22s ease;
+}
+@keyframes mvFade { from { opacity:0 } to { opacity:1 } }
+
+.modal-box {
+    background: #141414;
+    border: 1px solid var(--border-gold);
+    border-radius: var(--r-lg);
+    width: 100%;
+    max-width: 820px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.98), 0 0 50px var(--gold-glow);
+    animation: mvSlide 0.3s var(--ease);
+}
+@keyframes mvSlide {
+    from { transform: translateY(26px); opacity:0 }
+    to   { transform: translateY(0);    opacity:1 }
+}
+.modal-box::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:3px; background: var(--gold-gradient);
+}
+
+.modal-close {
+    position: absolute; top:16px; right:18px;
+    width:32px; height:32px; border-radius:50%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border-subtle);
+    color:#fff; font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; z-index:10;
+    transition: all 0.18s ease;
+}
+.modal-close:hover { background: var(--gold-gradient); color:#080808; border-color:transparent; }
+
+.modal-body { display:flex; gap:28px; padding:36px; }
+.modal-poster {
+    width:200px; flex-shrink:0;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-gold);
+    object-fit:cover;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.7), 0 0 18px var(--gold-glow);
+    aspect-ratio: 2/3;
+}
+.modal-info { flex-grow:1; display:flex; flex-direction:column; }
+.modal-title {
+    font-size:26px; font-weight:900; color:#fff;
+    letter-spacing:-0.5px; margin-bottom:12px;
+}
+.modal-badges { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.modal-badge {
+    font-size:11px; font-weight:700; padding:4px 12px;
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.75);
+}
+.modal-badge.gold {
+    background: rgba(212,160,23,0.18); color: var(--gold-light);
+    border: 1px solid var(--border-gold);
+}
+.modal-genres { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:16px; }
+.genre-pill {
+    font-size:11px; font-weight:700; padding:3px 10px;
+    border-radius: var(--r-badge);
+    border: 1px solid var(--border-subtle);
+    background: rgba(212,160,23,0.08); color: var(--gold-light);
+}
+.modal-description {
+    font-size:14px; color:#ccc; line-height:1.65;
+    margin-bottom:24px; flex-grow:1;
+}
+.modal-actions { display:flex; gap:12px; }
+
+/* ═══════════════════════════════════════════════════════
+   ⑦ BUTTONS
+═══════════════════════════════════════════════════════ */
+.btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    gap:8px; padding:10px 24px; font-size:14px; font-weight:700;
+    font-family: var(--font); border-radius: var(--r-md);
+    border:none; cursor:pointer; transition: all 0.18s ease;
+}
+.btn-icon { width:17px; height:17px; }
+.btn-primary {
+    background: var(--gold-gradient); color:#080808;
+    box-shadow: 0 4px 18px rgba(212,160,23,0.38);
+}
+.btn-primary:hover { transform:translateY(-2px); filter:brightness(1.08); }
+.btn-secondary {
+    background: rgba(20,20,20,0.85); color: var(--gold-light);
+    border: 1px solid var(--border-gold); backdrop-filter:blur(8px);
+}
+.btn-secondary:hover { background: rgba(212,160,23,0.14); transform:translateY(-2px); }
+
+/* ═══════════════════════════════════════════════════════
+   ⑧ PAGE LOADER BAR
+═══════════════════════════════════════════════════════ */
+#page-loader {
+    position:fixed; top:0; left:0;
+    height:3px; width:0%; z-index:99999;
+    background: var(--gold-gradient);
+    box-shadow: 0 0 10px var(--gold-glow);
+    transition: width 0.4s ease;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ⑨ RESPONSIVE
+   Keep 5-card rule; adjust only where unavoidable.
+═══════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+    :root {
+        --hero-h:    300px;
+        --page-pad:  20px;
+        --card-gap:  10px;
+    }
+    .hero-title { font-size: 38px; }
+    .poster-card {
+        flex: 0 0 calc((min(100vw, 900px) - 40px - 40px) / 5);
+        width:         calc((min(100vw, 900px) - 40px - 40px) / 5);
+    }
+    .modal-body { flex-direction:column; padding:24px; }
+    .modal-poster { width:140px; margin:0 auto; }
+}
+
+@media (max-width: 600px) {
+    :root { --hero-h: 240px; }
+    .hero-title { font-size:26px; }
+    .poster-card { flex: 0 0 140px; width:140px; }
+}
