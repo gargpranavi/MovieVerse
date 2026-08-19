@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import MovieCarousel from '../../components/MovieCarousel/MovieCarousel.jsx'
 import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
 import MovieInfoModal from '../../components/MovieInfoModal/MovieInfoModal.jsx'
+import MovieCard from '../../components/MovieCard/MovieCard.jsx'
+import { getWatchlist } from '../../utils/watchlist.js'
+import { getWatched } from '../../utils/watched.js'
 import styles from './HomePage.module.css'
 
 function PlayIcon() {
@@ -24,12 +28,23 @@ function InfoIcon() {
   )
 }
 
-function VolumeIcon() {
+function VolumeOnIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
       <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    </svg>
+  )
+}
+
+function VolumeMuteIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <line x1="23" y1="9" x2="17" y2="15"></line>
+      <line x1="17" y1="9" x2="23" y2="15"></line>
     </svg>
   )
 }
@@ -42,11 +57,28 @@ function formatRuntime(mins) {
 }
 
 export default function HomePage() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [shows, setShows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const heroVideoRef = useRef(null);
+  
+  // Custom Dynamic Filter state
+  const [listTitle, setListTitle] = useState('')
+  const [filteredList, setFilteredList] = useState([])
 
+  // Parse location and filters
+  const path = location.pathname
+  const searchParams = new URLSearchParams(location.search)
+  const filterGenre = searchParams.get('genre')
+  const filterNetwork = searchParams.get('network')
+  const filterLanguage = searchParams.get('language')
+  const filterStatus = searchParams.get('status')
+
+  // Fetch full list of shows
   useEffect(() => {
     fetch('https://api.tvmaze.com/shows')
       .then(res => res.json())
@@ -56,11 +88,14 @@ export default function HomePage() {
           title: show.name,
           year: show.premiered ? show.premiered.substring(0, 4) : '2023',
           duration: formatRuntime(show.runtime || show.averageRuntime),
-          ageRating: 'U/A 16+', // TVMaze doesn't consistently provide this in standard format
+          ageRating: 'U/A 16+',
           genres: show.genres.length > 0 ? show.genres : ['Drama'],
           description: show.summary ? show.summary.replace(/<[^>]*>?/gm, '') : 'A great story.',
           image: show.image ? show.image.original : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80',
           rating: show.rating?.average || 8.0,
+          language: show.language,
+          network: show.network ? show.network.name : show.webChannel ? show.webChannel.name : 'Unknown Network',
+          status: show.status,
         }));
         setShows(mappedData);
         setLoading(false);
@@ -70,6 +105,46 @@ export default function HomePage() {
         setLoading(false);
       });
   }, []);
+
+  // Filter shows dynamically based on the current page route or query params
+  useEffect(() => {
+    if (shows.length === 0) return
+
+    if (path === '/watchlist') {
+      setListTitle('My Watchlist')
+      const watchlistIds = getWatchlist().map(item => item.id)
+      setFilteredList(shows.filter(show => watchlistIds.includes(show.id)))
+    } else if (path === '/watched') {
+      setListTitle('Watched History')
+      const watchedItems = getWatched()
+      const watchedIds = watchedItems.map(item => item.id)
+      const mappedWatched = shows
+        .filter(show => watchedIds.includes(show.id))
+        .map(show => {
+          const match = watchedItems.find(item => item.id === show.id)
+          return {
+            ...show,
+            watchedAt: match ? match.watchedAt : null
+          }
+        })
+      setFilteredList(mappedWatched)
+    } else if (filterGenre) {
+      setListTitle(`Genre: ${filterGenre}`)
+      setFilteredList(shows.filter(show => show.genres.includes(filterGenre)))
+    } else if (filterNetwork) {
+      setListTitle(`Network: ${filterNetwork}`)
+      setFilteredList(shows.filter(show => show.network === filterNetwork))
+    } else if (filterLanguage) {
+      setListTitle(`Language: ${filterLanguage}`)
+      setFilteredList(shows.filter(show => (show.language || 'English') === filterLanguage))
+    } else if (filterStatus) {
+      setListTitle(`Status: ${filterStatus}`)
+      setFilteredList(shows.filter(show => show.status === filterStatus))
+    } else {
+      setListTitle('')
+      setFilteredList([])
+    }
+  }, [path, filterGenre, filterNetwork, filterLanguage, filterStatus, shows])
 
   if (loading || shows.length === 0) {
     return (
@@ -87,6 +162,77 @@ export default function HomePage() {
   const actionMovies = shows.slice(20, 30);
   const sciFi = shows.slice(30, 40);
 
+  // Derive a display-friendly subtitle and icon for the filter type
+  const getFilterMeta = () => {
+    if (path === '/watchlist') return { icon: '🔖', sub: 'Your saved titles' }
+    if (path === '/watched')   return { icon: '✅', sub: 'Your watch history' }
+    if (filterGenre)   return { icon: '🎭', sub: `Browsing by genre` }
+    if (filterNetwork) return { icon: '📡', sub: `Shows from this network` }
+    if (filterLanguage) return { icon: '🌐', sub: `Shows in this language` }
+    if (filterStatus)  return { icon: '📺', sub: `Filtered by airing status` }
+    return { icon: '🎬', sub: '' }
+  }
+
+  // If a filter is active, render the premium filter page
+  if (listTitle) {
+    const { icon, sub } = getFilterMeta()
+    // Pick a backdrop from first result or a cinematic fallback
+    const backdropImg = filteredList[0]?.image || featured?.image ||
+      'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80'
+
+    return (
+      <DashboardLayout>
+        <div className={styles.filterPage}>
+
+          {/* ── Cinematic Hero Header ── */}
+          <div className={styles.filterHero} style={{ backgroundImage: `url(${backdropImg})` }}>
+            <div className={styles.filterHeroGradient} />
+            <div className={styles.filterHeroContent}>
+              <button type="button" className={styles.filterBackBtn} onClick={() => navigate(-1)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Go Back
+              </button>
+              <div className={styles.filterIconBadge}>{icon}</div>
+              <h1 className={styles.filterHeroTitle}>{listTitle}</h1>
+              {sub && <p className={styles.filterHeroSub}>{sub}</p>}
+              <div className={styles.filterResultCount}>
+                {filteredList.length} {filteredList.length === 1 ? 'title' : 'titles'} found
+              </div>
+            </div>
+          </div>
+
+          {/* ── Results Grid ── */}
+          <div className={styles.filterBody}>
+            {filteredList.length === 0 ? (
+              <div className={styles.noResultsBox}>
+                <div className={styles.noResultsIcon}>🎬</div>
+                <h3>No titles found</h3>
+                <p>We couldn't find anything matching this filter. Try browsing the home screen for more content.</p>
+                <Link to="/home" className={styles.btnExplore}>Browse Home</Link>
+              </div>
+            ) : (
+              <div className={styles.filterGrid}>
+                {filteredList.map((movie) => (
+                  <div key={movie.id} className={styles.gridCardWrapper}>
+                    <MovieCard movie={movie} />
+                    {movie.watchedAt && (
+                      <div className={styles.watchedGridTag}>
+                        ✓ Watched: {movie.watchedAt}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
   return (
     <DashboardLayout>
       <div className={styles.page}>
@@ -94,6 +240,15 @@ export default function HomePage() {
           <div
             className={styles.heroBg}
             style={{ backgroundImage: `url(${featured.image})` }}
+          />
+          <video
+            ref={heroVideoRef}
+            className={styles.heroVideo}
+            src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
+            autoPlay
+            loop
+            muted={isMuted}
+            playsInline
           />
           <div className={styles.heroGradient} />
           
@@ -128,8 +283,18 @@ export default function HomePage() {
           </div>
           
           <div className={styles.heroBottomRight}>
-            <button className={styles.btnVolume} aria-label="Toggle Volume">
-              <VolumeIcon />
+            <button
+              className={styles.btnVolume}
+              aria-label={isMuted ? 'Unmute' : 'Mute'}
+              onClick={() => {
+                const nextMuted = !isMuted;
+                setIsMuted(nextMuted);
+                if (heroVideoRef.current) {
+                  heroVideoRef.current.muted = nextMuted;
+                }
+              }}
+            >
+              {isMuted ? <VolumeMuteIcon /> : <VolumeOnIcon />}
             </button>
             <div className={styles.languageBadge}>
               U/A 16+
@@ -160,4 +325,3 @@ export default function HomePage() {
     </DashboardLayout>
   )
 }
-
