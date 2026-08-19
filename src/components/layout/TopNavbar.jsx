@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import styles from './TopNavbar.module.css'
 
 const NAV_ITEMS = [
@@ -70,6 +70,7 @@ export default function TopNavbar() {
   const [isSearching, setIsSearching] = useState(false)
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   
   const inputRef = useRef(null)
 
@@ -134,6 +135,11 @@ export default function TopNavbar() {
       // Handle notifications outside click
       if (!e.target.closest(`.${styles.notificationsContainer}`)) {
         setIsNotificationsOpen(false)
+      }
+
+      // Handle profile dropdown outside click
+      if (!e.target.closest(`.${styles.profileContainer}`)) {
+        setIsProfileOpen(false)
       }
     }
     document.addEventListener('click', handleClickOutside)
@@ -383,15 +389,118 @@ export default function TopNavbar() {
           )}
         </div>
 
-        <div className={styles.profileBtn}>
-          <img 
-            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80" 
-            alt="Profile Avatar" 
-            className={styles.avatar} 
-          />
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
+        {/* ── Profile dropdown ─────────────────── */}
+        <div className={styles.profileContainer}>
+          <button
+            className={`${styles.profileBtn} ${isProfileOpen ? styles.profileBtnActive : ''}`}
+            onClick={() => setIsProfileOpen(v => !v)}
+            aria-label="Profile menu"
+            aria-expanded={isProfileOpen}
+            id="navbar-profile-btn"
+            type="button"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"
+              alt="Piyush's avatar"
+              className={styles.avatar}
+            />
+            <span className={styles.profileName}>Piyush</span>
+            <svg
+              width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.5"
+              strokeLinecap="round" strokeLinejoin="round"
+              className={`${styles.chevron} ${isProfileOpen ? styles.chevronUp : ''}`}
+            >
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+
+          {/* Profile dropdown panel */}
+          {isProfileOpen && (
+            <div className={styles.profileDropdown} role="menu" aria-label="Profile menu">
+
+              {/* Header */}
+              <div className={styles.profileDropdownHeader}>
+                <img
+                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"
+                  alt="Piyush"
+                  className={styles.profileDropdownAvatar}
+                />
+                <div className={styles.profileDropdownInfo}>
+                  <span className={styles.profileDropdownName}>Piyush</span>
+                  <span className={styles.profileDropdownRole}>Movie Explorer</span>
+                  <span className={styles.profileDropdownEmail}>piyush@movieverse.com</span>
+                </div>
+              </div>
+
+              <div className={styles.profileDropdownDivider} />
+
+              {/* Menu items */}
+              <nav className={styles.profileMenuList} role="none">
+                <Link
+                  to="/profile"
+                  className={styles.profileMenuItem}
+                  onClick={() => setIsProfileOpen(false)}
+                  role="menuitem"
+                  id="navbar-goto-profile"
+                >
+                  <span className={styles.profileMenuIcon}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  </span>
+                  My Profile
+                </Link>
+
+                <Link
+                  to="/watchlist"
+                  className={styles.profileMenuItem}
+                  onClick={() => setIsProfileOpen(false)}
+                  role="menuitem"
+                  id="navbar-goto-watchlist"
+                >
+                  <span className={styles.profileMenuIcon}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </span>
+                  My Watchlist
+                </Link>
+
+                <Link
+                  to="/watched"
+                  className={styles.profileMenuItem}
+                  onClick={() => setIsProfileOpen(false)}
+                  role="menuitem"
+                  id="navbar-goto-watched"
+                >
+                  <span className={styles.profileMenuIcon}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </span>
+                  Watched Movies
+                </Link>
+              </nav>
+
+              <div className={styles.profileDropdownDivider} />
+
+              {/* Footer */}
+              <div className={styles.profileDropdownFooter}>
+                <Link
+                  to="/profile"
+                  className={styles.viewProfileBtn}
+                  onClick={() => setIsProfileOpen(false)}
+                  id="navbar-view-full-profile"
+                >
+                  View Full Profile →
+                </Link>
+              </div>
+
+            </div>
+          )}
         </div>
       </div>
     </nav>

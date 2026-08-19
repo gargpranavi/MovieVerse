@@ -132,10 +132,11 @@ export default function WatchedPage2() {
     <DashboardLayout>
       <div className={styles.page}>
 
-        {/* ── Ambient background ──────────────── */}
+        {/* ── Deep Space Background ────────────── */}
         <div className={styles.bgScene} aria-hidden="true">
           <div className={styles.bgGlow1} />
           <div className={styles.bgGlow2} />
+          <div className={styles.bgGlow3} />
         </div>
 
         {/* ── Page header ─────────────────────── */}

@@ -230,6 +230,13 @@ export default function WatchlistPage2() {
     <DashboardLayout>
       <div className={styles.page}>
 
+        {/* ── Deep Space Background ────────────── */}
+        <div className={styles.bgScene} aria-hidden="true">
+          <div className={styles.bgGlow1} />
+          <div className={styles.bgGlow2} />
+          <div className={styles.bgGlow3} />
+        </div>
+
         {/* ── Page header ─────────────────────── */}
         <header className={styles.pageHeader}>
           <div className={styles.headerContent}>

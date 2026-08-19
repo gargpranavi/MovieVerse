@@ -580,3 +580,255 @@
   color: rgba(255,255,255,0.3);
   font-family: 'Outfit', sans-serif;
 }
+
+/* ═══════════════════════════════════════════════
+   Profile Button + Dropdown
+   ═══════════════════════════════════════════════ */
+
+/* Wrapper – positions the dropdown */
+.profileContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Trigger button */
+.profileBtn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 40px;
+  padding: 5px 12px 5px 5px;
+  cursor: pointer;
+  color: #e5e5e5;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.profileBtn:hover,
+.profileBtnActive {
+  background: rgba(212, 160, 23, 0.10);
+  border-color: rgba(212, 160, 23, 0.35);
+  box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.08);
+}
+
+/* Avatar image inside the button */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(212, 160, 23, 0.40);
+  transition: border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.profileBtn:hover .avatar,
+.profileBtnActive .avatar {
+  border-color: #D4A017;
+}
+
+/* Username label */
+.profileName {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e5e5e5;
+  white-space: nowrap;
+}
+
+/* Chevron icon */
+.chevron {
+  color: rgba(255,255,255,0.5);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.chevronUp {
+  transform: rotate(180deg);
+}
+
+/* ── Dropdown panel ─────────────────────────── */
+.profileDropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 280px;
+  background: rgba(10, 8, 4, 0.96);
+  border: 1px solid rgba(212, 160, 23, 0.18);
+  border-radius: 18px;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(212, 160, 23, 0.06) inset;
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  overflow: hidden;
+  z-index: 200;
+  animation: dropdownFade 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Dropdown header ────────────────────────── */
+.profileDropdownHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 18px 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 160, 23, 0.07) 0%,
+    rgba(255,255,255,0.02) 100%
+  );
+}
+
+.profileDropdownAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(212, 160, 23, 0.45);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 0 4px rgba(212,160,23,0.08);
+  flex-shrink: 0;
+}
+
+.profileDropdownInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profileDropdownName {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: #f0f0f5;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profileDropdownRole {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #D4A017;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.profileDropdownEmail {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: rgba(240, 240, 245, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Divider ────────────────────────────────── */
+.profileDropdownDivider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(212, 160, 23, 0.18) 40%,
+    rgba(212, 160, 23, 0.18) 60%,
+    transparent
+  );
+  margin: 0 18px;
+}
+
+/* ── Menu list ──────────────────────────────── */
+.profileMenuList {
+  padding: 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profileMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(240, 240, 245, 0.75);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+  cursor: pointer;
+}
+
+.profileMenuItem:hover {
+  background: rgba(212, 160, 23, 0.08);
+  color: #F5C842;
+  transform: translateX(3px);
+}
+
+.profileMenuIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(212, 160, 23, 0.7);
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.profileMenuItem:hover .profileMenuIcon {
+  background: rgba(212, 160, 23, 0.12);
+  border-color: rgba(212, 160, 23, 0.25);
+  color: #D4A017;
+}
+
+/* ── Dropdown footer ────────────────────────── */
+.profileDropdownFooter {
+  padding: 12px 18px 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.viewProfileBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.14), rgba(245, 200, 66, 0.08));
+  border: 1px solid rgba(212, 160, 23, 0.30);
+  color: #F5C842;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.viewProfileBtn:hover {
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.22), rgba(245, 200, 66, 0.14));
+  border-color: rgba(212, 160, 23, 0.55);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(212, 160, 23, 0.20);
+}
+

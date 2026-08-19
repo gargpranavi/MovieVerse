@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './member2/pages/LoginPage.jsx'
 import WatchlistPage2 from './member2/pages/WatchlistPage2.jsx'
 import WatchedPage2 from './member2/pages/WatchedPage2.jsx'
+import ProfilePage from './member2/pages/ProfilePage.jsx'
 
 import HomePage from './pages/Home/HomePage.jsx'
 import MoviesPage from './pages/Movies/MoviesPage.jsx'
@@ -29,6 +30,7 @@ function App() {
       {/* Member 2 – Watchlist & Watched */}
       <Route path="/watchlist" element={<WatchlistPage2 />} />
       <Route path="/watched" element={<WatchedPage2 />} />
+      <Route path="/profile" element={<ProfilePage />} />
 
       {/* Placeholder routes */}
       <Route path="/search" element={<HomePage />} />
