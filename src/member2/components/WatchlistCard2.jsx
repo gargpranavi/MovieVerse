@@ -61,6 +61,15 @@ function ChevronDownIcon() {
   )
 }
 
+function UndoIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7v6h6" />
+      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+    </svg>
+  )
+}
+
 /* ══════════════════════════════════════════════
    WatchlistCard2
    Props:
@@ -73,19 +82,20 @@ export default function WatchlistCard2({
   show,
   onRemove,
   onMarkWatched,
+  onMoveBack,
   removeLabel = 'Remove from Watchlist',
 }) {
   const navigate = useNavigate()
 
   const id          = show?.id
-  const title       = show?.name              ?? 'Unknown'
-  const tvRating    = show?.rating?.average   ?? null
-  const poster      = show?.image?.original   ?? show?.image?.medium ?? null
-  const genres      = show?.genres            ?? []
+  const title       = show?.name || show?.title || 'Unknown'
+  const tvRating    = (show?.rating?.average !== undefined) ? show?.rating?.average : (show?.rating ?? null)
+  const poster      = show?.image?.original || show?.image?.medium || show?.image || show?.poster || null
+  const genres      = show?.genres || show?.genre || []
   const status      = show?.status            ?? ''
-  const ageRating   = 'U/A 16+'
-  const runtime     = show?.runtime           ?? show?.averageRuntime ?? null
-  const duration    = runtime ? `${runtime} min` : null
+  const ageRating   = show?.ageRating         ?? 'U/A 16+'
+  const runtime     = show?.runtime           ?? show?.averageRuntime ?? show?.duration ?? null
+  const duration    = runtime ? (String(runtime).includes('min') || String(runtime).includes('h') ? runtime : `${runtime} min`) : null
   const watchedDate = show?.watchedDate       ?? null
 
   const [inWatchlist, setInWatchlist] = useState(false)
@@ -112,6 +122,11 @@ export default function WatchlistCard2({
   const handleMarkWatchedClick = (e) => {
     e.stopPropagation()
     onMarkWatched(show)
+  }
+
+  const handleMoveBackClick = (e) => {
+    e.stopPropagation()
+    onMoveBack(show)
   }
 
   return (
@@ -176,6 +191,7 @@ export default function WatchlistCard2({
               onClick={(e) => { e.stopPropagation(); handleCardClick() }}
               aria-label={`Play ${title}`}
               title="More Info"
+              style={{ minHeight: '44px', minWidth: '44px' }}
             >
               <PlayIcon />
             </button>
@@ -188,8 +204,22 @@ export default function WatchlistCard2({
                 aria-label={`Mark ${title} as watched`}
                 title="Mark as Watched"
                 id={`markWatched-${id}`}
+                style={{ minHeight: '44px', minWidth: '44px' }}
               >
                 <CheckIcon />
+              </button>
+            )}
+
+            {/* Move back to Watchlist — only on /watched */}
+            {onMoveBack && (
+              <button
+                className={styles.circleBtn}
+                onClick={handleMoveBackClick}
+                aria-label={`Move ${title} back to Watchlist`}
+                title="Move back to Watchlist"
+                style={{ minHeight: '44px', minWidth: '44px', borderColor: 'rgba(245,200,66,0.5)' }}
+              >
+                <UndoIcon />
               </button>
             )}
 
@@ -200,6 +230,7 @@ export default function WatchlistCard2({
               aria-label={`Remove ${title}`}
               title={removeLabel}
               id={`remove-${id}`}
+              style={{ minHeight: '44px', minWidth: '44px' }}
             >
               <TrashIcon />
             </button>
@@ -207,7 +238,7 @@ export default function WatchlistCard2({
             {/* More info chevron */}
             <button
               className={styles.circleBtn}
-              style={{ marginLeft: 'auto' }}
+              style={{ marginLeft: 'auto', minHeight: '44px', minWidth: '44px' }}
               onClick={(e) => { e.stopPropagation(); handleCardClick() }}
               aria-label={`More info about ${title}`}
               title="More Info"

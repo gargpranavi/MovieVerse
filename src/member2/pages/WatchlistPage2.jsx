@@ -33,8 +33,9 @@ const SHOWS_API  = 'https://api.tvmaze.com/shows'
 const MOVIES_API = 'https://api.tvmaze.com/search/shows?q=movie'
 
 /* ── localStorage keys ───────────────────────── */
-const LS_WATCHLIST = 'watchlist'           // shared key for all team members
-const LS_WATCHED   = 'movieverse_watched'
+const LS_WATCHLIST        = 'watchlist'           // shared key for all team members
+const LS_WATCHED          = 'movieverse_watched'
+const LS_REMOVED_DEFAULTS = 'movieverse_removed_defaults'  // tracks defaults user intentionally removed
 
 /* ── Default show IDs (TVMaze) ───────────────────
    These 6 popular shows are ALWAYS restored on refresh.
@@ -102,21 +103,6 @@ function SearchIcon() {
   )
 }
 
-function PlusIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-  )
-}
-
-/* ── Skeleton loader card ─────────────────────── */
-function SkeletonCard() {
-  return <div className={styles.skeleton} aria-hidden="true" />
-}
-
 /* ── Toast notification ──────────────────────── */
 function Toast({ message, visible }) {
   return (
@@ -142,40 +128,49 @@ export default function WatchlistPage2() {
   const [toast,       setToast]       = useState({ message: '', visible: false })
 
   /* ── On mount: fetch default shows + merge into watchlist ─
-     Default shows are ALWAYS present after every refresh,
-     even if the user previously deleted or watched them.
-     User-added shows are preserved alongside them.
+     Default shows are seeded once on first load.
+     If the user removes a default show, it won't come back.
+     User-added shows are always preserved.
      ──────────────────────────────────────────────────────── */
   useEffect(() => {
     const existing = loadWatchlist()
     setWatchlist(existing)   // show saved items immediately
 
-    // Fetch the 6 default shows from TVMaze and merge them back
+    // Load set of defaults the user has intentionally removed
+    let removedDefaults
+    try {
+      removedDefaults = new Set(JSON.parse(localStorage.getItem(LS_REMOVED_DEFAULTS) || '[]'))
+    } catch {
+      removedDefaults = new Set()
+    }
+
+    // Only fetch defaults that haven't been removed by the user
+    const idsToFetch = DEFAULT_SHOW_IDS.filter(id => !removedDefaults.has(id))
+    if (idsToFetch.length === 0) return
+
     Promise.all(
-      DEFAULT_SHOW_IDS.map(id =>
+      idsToFetch.map(id =>
         fetch(`https://api.tvmaze.com/shows/${id}`).then(r => r.json())
       )
     )
       .then(defaults => {
         setWatchlist(prev => {
-          // Build a map from current list
           const map = new Map(prev.map(s => [s.id, s]))
-          // Always (re-)insert each default show
+          // Only insert defaults not already in the list
           defaults.forEach(show => {
-            if (show?.id) map.set(show.id, show)
+            if (show?.id && !map.has(show.id)) map.set(show.id, show)
           })
-          // Defaults first, then any user-added shows that aren't defaults
-          const defaultIds = new Set(DEFAULT_SHOW_IDS)
+          const defaultIdSet = new Set(DEFAULT_SHOW_IDS)
           const merged = [
-            ...defaults.filter(s => s?.id),
-            ...[...map.values()].filter(s => !defaultIds.has(s.id)),
+            // Defaults first (in original order), then user-added
+            ...defaults.filter(s => s?.id && map.has(s.id)),
+            ...[...map.values()].filter(s => !defaultIdSet.has(s.id)),
           ]
-          saveWatchlist(merged)   // persist the merged list
+          saveWatchlist(merged)
           return merged
         })
       })
       .catch(() => {
-        // If fetch fails, still show whatever was in localStorage
         setWatchlist(loadWatchlist())
       })
   }, [])
@@ -188,9 +183,17 @@ export default function WatchlistPage2() {
 
   /* ── Remove show from watchlist ───────────── */
   function handleRemove(id) {
+    // If removing a default show, record it so it doesn't re-appear on refresh
+    if (DEFAULT_SHOW_IDS.includes(id)) {
+      try {
+        const removed = new Set(JSON.parse(localStorage.getItem(LS_REMOVED_DEFAULTS) || '[]'))
+        removed.add(id)
+        localStorage.setItem(LS_REMOVED_DEFAULTS, JSON.stringify([...removed]))
+      } catch { /* ignore */ }
+    }
     setWatchlist(prev => {
       const updated = prev.filter(s => s.id !== id)
-      saveWatchlist(updated)             // ← localStorage.setItem
+      saveWatchlist(updated)
       return updated
     })
     showToast('Removed from watchlist')
@@ -214,11 +217,11 @@ export default function WatchlistPage2() {
   /* ── Filtered + sorted watchlist ─────────── */
   const displayed = watchlist
     .filter(s =>
-      (s.name ?? '').toLowerCase().includes(search.toLowerCase())
+      ((s.name || s.title) ?? '').toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
       if (sortBy === 'rating') return (b.rating?.average ?? 0) - (a.rating?.average ?? 0)
-      if (sortBy === 'title')  return (a.name ?? '').localeCompare(b.name ?? '')
+      if (sortBy === 'title')  return ((a.name || a.title) ?? '').localeCompare((b.name || b.title) ?? '')
       return 0 // default = insertion order
     })
 

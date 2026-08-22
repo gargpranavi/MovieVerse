@@ -23,8 +23,9 @@ import StatusBadge2      from '../components/StatusBadge2.jsx'
 import EmptyState2       from '../components/EmptyState2.jsx'
 import styles            from './WatchedPage2.module.css'
 
-/* ── localStorage key ────────────────────────── */
-const LS_WATCHED = 'movieverse_watched'
+/* ── localStorage keys ───────────────────────── */
+const LS_WATCHED   = 'movieverse_watched'
+const LS_WATCHLIST = 'watchlist'
 
 /* ══════════════════════════════════════════════
    localStorage helpers
@@ -41,6 +42,24 @@ function saveWatched(list) {
   try {
     localStorage.setItem(LS_WATCHED, JSON.stringify(list))
   } catch { /* ignore quota errors */ }
+}
+
+function loadWatchlist() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_WATCHLIST) || '[]')
+  } catch { return [] }
+}
+
+function saveWatchlist(list) {
+  try {
+    localStorage.setItem(LS_WATCHLIST, JSON.stringify(list))
+  } catch { /* ignore */ }
+}
+
+function loadRatings() {
+  try {
+    return JSON.parse(localStorage.getItem('movieverse_ratings') || '[]')
+  } catch { return [] }
 }
 
 /* ══════════════════════════════════════════════
@@ -64,6 +83,17 @@ function SearchIcon() {
          aria-hidden="true">
       <circle cx="11" cy="11" r="8"/>
       <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+  )
+}
+
+function UndoIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+         aria-hidden="true">
+      <path d="M3 7v6h6"/>
+      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
     </svg>
   )
 }
@@ -93,7 +123,13 @@ export default function WatchedPage2() {
 
   /* ── On mount: load watched list from localStorage ── */
   useEffect(() => {
-    setWatched(loadWatched())
+    // Enrich each watched item with its stored user rating
+    const ratings = loadRatings()
+    const list = loadWatched().map(show => {
+      const entry = ratings.find(r => r.movieId === String(show.id))
+      return entry ? { ...show, userRating: entry.rating } : show
+    })
+    setWatched(list)
   }, [])
 
   /* ── Toast helper ─────────────────────────── */
@@ -102,24 +138,41 @@ export default function WatchedPage2() {
     setTimeout(() => setToast(t => ({ ...t, visible: false })), 2800)
   }
 
-  /* ── Remove from watched list ─────────────── */
+  /* ── Remove from watched list ──────────── */
   function handleRemove(id) {
     setWatched(prev => {
       const updated = prev.filter(s => s.id !== id)
-      saveWatched(updated)                  // ← localStorage.setItem
+      saveWatched(updated)
       return updated
     })
     showToast('Removed from Watched')
   }
 
+  /* ── Move back to Watchlist ────────────── */
+  function handleMoveBack(show) {
+    // Remove from watched
+    setWatched(prev => {
+      const updated = prev.filter(s => s.id !== show.id)
+      saveWatched(updated)
+      return updated
+    })
+    // Add back to watchlist (deduplicated)
+    const wl = loadWatchlist()
+    if (!wl.some(s => s.id === show.id)) {
+      const { watchedDate: _wd, userRating: _ur, ...cleanShow } = show
+      saveWatchlist([...wl, cleanShow])
+    }
+    showToast('↩ Moved back to Watchlist')
+  }
+
   /* ── Filtered + sorted watched list ──────── */
   const displayed = watched
     .filter(s =>
-      (s.name ?? '').toLowerCase().includes(search.toLowerCase())
+      ((s.name || s.title) ?? '').toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
       if (sortBy === 'rating') return (b.rating?.average ?? 0) - (a.rating?.average ?? 0)
-      if (sortBy === 'title')  return (a.name ?? '').localeCompare(b.name ?? '')
+      if (sortBy === 'title')  return ((a.name || a.title) ?? '').localeCompare((b.name || b.title) ?? '')
       // 'date' → most recently watched first
       if (sortBy === 'date')   return (b.watchedDate ?? '').localeCompare(a.watchedDate ?? '')
       return 0
@@ -254,6 +307,8 @@ export default function WatchedPage2() {
                   <WatchlistCard2
                     show={show}
                     onRemove={handleRemove}
+                    onMarkWatched={null}
+                    onMoveBack={handleMoveBack}
                     removeLabel="Remove from Watched"
                   />
                 </div>

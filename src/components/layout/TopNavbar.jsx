@@ -3,11 +3,12 @@ import { NavLink, Link } from 'react-router-dom'
 import styles from './TopNavbar.module.css'
 
 const NAV_ITEMS = [
-  { to: '/home', label: 'Home' },
-  { to: '/tv-series', label: 'TV Series' },
-  { to: '/movies', label: 'Movies' },
-  { to: '/watchlist', label: 'Watchlist' },
-  { to: '/watched', label: 'Watched' },
+  { to: '/home', label: 'Home', external: false },
+  { to: '/pages/movies3.html', label: 'Movies', external: true },
+  { to: '/pages/drama3.html', label: 'TV Series', external: true },
+  { to: null, label: 'Anime', external: false, disabled: true },
+  { to: '/watchlist', label: 'Watchlist', external: false },
+  { to: '/watched', label: 'Watched', external: false },
 ]
 
 const MOCK_NOTIFICATIONS = [
@@ -174,17 +175,35 @@ export default function TopNavbar() {
         </div>
         
         <div className={styles.nav}>
-          {NAV_ITEMS.map(item => (
-            <NavLink 
-              key={item.label}
-              to={item.to} 
-              className={({ isActive }) => 
-                isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {NAV_ITEMS.map(item =>
+            item.disabled ? (
+              <span
+                key={item.label}
+                className={styles.navLink}
+                style={{ opacity: 0.5, cursor: 'default', pointerEvents: 'none' }}
+              >
+                {item.label}
+              </span>
+            ) : item.external ? (
+              <a
+                key={item.label}
+                href={item.to}
+                className={styles.navLink}
+              >
+                {item.label}
+              </a>
+            ) : (
+              <NavLink
+                key={item.label}
+                to={item.to}
+                className={({ isActive }) =>
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+                }
+              >
+                {item.label}
+              </NavLink>
+            )
+          )}
         </div>
       </div>
 
@@ -246,14 +265,14 @@ export default function TopNavbar() {
           )}
         </div>
         
-        <button className={styles.iconBtn} aria-label="Grid View">
+        <a href="/pages/kids3.html" className={styles.iconBtn} aria-label="Kids Area">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="7" height="7"></rect>
             <rect x="14" y="3" width="7" height="7"></rect>
             <rect x="14" y="14" width="7" height="7"></rect>
             <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
-        </button>
+        </a>
 
         {/* AI Features Robot Icon */}
         <NavLink to="/ai-features" className={({ isActive }) => isActive ? `${styles.iconBtn} ${styles.activeIcon}` : styles.iconBtn} aria-label="AI Features">

@@ -7,6 +7,28 @@
 // Pure portrait-poster card — no visible text at rest,
 // info + "View Details" only on hover (matches Screenshot 2).
 // Props: movie, rank, isFeatured, onSelect
+const PlayIcon3 = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7L8 5z" />
+    </svg>
+);
+const PlusIcon3 = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+);
+const ThumbsUpIcon3 = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+    </svg>
+);
+const ChevronDownIcon3 = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+);
+
 const PosterCard3 = ({ movie, rank, isFeatured, onSelect }) => (
     <div
         className={`poster-card${isFeatured ? ' featured' : ''}`}
@@ -23,11 +45,28 @@ const PosterCard3 = ({ movie, rank, isFeatured, onSelect }) => (
 
         {/* Hover overlay — hidden at rest via CSS opacity:0 */}
         <div className="poster-card-overlay">
-            <div className="poster-card-title">{movie.title}</div>
-            <div className="poster-card-meta">
-                <span>{movie.year}</span>
-                <span>•</span>
-                <span className="poster-card-rating">★ {movie.rating}</span>
+            <h3 className="poster-card-title">{movie.title}</h3>
+            
+            <div className="poster-card-meta-info">
+                <span className="poster-card-match">98% Match</span>
+                <span className="poster-card-age-badge">{movie.ageRating || 'U/A 16+'}</span>
+                <span>{movie.runtime || '1h 0m'}</span>
+            </div>
+            
+            <div className="poster-card-genres">
+                {(movie.genre || ['Drama', 'Action', 'Sci-Fi']).map((g, i, arr) => (
+                    <span key={i}>
+                        {g}
+                        {i < arr.length - 1 && <span className="poster-card-dot">•</span>}
+                    </span>
+                ))}
+            </div>
+
+            <div className="poster-card-controls">
+                <button className="poster-btn-play" onClick={(e) => { e.stopPropagation(); onSelect(movie); }}><PlayIcon3 /></button>
+                <button className="poster-btn-circle" onClick={(e) => { e.stopPropagation(); }}><PlusIcon3 /></button>
+                <button className="poster-btn-circle" onClick={(e) => { e.stopPropagation(); }}><ThumbsUpIcon3 /></button>
+                <button className="poster-btn-circle" style={{ marginLeft: 'auto' }} onClick={(e) => { e.stopPropagation(); onSelect(movie); }}><ChevronDownIcon3 /></button>
             </div>
         </div>
     </div>

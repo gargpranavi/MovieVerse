@@ -593,6 +593,10 @@
   font-family: 'Outfit', sans-serif;
   font-size: 0.78rem;
   color: var(--text-muted);
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ratingChipValue {

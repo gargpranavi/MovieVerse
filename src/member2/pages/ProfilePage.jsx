@@ -38,11 +38,19 @@ function loadLS(key) {
   }
 }
 
-/* ── Compute average rating ──────────────────── */
+/* ── Compute average rating ─────────────────── */
 function computeAvgRating(ratings) {
   if (!ratings.length) return null
   const sum = ratings.reduce((acc, r) => acc + (r.rating ?? 0), 0)
   return Math.round((sum / ratings.length) * 10) / 10
+}
+
+/* ── Resolve a show title from its ID ────────── */
+function resolveTitle(movieId, watched, watchlist) {
+  const id = String(movieId)
+  const fromWatched   = watched.find(s   => String(s.id) === id)
+  const fromWatchlist = watchlist.find(s  => String(s.id) === id)
+  return (fromWatched?.name || fromWatched?.title) ?? (fromWatchlist?.name || fromWatchlist?.title) ?? `Show #${id}`
 }
 
 /* ══════════════════════════════════════════════
@@ -118,12 +126,12 @@ function RecentMovieCard({ show }) {
   )
 }
 
-/* ── Single review row ───────────────────────── */
-function ReviewRow({ review }) {
+/* ── Single review row ────────────────────── */
+function ReviewRow({ review, title }) {
   return (
     <div className={styles.reviewRow}>
       <div className={styles.reviewMeta}>
-        <span className={styles.reviewMovieId}>Show #{review.movieId}</span>
+        <span className={styles.reviewMovieId}>{title}</span>
         {review.rating && (
           <span className={styles.reviewRating}>
             <StarFilledIcon /> {review.rating}/5
@@ -304,7 +312,10 @@ export default function ProfilePage() {
                         className={styles.reviewRowDrop}
                         style={{ animationDelay: `${i * 0.07}s` }}
                       >
-                        <ReviewRow review={rev} />
+                        <ReviewRow
+                          review={rev}
+                          title={resolveTitle(rev.movieId, watched, watchlist)}
+                        />
                       </div>
                     ))}
                     {reviews.length > 5 && (
@@ -334,7 +345,9 @@ export default function ProfilePage() {
                   <div className={styles.ratingsRow}>
                     {ratings.map((r, i) => (
                       <div key={r.movieId ?? i} className={styles.ratingChip}>
-                        <span className={styles.ratingChipId}>#{r.movieId}</span>
+                        <span className={styles.ratingChipId}>
+                          {resolveTitle(r.movieId, watched, watchlist)}
+                        </span>
                         <span className={styles.ratingChipValue}>
                           <StarFilledIcon /> {r.rating}/5
                         </span>

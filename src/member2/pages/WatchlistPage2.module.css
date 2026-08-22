@@ -4,6 +4,8 @@
    Day 2 – TVMaze API + localStorage
    ============================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+
 /* ── Design tokens ──────────────────────────── */
 .page {
   --gold:           #D4A017;
