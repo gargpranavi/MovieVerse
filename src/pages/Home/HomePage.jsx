@@ -7,6 +7,7 @@ import MovieInfoModal from '../../components/MovieInfoModal/MovieInfoModal.jsx'
 import MovieCard from '../../components/MovieCard/MovieCard.jsx'
 import { getWatchlist } from '../../utils/watchlist.js'
 import { getWatched } from '../../utils/watched.js'
+import { shows } from '../../data/index.js'
 import styles from './HomePage.module.css'
 
 function PlayIcon() {
@@ -49,67 +50,28 @@ function VolumeMuteIcon() {
   )
 }
 
-function formatRuntime(mins) {
-  if (!mins) return '2h 10m';
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${h}h ${m}m`;
-}
-
 export default function HomePage() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const [shows, setShows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const heroVideoRef = useRef(null);
-  
-  // Custom Dynamic Filter state
-  const [listTitle, setListTitle] = useState('')
+  const location  = useLocation()
+  const navigate  = useNavigate()
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false)
+  const [isInfoOpen,   setIsInfoOpen]   = useState(false)
+  const [isMuted,      setIsMuted]      = useState(true)
+  const heroVideoRef = useRef(null)
+
+  // Dynamic filter state
+  const [listTitle,    setListTitle]    = useState('')
   const [filteredList, setFilteredList] = useState([])
 
   // Parse location and filters
-  const path = location.pathname
-  const searchParams = new URLSearchParams(location.search)
-  const filterGenre = searchParams.get('genre')
-  const filterNetwork = searchParams.get('network')
+  const path          = location.pathname
+  const searchParams  = new URLSearchParams(location.search)
+  const filterGenre    = searchParams.get('genre')
+  const filterNetwork  = searchParams.get('network')
   const filterLanguage = searchParams.get('language')
-  const filterStatus = searchParams.get('status')
-
-  // Fetch full list of shows
-  useEffect(() => {
-    fetch('https://api.tvmaze.com/shows')
-      .then(res => res.json())
-      .then(data => {
-        const mappedData = data.slice(0, 50).map(show => ({
-          id: show.id.toString(),
-          title: show.name,
-          year: show.premiered ? show.premiered.substring(0, 4) : '2023',
-          duration: formatRuntime(show.runtime || show.averageRuntime),
-          ageRating: 'U/A 16+',
-          genres: show.genres.length > 0 ? show.genres : ['Drama'],
-          description: show.summary ? show.summary.replace(/<[^>]*>?/gm, '') : 'A great story.',
-          image: show.image ? show.image.original : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80',
-          rating: show.rating?.average || 8.0,
-          language: show.language,
-          network: show.network ? show.network.name : show.webChannel ? show.webChannel.name : 'Unknown Network',
-          status: show.status,
-        }));
-        setShows(mappedData);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
+  const filterStatus   = searchParams.get('status')
 
   // Filter shows dynamically based on the current page route or query params
   useEffect(() => {
-    if (shows.length === 0) return
-
     if (path === '/watchlist') {
       setListTitle('My Watchlist')
       const watchlistIds = getWatchlist().map(item => item.id)
@@ -117,15 +79,12 @@ export default function HomePage() {
     } else if (path === '/watched') {
       setListTitle('Watched History')
       const watchedItems = getWatched()
-      const watchedIds = watchedItems.map(item => item.id)
+      const watchedIds   = watchedItems.map(item => item.id)
       const mappedWatched = shows
         .filter(show => watchedIds.includes(show.id))
         .map(show => {
           const match = watchedItems.find(item => item.id === show.id)
-          return {
-            ...show,
-            watchedAt: match ? match.watchedAt : null
-          }
+          return { ...show, watchedAt: match ? match.watchedAt : null }
         })
       setFilteredList(mappedWatched)
     } else if (filterGenre) {
@@ -144,47 +103,34 @@ export default function HomePage() {
       setListTitle('')
       setFilteredList([])
     }
-  }, [path, filterGenre, filterNetwork, filterLanguage, filterStatus, shows])
+  }, [path, filterGenre, filterNetwork, filterLanguage, filterStatus])
 
-  if (loading || shows.length === 0) {
-    return (
-      <DashboardLayout>
-        <div className={styles.page} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'white' }}>
-          <h2>Loading MovieVerse...</h2>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const featured = shows[0];
-  const trending = shows.slice(1, 10);
-  const topRated = shows.slice(10, 20).sort((a, b) => b.rating - a.rating);
-  const actionMovies = shows.slice(20, 30);
-  const sciFi = shows.slice(30, 40);
+  const featured   = shows[0]
+  const trending   = shows.slice(1, 10)
+  const topRated   = shows.slice(10, 20).sort((a, b) => b.rating - a.rating)
+  const actionMovies = shows.slice(20, 30)
+  const sciFi      = shows.slice(30, 40)
 
   // Derive a display-friendly subtitle and icon for the filter type
   const getFilterMeta = () => {
     if (path === '/watchlist') return { icon: '🔖', sub: 'Your saved titles' }
     if (path === '/watched')   return { icon: '✅', sub: 'Your watch history' }
-    if (filterGenre)   return { icon: '🎭', sub: `Browsing by genre` }
-    if (filterNetwork) return { icon: '📡', sub: `Shows from this network` }
-    if (filterLanguage) return { icon: '🌐', sub: `Shows in this language` }
-    if (filterStatus)  return { icon: '📺', sub: `Filtered by airing status` }
+    if (filterGenre)    return { icon: '🎭', sub: 'Browsing by genre' }
+    if (filterNetwork)  return { icon: '📡', sub: 'Shows from this network' }
+    if (filterLanguage) return { icon: '🌐', sub: 'Shows in this language' }
+    if (filterStatus)   return { icon: '📺', sub: 'Filtered by airing status' }
     return { icon: '🎬', sub: '' }
   }
 
   // If a filter is active, render the premium filter page
   if (listTitle) {
     const { icon, sub } = getFilterMeta()
-    // Pick a backdrop from first result or a cinematic fallback
     const backdropImg = filteredList[0]?.image || featured?.image ||
       'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80'
 
     return (
       <DashboardLayout>
         <div className={styles.filterPage}>
-
-          {/* ── Cinematic Hero Header ── */}
           <div className={styles.filterHero} style={{ backgroundImage: `url(${backdropImg})` }}>
             <div className={styles.filterHeroGradient} />
             <div className={styles.filterHeroContent}>
@@ -204,7 +150,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* ── Results Grid ── */}
           <div className={styles.filterBody}>
             {filteredList.length === 0 ? (
               <div className={styles.noResultsBox}>
@@ -267,9 +212,7 @@ export default function HomePage() {
               <span>{featured.duration}</span> &bull; 
               <span className={styles.ageBadge}>{featured.ageRating}</span>
             </div>
-            <p className={styles.heroDesc}>
-              {featured.description}
-            </p>
+            <p className={styles.heroDesc}>{featured.description}</p>
             <div className={styles.heroActions}>
               <button type="button" className={styles.btnPlay} onClick={() => setIsPlayerOpen(true)}>
                 <PlayIcon />
@@ -287,26 +230,22 @@ export default function HomePage() {
               className={styles.btnVolume}
               aria-label={isMuted ? 'Unmute' : 'Mute'}
               onClick={() => {
-                const nextMuted = !isMuted;
-                setIsMuted(nextMuted);
-                if (heroVideoRef.current) {
-                  heroVideoRef.current.muted = nextMuted;
-                }
+                const nextMuted = !isMuted
+                setIsMuted(nextMuted)
+                if (heroVideoRef.current) heroVideoRef.current.muted = nextMuted
               }}
             >
               {isMuted ? <VolumeMuteIcon /> : <VolumeOnIcon />}
             </button>
-            <div className={styles.languageBadge}>
-              U/A 16+
-            </div>
+            <div className={styles.languageBadge}>U/A 16+</div>
           </div>
         </section>
 
         <div className={styles.content}>
-          <MovieCarousel title="Trending Now" movies={trending} />
-          <MovieCarousel title="Top 10 Today" movies={topRated} />
+          <MovieCarousel title="Trending Now"        movies={trending}    />
+          <MovieCarousel title="Top 10 Today"        movies={topRated}    />
           <MovieCarousel title="Binge-Worthy Series" movies={actionMovies} />
-          <MovieCarousel title="Sci-Fi & Fantasy" movies={sciFi} />
+          <MovieCarousel title="Sci-Fi & Fantasy"    movies={sciFi}       />
         </div>
       </div>
 

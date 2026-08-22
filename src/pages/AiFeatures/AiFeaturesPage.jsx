@@ -159,16 +159,16 @@ function Compare() {
 
       {isComparing && (
         <div className={styles.comparisonTable}>
-          {/* Mock Data for Dune vs Interstellar */}
+          {/* Local Data Comparison */}
           <div className={styles.tableRow} style={{ padding: '20px 0', borderBottom: '1px solid rgba(212, 160, 23, 0.3)' }}>
             <div className={styles.tableHeader}></div>
             <div className={styles.tableCell}>
-              <img src="https://static.tvmaze.com/uploads/images/medium_portrait/347/869502.jpg" alt="Movie 1" className={styles.moviePoster} />
-              <div className={styles.movieTitle}>Dune: Part One</div>
+              <img src="/images/posters/1-under-the-dome.jpg" alt="Movie 1" className={styles.moviePoster} />
+              <div className={styles.movieTitle}>Under the Dome</div>
             </div>
             <div className={styles.tableCell}>
-              <img src="https://static.tvmaze.com/uploads/images/medium_portrait/408/1022051.jpg" alt="Movie 2" className={styles.moviePoster} />
-              <div className={styles.movieTitle}>Interstellar</div>
+              <img src="/images/posters/2-person-of-interest.jpg" alt="Movie 2" className={styles.moviePoster} />
+              <div className={styles.movieTitle}>Person of Interest</div>
             </div>
           </div>
 

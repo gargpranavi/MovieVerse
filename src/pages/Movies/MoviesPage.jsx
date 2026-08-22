@@ -1,53 +1,17 @@
-import { useState, useEffect } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import MovieCarousel from '../../components/MovieCarousel/MovieCarousel.jsx'
+import { shows } from '../../data/index.js'
 import styles from '../Home/HomePage.module.css'
 
+// Movies page uses shows that have movie-like genres (Action, Crime, Thriller, Sci-Fi, etc.)
+const movieGenres = ['Action', 'Crime', 'Thriller', 'Sci-Fi', 'Adventure', 'Horror', 'Mystery']
+const movies = shows.filter(s => s.genres.some(g => movieGenres.includes(g)))
+
 export default function MoviesPage() {
-  const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Reusing tvmaze for dummy data, but filtering or sorting differently
-    fetch('https://api.tvmaze.com/search/shows?q=movie')
-      .then(res => res.json())
-      .then(data => {
-        const mappedData = data.map(item => {
-          const show = item.show;
-          return {
-            id: show.id.toString(),
-            title: show.name,
-            year: show.premiered ? show.premiered.substring(0, 4) : '2023',
-            duration: '2h 10m',
-            ageRating: 'U/A 16+',
-            genres: show.genres.length > 0 ? show.genres : ['Drama'],
-            description: show.summary ? show.summary.replace(/<[^>]*>?/gm, '') : 'A great movie.',
-            image: show.image ? show.image.original : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80',
-            rating: show.rating?.average || 8.0,
-          };
-        });
-        setMovies(mappedData);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading || movies.length === 0) {
-    return (
-      <DashboardLayout>
-        <div className={styles.page} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'white' }}>
-          <h2>Loading Movies...</h2>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const featured = movies[0];
-  const trendingMovies = movies.slice(1, 6);
-  const actionMovies = movies.slice(6, 11);
+  const featured      = movies[0]
+  const trendingMovies = movies.slice(1, 9)
+  const actionMovies   = movies.filter(s => s.genres.includes('Action')).slice(0, 8)
+  const thrillers      = movies.filter(s => s.genres.includes('Thriller')).slice(0, 8)
 
   return (
     <DashboardLayout>
@@ -73,8 +37,11 @@ export default function MoviesPage() {
         </section>
 
         <div className={styles.content} style={{ marginTop: '-100px' }}>
-          <MovieCarousel title="Trending Movies" movies={trendingMovies} />
-          <MovieCarousel title="Action Packed" movies={actionMovies} />
+          <MovieCarousel title="Trending Movies"  movies={trendingMovies} />
+          <MovieCarousel title="Action Packed"    movies={actionMovies}   />
+          {thrillers.length > 0 && (
+            <MovieCarousel title="Thrillers" movies={thrillers} />
+          )}
         </div>
       </div>
     </DashboardLayout>

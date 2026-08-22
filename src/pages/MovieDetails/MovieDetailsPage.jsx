@@ -6,6 +6,7 @@ import { isWatched, addToWatched, removeFromWatched, getWatchedDate } from '../.
 import { getUserRating, getUserReview, saveUserRating, saveUserReview } from '../../utils/reviews.js'
 import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
 import MovieCard from '../../components/MovieCard/MovieCard.jsx'
+import { shows, castByShowId, people } from '../../data/index.js'
 import styles from './MovieDetailsPage.module.css'
 
 function PlayIcon() {
@@ -68,134 +69,74 @@ function CloseIcon() {
   )
 }
 
+const FALLBACK_POSTER  = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80'
+const FALLBACK_PERSON  = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80'
+
 export default function MovieDetailsPage() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  
-  const [movie, setMovie] = useState(null)
-  const [cast, setCast] = useState([])
-  const [crew, setCrew] = useState([])
-  const [recommendations, setRecommendations] = useState([])
-  const [loading, setLoading] = useState(true)
-  
-  const [inWatchlist, setInWatchlist] = useState(false)
+  const { id }     = useParams()
+  const navigate   = useNavigate()
+
+  // ── Local data lookup (replaces all fetch calls) ──────────────────────────
+  const movie           = shows.find(s => s.id === id) || null
+  const cast            = castByShowId[id] || []
+  const recommendations = shows
+    .filter(s => s.id !== id)
+    .filter(s => s.genres.some(g => movie?.genres?.includes(g)) ||
+                 Math.abs((s.rating || 8) - (movie?.rating || 8)) < 1.5)
+    .slice(0, 4)
+    .map(s => ({
+      id:     s.id,
+      title:  s.title,
+      year:   s.year,
+      genres: s.genres,
+      image:  s.image || FALLBACK_POSTER,
+      rating: s.rating,
+    }))
+
+  // ── User interaction state ────────────────────────────────────────────────
+  const [inWatchlist,  setInWatchlist]  = useState(false)
   const [watchedState, setWatchedState] = useState(false)
-  const [watchedDate, setWatchedDate] = useState(null)
-  
+  const [watchedDate,  setWatchedDate]  = useState(null)
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
-  
+
   // Rating & Review State
-  const [userRating, setUserRating] = useState(0)
-  const [reviewText, setReviewText] = useState('')
-  const [savedReview, setSavedReview] = useState(null)
+  const [userRating,      setUserRating]      = useState(0)
+  const [reviewText,      setReviewText]      = useState('')
+  const [savedReview,     setSavedReview]     = useState(null)
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false)
-  
+
   // Actor Modal State
-  const [selectedActor, setSelectedActor] = useState(null)
+  const [selectedActor,       setSelectedActor]       = useState(null)
   const [actorDetailsLoading, setActorDetailsLoading] = useState(false)
-  const [showAllCast, setShowAllCast] = useState(false)
+  const [showAllCast,         setShowAllCast]         = useState(false)
 
-  // Fetch show details
-  useEffect(() => {
-    setLoading(true)
-    fetch(`https://api.tvmaze.com/shows/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Movie not found')
-        return res.json()
-      })
-      .then(show => {
-        const mappedMovie = {
-          id: show.id.toString(),
-          title: show.name,
-          year: show.premiered ? show.premiered.substring(0, 4) : '2023',
-          duration: `${show.runtime || show.averageRuntime || 120} mins`,
-          ageRating: 'U/A 16+',
-          genres: show.genres.length > 0 ? show.genres : ['Drama'],
-          description: show.summary ? show.summary.replace(/<[^>]*>?/gm, '') : 'No summary available.',
-          image: show.image ? show.image.original : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80',
-          rating: show.rating?.average || 8.0,
-          language: show.language,
-          network: show.network ? show.network.name : show.webChannel ? show.webChannel.name : 'Unknown Network',
-          status: show.status,
-        }
-        setMovie(mappedMovie)
-        setInWatchlist(isInWatchlist(mappedMovie.id))
-        setWatchedState(isWatched(mappedMovie.id))
-        setWatchedDate(getWatchedDate(mappedMovie.id))
-        setUserRating(getUserRating(mappedMovie.id))
-        
-        const review = getUserReview(mappedMovie.id)
-        if (review) {
-          setSavedReview(review)
-          setReviewText(review.reviewText)
-        } else {
-          setSavedReview(null)
-          setReviewText('')
-        }
-
-        // Fetch Recommendations (Same Genre or Similar rating)
-        fetch('https://api.tvmaze.com/shows')
-          .then(res => res.json())
-          .then(allShows => {
-            const currentGenres = show.genres;
-            const recs = allShows
-              .filter(s => s.id.toString() !== show.id.toString())
-              .filter(s => s.genres.some(g => currentGenres.includes(g)) || Math.abs((s.rating?.average || 8) - (show.rating?.average || 8)) < 1.5)
-              .slice(0, 4)
-              .map(s => ({
-                id: s.id.toString(),
-                title: s.name,
-                year: s.premiered ? s.premiered.substring(0, 4) : '2023',
-                genres: s.genres,
-                image: s.image ? s.image.medium : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80',
-                rating: s.rating?.average || 8.0,
-              }))
-            setRecommendations(recs)
-          })
-
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error(err)
-        setLoading(false)
-      })
-
-    // Fetch Cast & Crew
-    fetch(`https://api.tvmaze.com/shows/${id}/cast`)
-      .then(res => res.json())
-      .then(castData => {
-        setCast(castData)
-      })
-      .catch(err => console.error("Error fetching cast:", err))
-
-    fetch(`https://api.tvmaze.com/shows/${id}/crew`)
-      .then(res => res.json())
-      .then(crewData => {
-        setCrew(crewData.slice(0, 4))
-      })
-      .catch(err => console.error("Error fetching crew:", err))
-  }, [id])
-
-  // Sync Watchlist states
+  // Initialise user-state from localStorage when movie id changes
   useEffect(() => {
     if (!movie) return
-    const handleUpdate = () => {
-      setInWatchlist(isInWatchlist(movie.id))
+    setInWatchlist(isInWatchlist(movie.id))
+    setWatchedState(isWatched(movie.id))
+    setWatchedDate(getWatchedDate(movie.id))
+    setUserRating(getUserRating(movie.id))
+
+    const review = getUserReview(movie.id)
+    if (review) {
+      setSavedReview(review)
+      setReviewText(review.reviewText)
+    } else {
+      setSavedReview(null)
+      setReviewText('')
     }
+  }, [id])
+
+  // Sync watchlist badge in real time
+  useEffect(() => {
+    if (!movie) return
+    const handleUpdate = () => setInWatchlist(isInWatchlist(movie.id))
     window.addEventListener('watchlistUpdated', handleUpdate)
     return () => window.removeEventListener('watchlistUpdated', handleUpdate)
   }, [movie])
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh', color: 'white' }}>
-          <h2>Loading details...</h2>
-        </div>
-      </DashboardLayout>
-    )
-  }
-
+  // ── Not found ─────────────────────────────────────────────────────────────
   if (!movie) {
     return (
       <DashboardLayout>
@@ -207,9 +148,8 @@ export default function MovieDetailsPage() {
     )
   }
 
-  const handleWatchlistToggle = () => {
-    toggleWatchlist(movie)
-  }
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleWatchlistToggle = () => toggleWatchlist(movie)
 
   const handleWatchedToggle = () => {
     if (watchedState) {
@@ -217,7 +157,7 @@ export default function MovieDetailsPage() {
       setWatchedState(false)
       setWatchedDate(null)
     } else {
-      const today = new Date()
+      const today   = new Date()
       const dateStr = today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
       addToWatched(movie, dateStr)
       setWatchedState(true)
@@ -241,32 +181,23 @@ export default function MovieDetailsPage() {
     setIsReviewFormOpen(false)
   }
 
+  // Actor click — all data is already embedded in cast records (fully offline)
   const handleActorClick = (personId, name) => {
     setActorDetailsLoading(true)
-    setSelectedActor({ name, id: personId })
-    
-    // Fetch actor details
-    fetch(`https://api.tvmaze.com/people/${personId}?embed=castcredits`)
-      .then(res => res.json())
-      .then(person => {
-        // Fetch credits or other details
-        setSelectedActor({
-          id: person.id,
-          name: person.name,
-          image: person.image ? person.image.original : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80',
-          birthday: person.birthday || 'Unknown',
-          country: person.country ? person.country.name : 'Unknown',
-          gender: person.gender || 'Unknown',
-          knownFor: person._embedded?.castcredits?.length 
-            ? `${person._embedded.castcredits.length} credits` 
-            : 'Actor'
-        })
-        setActorDetailsLoading(false)
-      })
-      .catch(err => {
-        console.error(err)
-        setActorDetailsLoading(false)
-      })
+    const castEntry = cast.find(c => c.person.id === personId)
+    const localPerson = people[personId]
+
+    const actorData = {
+      id:      personId,
+      name,
+      image:   castEntry?.person?.image?.medium || localPerson?.image || FALLBACK_PERSON,
+      birthday: castEntry?.person?.birthday || localPerson?.birthday || null,
+      country:  castEntry?.person?.country  || localPerson?.country  || 'Unknown',
+      gender:   castEntry?.person?.gender   || localPerson?.gender   || 'Unknown',
+      knownFor: localPerson ? `${Object.values(castByShowId).filter(castArr => castArr.some(c => c.person.id === personId)).length} credits` : 'Actor',
+    }
+    setSelectedActor(actorData)
+    setActorDetailsLoading(false)
   }
 
   return (
@@ -281,7 +212,7 @@ export default function MovieDetailsPage() {
           {/* Poster with play overlay */}
           <div className={styles.posterSection}>
             <div className={styles.glowCard} onClick={() => setIsPlayerOpen(true)}>
-              <img src={movie.image} alt={movie.title} className={styles.posterImage} />
+              <img src={movie.image || FALLBACK_POSTER} alt={movie.title} className={styles.posterImage} />
               <div className={styles.playOverlay}>
                 <div className={styles.playCircle}>
                   <PlayIcon />
@@ -342,8 +273,8 @@ export default function MovieDetailsPage() {
               <div className={styles.infoCell}>
                 <div className={styles.infoCellIcon}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1.05 12H23M1.05 12C1.05 6.477 6.027 2 12 2s10.95 4.477 10.95 10M1.05 12C1.05 17.523 6.027 22 12 22s10.95-4.477 10.95-10"/>
-                    <path d="M5 12a15.3 15.3 0 0 0 7 2 15.3 15.3 0 0 0 7-2"/>
+                    <rect x="2" y="7" width="20" height="15" rx="2"/>
+                    <polyline points="17 2 12 7 7 2"/>
                   </svg>
                 </div>
                 <div>
@@ -498,9 +429,10 @@ export default function MovieDetailsPage() {
                   onClick={() => handleActorClick(item.person.id, item.person.name)}
                 >
                   <img 
-                    src={item.person.image ? item.person.image.medium : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80'} 
+                    src={item.person.image?.medium || FALLBACK_PERSON} 
                     alt={item.person.name} 
                     className={styles.castImage}
+                    onError={(e) => { e.target.src = FALLBACK_PERSON }}
                   />
                   <div className={styles.castInfo}>
                     <div className={styles.actorName}>{item.person.name}</div>
@@ -521,67 +453,74 @@ export default function MovieDetailsPage() {
             <div className={styles.recommendationsGrid}>
               {recommendations.map((rec) => (
                 <div key={rec.id} className={styles.recCard} onClick={() => navigate(`/movie/${rec.id}`)}>
-                  <img src={rec.image} alt={rec.title} className={styles.recImage} />
-                  <div className={styles.recOverlay}>
-                    <h3 className={styles.recTitle}>{rec.title}</h3>
-                    <div className={styles.recMeta}>
-                      <span>⭐ {rec.rating.toFixed(1)}</span>
-                      <span>{rec.year}</span>
-                    </div>
+                  <img
+                    src={rec.image || FALLBACK_POSTER}
+                    alt={rec.title}
+                    className={styles.recImage}
+                    onError={(e) => { e.target.src = FALLBACK_POSTER }}
+                  />
+                  <div className={styles.recInfo}>
+                    <div className={styles.recTitle}>{rec.title}</div>
+                    <div className={styles.recMeta}>{rec.year} • ★ {rec.rating}</div>
                   </div>
                 </div>
               ))}
             </div>
           </section>
         )}
-      </div>
 
-      {/* Actor/Crew Details Modal */}
-      {selectedActor && (
-        <div className={styles.actorModalOverlay} onClick={() => setSelectedActor(null)}>
-          <div className={styles.actorModal} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.actorModalClose} onClick={() => setSelectedActor(null)}>
-              <CloseIcon />
-            </button>
-            {actorDetailsLoading ? (
-              <div className={styles.actorModalLoading}>Loading profile...</div>
-            ) : (
-              <div className={styles.actorModalContent}>
-                <img src={selectedActor.image} alt={selectedActor.name} className={styles.actorModalImage} />
-                <div className={styles.actorModalInfo}>
-                  <h3 className={styles.actorModalName}>{selectedActor.name}</h3>
-                  <div className={styles.actorModalSub}>{selectedActor.knownFor}</div>
-                  
-                  <div className={styles.actorDetailGrid}>
-                    <div>
-                      <span className={styles.actorDetailLabel}>Birthday:</span>
-                      <span className={styles.actorDetailVal}>{selectedActor.birthday}</span>
+        {/* Actor Detail Modal */}
+        {selectedActor && (
+          <div className={styles.actorModalOverlay} onClick={() => setSelectedActor(null)}>
+            <div className={styles.actorModal} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.actorModalClose} onClick={() => setSelectedActor(null)}>
+                <CloseIcon />
+              </button>
+              {actorDetailsLoading ? (
+                <div className={styles.actorLoading}>Loading...</div>
+              ) : (
+                <div className={styles.actorModalContent}>
+                  <img 
+                    src={selectedActor.image || FALLBACK_PERSON} 
+                    alt={selectedActor.name}
+                    className={styles.actorModalImage}
+                    onError={(e) => { e.target.src = FALLBACK_PERSON }}
+                  />
+                  <div className={styles.actorModalDetails}>
+                    <h3 className={styles.actorModalName}>{selectedActor.name}</h3>
+                    <div className={styles.actorDetailGrid}>
+                      {selectedActor.birthday && (
+                        <div className={styles.actorDetailItem}>
+                          <span className={styles.actorDetailLabel}>Birthday</span>
+                          <span className={styles.actorDetailValue}>{selectedActor.birthday}</span>
+                        </div>
+                      )}
+                      <div className={styles.actorDetailItem}>
+                        <span className={styles.actorDetailLabel}>Country</span>
+                        <span className={styles.actorDetailValue}>{selectedActor.country}</span>
+                      </div>
+                      <div className={styles.actorDetailItem}>
+                        <span className={styles.actorDetailLabel}>Gender</span>
+                        <span className={styles.actorDetailValue}>{selectedActor.gender}</span>
+                      </div>
+                      <div className={styles.actorDetailItem}>
+                        <span className={styles.actorDetailLabel}>Known For</span>
+                        <span className={styles.actorDetailValue}>{selectedActor.knownFor}</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className={styles.actorDetailLabel}>From:</span>
-                      <span className={styles.actorDetailVal}>{selectedActor.country}</span>
-                    </div>
-                    <div>
-                      <span className={styles.actorDetailLabel}>Gender:</span>
-                      <span className={styles.actorDetailVal}>{selectedActor.gender}</span>
-                    </div>
-                  </div>
-
-                  <div className={styles.actorBio}>
-                    <strong>Biography:</strong> {selectedActor.name} is a renowned professional recognized for contributing to various popular films and TV Shows available on MovieVerse.
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <VideoPlayerModal 
-        isOpen={isPlayerOpen} 
-        onClose={() => setIsPlayerOpen(false)} 
-        movieTitle={movie.title} 
-      />
+        <VideoPlayerModal
+          isOpen={isPlayerOpen}
+          onClose={() => setIsPlayerOpen(false)}
+          movieTitle={movie.title}
+        />
+      </div>
     </DashboardLayout>
   )
 }

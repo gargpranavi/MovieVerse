@@ -28,21 +28,19 @@ import WatchlistCard2 from '../components/WatchlistCard2.jsx'
 import EmptyState2     from '../components/EmptyState2.jsx'
 import styles          from './WatchlistPage2.module.css'
 
-/* ── TVMaze API URLs (same as team) ──────────── */
-const SHOWS_API  = 'https://api.tvmaze.com/shows'
-const MOVIES_API = 'https://api.tvmaze.com/search/shows?q=movie'
+import { shows } from '../../data/index.js'
 
 /* ── localStorage keys ───────────────────────── */
 const LS_WATCHLIST        = 'watchlist'           // shared key for all team members
 const LS_WATCHED          = 'movieverse_watched'
 const LS_REMOVED_DEFAULTS = 'movieverse_removed_defaults'  // tracks defaults user intentionally removed
 
-/* ── Default show IDs (TVMaze) ───────────────────
+/* ── Default show IDs ───────────────────
    These 6 popular shows are ALWAYS restored on refresh.
    IDs: Person of Interest, True Detective, Grimm,
         Supernatural, Vikings, Fargo
    ─────────────────────────────────────────────── */
-const DEFAULT_SHOW_IDS = [2, 5, 10, 19, 29, 32]
+const DEFAULT_SHOW_IDS = ["2", "5", "10", "19", "29", "32"]
 
 /* ══════════════════════════════════════════════
    localStorage helpers
@@ -148,31 +146,22 @@ export default function WatchlistPage2() {
     const idsToFetch = DEFAULT_SHOW_IDS.filter(id => !removedDefaults.has(id))
     if (idsToFetch.length === 0) return
 
-    Promise.all(
-      idsToFetch.map(id =>
-        fetch(`https://api.tvmaze.com/shows/${id}`).then(r => r.json())
-      )
-    )
-      .then(defaults => {
-        setWatchlist(prev => {
-          const map = new Map(prev.map(s => [s.id, s]))
-          // Only insert defaults not already in the list
-          defaults.forEach(show => {
-            if (show?.id && !map.has(show.id)) map.set(show.id, show)
-          })
-          const defaultIdSet = new Set(DEFAULT_SHOW_IDS)
-          const merged = [
-            // Defaults first (in original order), then user-added
-            ...defaults.filter(s => s?.id && map.has(s.id)),
-            ...[...map.values()].filter(s => !defaultIdSet.has(s.id)),
-          ]
-          saveWatchlist(merged)
-          return merged
-        })
+    const defaults = shows.filter(show => idsToFetch.includes(show.id))
+    setWatchlist(prev => {
+      const map = new Map(prev.map(s => [s.id, s]))
+      // Only insert defaults not already in the list
+      defaults.forEach(show => {
+        if (show?.id && !map.has(show.id)) map.set(show.id, show)
       })
-      .catch(() => {
-        setWatchlist(loadWatchlist())
-      })
+      const defaultIdSet = new Set(DEFAULT_SHOW_IDS)
+      const merged = [
+        // Defaults first (in original order), then user-added
+        ...defaults.filter(s => s?.id && map.has(s.id)),
+        ...[...map.values()].filter(s => !defaultIdSet.has(s.id)),
+      ]
+      saveWatchlist(merged)
+      return merged
+    })
   }, [])
 
   /* ── Toast helper ─────────────────────────── */

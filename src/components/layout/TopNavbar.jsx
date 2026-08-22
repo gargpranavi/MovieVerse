@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { NavLink, Link } from 'react-router-dom'
+import { shows } from '../../data/index.js'
 import styles from './TopNavbar.module.css'
 
 const NAV_ITEMS = [
@@ -93,33 +94,31 @@ export default function TopNavbar() {
   }, [searchOpen])
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) {
       setSearchResults([])
+      setIsSearching(false)
       return
     }
-
     setIsSearching(true)
-    const delayDebounce = setTimeout(() => {
-      fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(searchQuery)}`)
-        .then(res => res.json())
-        .then(data => {
-          const mapped = data.map(item => ({
-            id: item.show.id.toString(),
-            title: item.show.name,
-            year: item.show.premiered ? item.show.premiered.substring(0, 4) : '2023',
-            rating: item.show.rating?.average || null,
-            image: item.show.image ? item.show.image.medium : null
-          }))
-          setSearchResults(mapped)
-          setIsSearching(false)
-        })
-        .catch(err => {
-          console.error(err)
-          setIsSearching(false)
-        })
-    }, 300)
-
-    return () => clearTimeout(delayDebounce)
+    // Local instant search — no network needed
+    const matched = shows
+      .filter(s =>
+        s.title.toLowerCase().includes(q) ||
+        s.genres.some(g => g.toLowerCase().includes(q)) ||
+        s.year.includes(q) ||
+        (s.language || '').toLowerCase().includes(q)
+      )
+      .slice(0, 8)
+      .map(s => ({
+        id:     s.id,
+        title:  s.title,
+        year:   s.year,
+        rating: s.rating || null,
+        image:  s.image || null,
+      }))
+    setSearchResults(matched)
+    setIsSearching(false)
   }, [searchQuery])
 
   useEffect(() => {
