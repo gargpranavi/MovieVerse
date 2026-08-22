@@ -179,12 +179,14 @@ function FilmReelIcon() {
 
 // ─── Navbar3 Component ────────────────────────────────────
 function Navbar3() {
-    const [scrolled, setScrolled] = React.useState(false);
-    const [searchOpen, setSearch] = React.useState(false);
-    const [query, setQuery]       = React.useState('');
-    const [hovered, setHovered]   = React.useState(null);
-    const activeLabel             = getActiveLabel();
-    const inputRef                = React.useRef(null);
+    const [scrolled, setScrolled]   = React.useState(false);
+    const [searchOpen, setSearchOpen] = React.useState(false);
+    const [query, setQuery]         = React.useState('');
+    const [results, setResults]     = React.useState([]);
+    const [searching, setSearching] = React.useState(false);
+    const [hovered, setHovered]     = React.useState(null);
+    const activeLabel               = getActiveLabel();
+    const inputRef                  = React.useRef(null);
 
     React.useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 50);
@@ -195,6 +197,36 @@ function Navbar3() {
     React.useEffect(() => {
         if (searchOpen && inputRef.current) inputRef.current.focus();
     }, [searchOpen]);
+
+    React.useEffect(() => {
+        if (!query.trim()) {
+            setResults([]);
+            return;
+        }
+
+        setSearching(true);
+        const delayDebounce = setTimeout(() => {
+            fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    const mapped = data.map(item => ({
+                        id: item.show.id.toString(),
+                        title: item.show.name,
+                        year: item.show.premiered ? item.show.premiered.substring(0, 4) : '2023',
+                        rating: item.show.rating?.average || null,
+                        image: item.show.image ? item.show.image.medium : null
+                    }));
+                    setResults(mapped);
+                    setSearching(false);
+                })
+                .catch(err => {
+                    console.error(err);
+                    setSearching(false);
+                });
+        }, 300);
+
+        return () => clearTimeout(delayDebounce);
+    }, [query]);
 
     const navStyle = scrolled
         ? { ...S.nav, ...S.navScrolled }
@@ -248,29 +280,19 @@ function Navbar3() {
             <div style={S.right}>
 
                 {/* Search */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {searchOpen && (
-                        <input
-                            ref={inputRef}
-                            value={query}
-                            onChange={e => setQuery(e.target.value)}
-                            placeholder="Search movies & shows..."
-                            style={{
-                                background: 'rgba(255,255,255,0.08)',
-                                border: '1px solid rgba(212,160,23,0.3)',
-                                borderRadius: '8px',
-                                color: '#fff',
-                                fontSize: '14px',
-                                padding: '8px 14px',
-                                width: '240px',
-                                outline: 'none',
-                                fontFamily: "'Outfit', 'Inter', sans-serif",
-                            }}
-                        />
-                    )}
+                <div className="searchContainer">
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        className={`searchInput ${searchOpen ? 'searchInputActive' : ''}`}
+                        placeholder="Search movies & shows..."
+                        value={query}
+                        onChange={e => setQuery(e.target.value)}
+                    />
+
                     <button
                         style={S.iconBtn}
-                        onClick={() => { setSearch(v => !v); if (searchOpen) setQuery(''); }}
+                        onClick={() => { setSearchOpen(v => !v); if (searchOpen) setQuery(''); }}
                         aria-label="Search"
                     >
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
@@ -279,6 +301,41 @@ function Navbar3() {
                             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
                     </button>
+
+                    {searchOpen && query && (
+                        <div className="searchResults">
+                            {searching ? (
+                                <div className="searchNoResults">Searching...</div>
+                            ) : results.length > 0 ? (
+                                results.map(show => (
+                                    <a
+                                        key={show.id}
+                                        href={`/movie/${show.id}`}
+                                        className="searchResultItem"
+                                        onClick={() => {
+                                            setResults([]);
+                                            setSearchOpen(false);
+                                            setQuery('');
+                                        }}
+                                    >
+                                        <img
+                                            src={show.image || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=200&q=80&auto=format&fit=crop'}
+                                            alt={show.title}
+                                            className="searchResultImage"
+                                        />
+                                        <div className="searchResultInfo">
+                                            <span className="searchResultTitle">{show.title}</span>
+                                            <span className="searchResultMeta">
+                                                {show.year} {show.rating ? `• ★ ${show.rating}` : ''}
+                                            </span>
+                                        </div>
+                                    </a>
+                                ))
+                            ) : (
+                                <div className="searchNoResults">No results found</div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Grid view */}
@@ -334,6 +391,23 @@ function Navbar3() {
             <style>{`
                 body { padding-top: 90px !important; }
                 .hero-section { margin-top: 0 !important; }
+
+                /* ── Search Styles ────────────────────────────────────────── */
+                .searchContainer { position: relative; display: flex; align-items: center; gap: 8px; }
+                .searchInput { width: 0; opacity: 0; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 24px; padding: 10px 0; color: white; font-family: 'Outfit', 'Inter', sans-serif; font-size: 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); outline: none; }
+                .searchInputActive { width: 260px; opacity: 1; padding: 10px 20px; border-color: #D4A017; box-shadow: 0 0 12px rgba(212, 160, 23, 0.3); }
+                .searchResults { position: absolute; top: 50px; right: 0; width: 320px; max-height: 400px; overflow-y: auto; background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(212, 160, 23, 0.3); border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(212, 160, 23, 0.1); z-index: 1000; display: flex; flex-direction: column; padding: 8px 0; }
+                .searchResults::-webkit-scrollbar { width: 6px; }
+                .searchResults::-webkit-scrollbar-track { background: transparent; }
+                .searchResults::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+                .searchResults::-webkit-scrollbar-thumb:hover { background: #D4A017; }
+                .searchResultItem { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background-color 0.2s; text-decoration: none; color: white; }
+                .searchResultItem:hover { background: rgba(212, 160, 23, 0.1); }
+                .searchResultImage { width: 40px; height: 55px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1); }
+                .searchResultInfo { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+                .searchResultTitle { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Outfit', sans-serif; }
+                .searchResultMeta { font-size: 12px; color: rgba(255,255,255,0.5); font-family: 'Inter', sans-serif; }
+                .searchNoResults { padding: 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px; font-family: 'Outfit', sans-serif; }
             `}</style>
         </nav>
     );
