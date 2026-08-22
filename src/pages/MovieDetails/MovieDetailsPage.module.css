@@ -111,6 +111,14 @@
   font-size: 14px;
   color: var(--text-secondary);
   font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.genreTag:hover {
+  background: var(--gold-mid, #D4A017);
+  color: #0d0d11 !important;
+  border-color: var(--gold-mid, #D4A017);
 }
 
 .description {
@@ -139,16 +147,24 @@
   margin-bottom: 4px;
 }
 
-.infoValue {
+.clickableLink {
   font-family: 'Outfit', sans-serif;
   font-size: 16px;
   color: #fff;
   font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.clickableLink:hover {
+  color: var(--gold-light, #ffd700);
+  text-shadow: 0 0 8px rgba(212, 160, 23, 0.4);
 }
 
 .actionRow {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
   margin-top: 10px;
 }
 
@@ -196,6 +212,444 @@
   color: var(--gold-light);
 }
 
+/* Watched Style */
+.btnWatched {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 14px 40px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnWatched:hover {
+  background: rgba(212, 160, 23, 0.1);
+  border-color: var(--gold-mid);
+  color: var(--gold-mid);
+}
+
+.btnWatchedActive {
+  background: rgba(212, 160, 23, 0.25) !important;
+  border-color: var(--gold-mid) !important;
+  color: var(--gold-mid) !important;
+}
+
+.watchedLabel {
+  font-family: 'Outfit', sans-serif;
+  color: var(--gold-mid);
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: -12px;
+}
+
+/* User Rating Box */
+.ratingsCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ratingStarsTitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+}
+
+.starsWrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.starsWrapper svg:hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 8px var(--gold-mid));
+}
+
+.ratingLabelText {
+  font-family: 'Outfit', sans-serif;
+  color: var(--gold-light);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Review styles */
+.reviewSection {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 16px;
+}
+
+.btnWriteReview {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnWriteReview:hover {
+  border-color: var(--gold-mid);
+  color: var(--gold-mid);
+  background: rgba(212, 160, 23, 0.04);
+}
+
+.userReviewBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.01);
+  border-left: 3px solid var(--gold-mid);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+}
+
+.userReviewHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.reviewUser {
+  color: var(--gold-light);
+  font-weight: 600;
+}
+
+.reviewDate {
+  color: var(--text-muted);
+}
+
+.userReviewText {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #e3e3e3;
+  font-style: italic;
+  margin: 0;
+}
+
+.reviewForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.formTitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  color: #fff;
+}
+
+.reviewInput {
+  background: #13131a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  padding: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  min-height: 80px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.reviewInput:focus {
+  border-color: var(--gold-mid);
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+}
+
+.submitReviewBtn {
+  background: var(--gold-mid);
+  color: #0d0d11;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submitReviewBtn:hover {
+  background: #ffffff;
+}
+
+.cancelReviewBtn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cancelReviewBtn:hover {
+  color: #fff;
+  border-color: #fff;
+}
+
+/* Cast & Crew */
+.castSection, .recommendationsSection {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 32px;
+  margin-top: 20px;
+}
+
+.sectionHeading {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: #fff;
+  margin-bottom: 24px;
+}
+
+.castGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+}
+
+.castCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.castCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold-mid);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.castImage {
+  width: 100%;
+  aspect-ratio: 1 / 1.1;
+  object-fit: cover;
+}
+
+.castInfo {
+  padding: 10px;
+}
+
+.actorName {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.characterName {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Similar Titles / You Might Also Like */
+.recommendationsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.recCard {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.recCard:hover {
+  transform: scale(1.03);
+  border-color: var(--gold-mid);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+.recImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.recTitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  color: #fff;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.recMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-muted);
+}
+
+/* Actor Modal */
+.actorModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.25s ease;
+}
+
+.actorModal {
+  position: relative;
+  background: #0d0d11;
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.actorModalClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.actorModalClose:hover {
+  color: #fff;
+}
+
+.actorModalLoading {
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  text-align: center;
+  padding: 40px 0;
+}
+
+.actorModalContent {
+  display: flex;
+  gap: 24px;
+}
+
+.actorModalImage {
+  width: 150px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.actorModalInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.actorModalName {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: #fff;
+  margin: 0;
+}
+
+.actorModalSub {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: var(--gold-mid);
+  font-weight: 500;
+}
+
+.actorDetailGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 0;
+}
+
+.actorDetailLabel {
+  color: var(--text-muted);
+  margin-right: 6px;
+}
+
+.actorDetailVal {
+  color: #fff;
+  font-weight: 500;
+}
+
+.actorBio {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 @media (max-width: 900px) {
   .contentWrapper {
     flex-direction: column;
@@ -211,6 +665,16 @@
   .detailsSection {
     width: 100%;
   }
+
+  .actorModalContent {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .actorDetailGrid {
+    justify-items: center;
+  }
 }
 
 @media (max-width: 480px) {
@@ -218,7 +682,7 @@
     flex-direction: column;
   }
 
-  .btnPlay, .btnWatchlist {
+  .btnPlay, .btnWatchlist, .btnWatched {
     width: 100%;
     justify-content: center;
   }

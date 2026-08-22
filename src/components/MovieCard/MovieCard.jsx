@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
+import { isLiked, toggleLike } from '../../utils/likes.js'
 import styles from './MovieCard.module.css'
 
 function PlayIcon() {
@@ -28,10 +29,13 @@ function CheckIcon() {
   )
 }
 
-function ThumbsUpIcon() {
+function HeartIcon({ filled }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+    <svg width="16" height="16" viewBox="0 0 24 24"
+         fill={filled ? '#ef4444' : 'none'}
+         stroke={filled ? '#ef4444' : 'currentColor'}
+         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   )
 }
@@ -47,16 +51,22 @@ function ChevronDownIcon() {
 export default function MovieCard({ movie, rank }) {
   const navigate = useNavigate()
   const [inWatchlist, setInWatchlist] = useState(false)
+  const [liked, setLiked] = useState(false)
+  const [likeAnimate, setLikeAnimate] = useState(false)
 
   useEffect(() => {
     setInWatchlist(isInWatchlist(movie.id))
+    setLiked(isLiked(movie.id))
 
-    const handleUpdate = () => {
-      setInWatchlist(isInWatchlist(movie.id))
+    const handleWatchlistUpdate = () => setInWatchlist(isInWatchlist(movie.id))
+    const handleLikesUpdate = () => setLiked(isLiked(movie.id))
+
+    window.addEventListener('watchlistUpdated', handleWatchlistUpdate)
+    window.addEventListener('likesUpdated', handleLikesUpdate)
+    return () => {
+      window.removeEventListener('watchlistUpdated', handleWatchlistUpdate)
+      window.removeEventListener('likesUpdated', handleLikesUpdate)
     }
-
-    window.addEventListener('watchlistUpdated', handleUpdate)
-    return () => window.removeEventListener('watchlistUpdated', handleUpdate)
   }, [movie.id])
 
   // Use dummy image if movie.image is not provided in mock data
@@ -69,6 +79,14 @@ export default function MovieCard({ movie, rank }) {
   const handleWatchlistToggle = (e) => {
     e.stopPropagation()
     toggleWatchlist(movie)
+  }
+
+  const handleLikeToggle = (e) => {
+    e.stopPropagation()
+    toggleLike(movie)
+    // trigger pop animation
+    setLikeAnimate(true)
+    setTimeout(() => setLikeAnimate(false), 400)
   }
 
   return (
@@ -106,7 +124,14 @@ export default function MovieCard({ movie, rank }) {
             >
               {inWatchlist ? <CheckIcon /> : <PlusIcon />}
             </button>
-            <button className={styles.circleBtn} onClick={(e) => e.stopPropagation()}><ThumbsUpIcon /></button>
+            <button
+              className={`${styles.circleBtn} ${liked ? styles.circleBtnLiked : ''} ${likeAnimate ? styles.likeAnimate : ''}`}
+              onClick={handleLikeToggle}
+              title={liked ? 'Unlike' : 'Like'}
+              aria-label={liked ? 'Unlike this movie' : 'Like this movie'}
+            >
+              <HeartIcon filled={liked} />
+            </button>
             <button className={styles.circleBtn} style={{ marginLeft: 'auto' }} onClick={(e) => { e.stopPropagation(); handleCardClick(); }}><ChevronDownIcon /></button>
           </div>
         </div>

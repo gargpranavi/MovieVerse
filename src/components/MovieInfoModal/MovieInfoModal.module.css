@@ -1,0 +1,323 @@
+﻿/* MovieInfoModal.module.css */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  width: 100%;
+  max-width: 780px;
+  background: #111113;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255,255,255,0.06);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+/* ── Banner ─────────────────────────────────── */
+.banner {
+  position: relative;
+  height: 340px;
+  background-size: cover;
+  background-position: center 20%;
+  flex-shrink: 0;
+}
+
+.bannerGradient {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 60%, transparent 100%),
+    linear-gradient(to top,  #111113 0%, transparent 55%);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.closeBtn:hover {
+  background: rgba(0,0,0,0.85);
+  transform: scale(1.1);
+}
+
+.bannerContent {
+  position: absolute;
+  bottom: 28px;
+  left: 28px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.labelLetter {
+  color: #D4A017;
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 20px;
+}
+
+.labelText {
+  color: #b3b3b3;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(26px, 4vw, 42px);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1px;
+  line-height: 1.1;
+  margin: 0;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+}
+
+.heroBtns {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.playBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: linear-gradient(135deg, #f0c040, #b8860b);
+  border: none;
+  border-radius: 6px;
+  color: #0a0a0c;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.playBtn:hover {
+  opacity: 0.9;
+  transform: scale(1.03);
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 6px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.addBtn:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.03);
+}
+
+/* ── Body ───────────────────────────────────── */
+.body {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 28px;
+  padding: 24px 28px 28px;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar */
+.body::-webkit-scrollbar { width: 6px; }
+.body::-webkit-scrollbar-track { background: transparent; }
+.body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+.body::-webkit-scrollbar-thumb:hover { background: #D4A017; }
+
+/* ── Meta column ────────────────────────────── */
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.ratingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(212, 160, 23, 0.12);
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  color: #D4A017;
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.ratingLabel {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  font-family: 'Outfit', sans-serif;
+}
+
+.metaGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.metaKey {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.metaVal {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  font-family: 'Outfit', sans-serif;
+}
+
+.ageBadge {
+  border: 1px solid rgba(255,255,255,0.35);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+}
+
+.genresSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.genresLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.3);
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.genreTag {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.65);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Outfit', sans-serif;
+  padding: 4px 10px;
+  border-radius: 20px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.genreTag:hover {
+  background: rgba(212, 160, 23, 0.12);
+  border-color: rgba(212, 160, 23, 0.3);
+  color: #D4A017;
+}
+
+/* ── Desc column ────────────────────────────── */
+.descHeading {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0 0 12px 0;
+}
+
+.desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.75);
+  margin: 0;
+}
+
+/* ── Responsive ─────────────────────────────── */
+@media (max-width: 600px) {
+  .banner { height: 220px; }
+  .body {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 18px;
+  }
+  .title { font-size: 24px; }
+}
