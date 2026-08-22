@@ -93,6 +93,7 @@ export default function MovieDetailsPage() {
   // Actor Modal State
   const [selectedActor, setSelectedActor] = useState(null)
   const [actorDetailsLoading, setActorDetailsLoading] = useState(false)
+  const [showAllCast, setShowAllCast] = useState(false)
 
   // Fetch show details
   useEffect(() => {
@@ -163,7 +164,7 @@ export default function MovieDetailsPage() {
     fetch(`https://api.tvmaze.com/shows/${id}/cast`)
       .then(res => res.json())
       .then(castData => {
-        setCast(castData.slice(0, 8))
+        setCast(castData)
       })
       .catch(err => console.error("Error fetching cast:", err))
 
@@ -277,154 +278,220 @@ export default function MovieDetailsPage() {
         </button>
 
         <div className={styles.contentWrapper}>
-          {/* Vertical Poster Section */}
+          {/* Poster with play overlay */}
           <div className={styles.posterSection}>
-            <div className={styles.glowCard}>
+            <div className={styles.glowCard} onClick={() => setIsPlayerOpen(true)}>
               <img src={movie.image} alt={movie.title} className={styles.posterImage} />
+              <div className={styles.playOverlay}>
+                <div className={styles.playCircle}>
+                  <PlayIcon />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Details Section */}
           <div className={styles.detailsSection}>
-            <h1 className={styles.title}>{movie.title.toUpperCase()}</h1>
+            <h1 className={styles.title}>{movie.title}</h1>
             
+            {/* Inline meta: year • rating • genres */}
             <div className={styles.metaRow}>
-              <span className={styles.ratingBadge}>
-                <StarIcon filled style={{ width: '16px', height: '16px', marginRight: '4px' }} /> {movie.rating} / 10
-              </span>
               <span>{movie.year}</span>
-              <span>{movie.duration}</span>
-              <span className={styles.ageBadge}>{movie.ageRating}</span>
-            </div>
-
-            <div className={styles.genresRow}>
-              {movie.genres.map((genre, index) => (
-                <Link to={`/home?genre=${encodeURIComponent(genre)}`} key={index} className={styles.genreTag}>
-                  {genre}
-                </Link>
-              ))}
+              <span className={styles.metaDot}>•</span>
+              <span className={styles.ratingBadge}>{movie.ageRating}</span>
+              {movie.duration && (
+                <>
+                  <span className={styles.metaDot}>•</span>
+                  <span>{movie.duration}</span>
+                </>
+              )}
+              {movie.genres.length > 0 && (
+                <>
+                  <span className={styles.metaDot}>·</span>
+                  {movie.genres.map((genre, i) => (
+                    <span key={genre}>
+                      <Link to={`/home?genre=${encodeURIComponent(genre)}`} className={styles.genreTagInline}>
+                        {genre}
+                      </Link>
+                      {i < movie.genres.length - 1 && <span style={{color:'rgba(212,160,23,0.4)', margin:'0 2px'}}>,</span>}
+                    </span>
+                  ))}
+                </>
+              )}
             </div>
 
             <p className={styles.description}>{movie.description}</p>
 
+            {/* Info cells with icons */}
             <div className={styles.infoGrid}>
-              <div>
-                <span className={styles.infoLabel}>Language:</span>
-                <Link to={`/home?language=${encodeURIComponent(movie.language)}`} className={styles.clickableLink}>
-                  {movie.language || 'English'}
-                </Link>
+              <div className={styles.infoCell}>
+                <div className={styles.infoCellIcon}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </div>
+                <div>
+                  <span className={styles.infoLabel}>Language</span>
+                  <Link to={`/home?language=${encodeURIComponent(movie.language)}`} className={styles.clickableLink}>
+                    {movie.language || 'English'}
+                  </Link>
+                </div>
               </div>
-              <div>
-                <span className={styles.infoLabel}>Network:</span>
-                <Link to={`/home?network=${encodeURIComponent(movie.network)}`} className={styles.clickableLink}>
-                  {movie.network}
-                </Link>
+              <div className={styles.infoCell}>
+                <div className={styles.infoCellIcon}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1.05 12H23M1.05 12C1.05 6.477 6.027 2 12 2s10.95 4.477 10.95 10M1.05 12C1.05 17.523 6.027 22 12 22s10.95-4.477 10.95-10"/>
+                    <path d="M5 12a15.3 15.3 0 0 0 7 2 15.3 15.3 0 0 0 7-2"/>
+                  </svg>
+                </div>
+                <div>
+                  <span className={styles.infoLabel}>Network</span>
+                  <Link to={`/home?network=${encodeURIComponent(movie.network)}`} className={styles.clickableLink}>
+                    {movie.network}
+                  </Link>
+                </div>
               </div>
-              <div>
-                <span className={styles.infoLabel}>Status:</span>
-                <Link to={`/home?status=${encodeURIComponent(movie.status)}`} className={styles.clickableLink}>
-                  {movie.status}
-                </Link>
+              <div className={styles.infoCell}>
+                <div className={styles.infoCellIcon}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                    <line x1="4" y1="22" x2="4" y2="15"/>
+                  </svg>
+                </div>
+                <div>
+                  <span className={styles.infoLabel}>Status</span>
+                  <Link to={`/home?status=${encodeURIComponent(movie.status)}`} className={styles.clickableLink}>
+                    {movie.status}
+                  </Link>
+                </div>
               </div>
             </div>
 
-            {/* User Ratings Panel */}
-            <div className={styles.ratingsCard}>
-              <div className={styles.ratingStarsTitle}>Your Rating</div>
-              <div className={styles.starsWrapper}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <StarIcon 
-                    key={star} 
-                    filled={star <= userRating} 
-                    onClick={() => handleRatingClick(star)} 
-                  />
-                ))}
-              </div>
+          </div>
+        </div>
+
+        {/* Rating + Review — full width */}
+        <div className={styles.ratingsCard}>
+          {/* Left: Stars */}
+          <div className={styles.ratingHalf}>
+            <div className={styles.ratingStarsTitle}>Your Rating</div>
+            <div className={styles.starsWrapper}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <StarIcon 
+                  key={star} 
+                  filled={star <= userRating} 
+                  onClick={() => handleRatingClick(star)} 
+                />
+              ))}
               {userRating > 0 && (
-                <div className={styles.ratingLabelText}>You rated this {userRating}/5</div>
+                <span className={styles.ratingNumeric} style={{marginLeft: '8px'}}>{userRating}.0/5</span>
               )}
+            </div>
+            {userRating > 0 && (
+              <div className={styles.ratingLabelText}>You rated this {userRating}/5</div>
+            )}
+          </div>
 
-              {/* Review Section */}
-              <div className={styles.reviewSection}>
-                {savedReview ? (
-                  <div className={styles.userReviewBox}>
-                    <div className={styles.userReviewHeader}>
-                      <span className={styles.reviewUser}>Your Review</span>
-                      <span className={styles.reviewDate}>{savedReview.reviewDate}</span>
-                    </div>
-                    <p className={styles.userReviewText}>"{savedReview.reviewText}"</p>
-                    <button className={styles.btnWriteReview} onClick={() => setIsReviewFormOpen(true)}>
-                      ✏️ Edit Review
-                    </button>
-                  </div>
-                ) : (
-                  <button className={styles.btnWriteReview} onClick={() => setIsReviewFormOpen(true)}>
-                    💬 Write a Review
+          {/* Right: Review */}
+          <div className={styles.reviewHalf}>
+            <div className={styles.reviewHalfHeader}>
+              <div className={styles.ratingStarsTitle}>Your Review</div>
+              {savedReview && (
+                <span className={styles.reviewDate}>{savedReview.reviewDate}</span>
+              )}
+            </div>
+            {savedReview ? (
+              <>
+                <p className={styles.userReviewText}>"{savedReview.reviewText}"</p>
+                <button className={styles.btnWriteReview} onClick={() => setIsReviewFormOpen(true)}>
+                  ✏️ Edit Review
+                </button>
+              </>
+            ) : (
+              <button className={styles.btnWriteReview} onClick={() => setIsReviewFormOpen(true)}>
+                💬 Write a Review
+              </button>
+            )}
+            {isReviewFormOpen && (
+              <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
+                <label className={styles.formTitle}>
+                  What did you think about {movie.title}?
+                </label>
+                <textarea 
+                  className={styles.reviewInput} 
+                  placeholder="Write your review..."
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  required
+                />
+                <div className={styles.formActions}>
+                  <button type="submit" className={styles.submitReviewBtn}>Submit Review</button>
+                  <button 
+                    type="button" 
+                    className={styles.cancelReviewBtn} 
+                    onClick={() => setIsReviewFormOpen(false)}
+                  >
+                    Cancel
                   </button>
-                )}
-
-                {isReviewFormOpen && (
-                  <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
-                    <label className={styles.formTitle}>
-                      What did you think about {movie.title}?
-                    </label>
-                    <textarea 
-                      className={styles.reviewInput} 
-                      placeholder="Write your review..."
-                      value={reviewText}
-                      onChange={(e) => setReviewText(e.target.value)}
-                      required
-                    />
-                    <div className={styles.formActions}>
-                      <button type="submit" className={styles.submitReviewBtn}>Submit Review</button>
-                      <button 
-                        type="button" 
-                        className={styles.cancelReviewBtn} 
-                        onClick={() => setIsReviewFormOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-
-            <div className={styles.actionRow}>
-              <button className={styles.btnPlay} onClick={() => setIsPlayerOpen(true)}>
-                <PlayIcon /> Play Now
-              </button>
-              <button 
-                className={styles.btnWatchlist}
-                onClick={handleWatchlistToggle}
-              >
-                {inWatchlist ? <CheckIcon /> : <PlusIcon />}
-                {inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
-              </button>
-              
-              <button 
-                className={`${styles.btnWatched} ${watchedState ? styles.btnWatchedActive : ''}`}
-                onClick={handleWatchedToggle}
-              >
-                <CheckIcon />
-                {watchedState ? 'Watched' : 'Mark as Watched'}
-              </button>
-            </div>
-
-            {watchedState && watchedDate && (
-              <div className={styles.watchedLabel}>
-                ✓ Watched: {watchedDate}
-              </div>
+                </div>
+              </form>
             )}
           </div>
         </div>
 
+        {/* Action buttons — full width */}
+        <div className={styles.actionRow}>
+          <button className={styles.btnPlay} onClick={() => setIsPlayerOpen(true)}>
+            <PlayIcon /> Play Now
+          </button>
+          <button 
+            className={styles.btnWatchlist}
+            onClick={handleWatchlistToggle}
+          >
+            {inWatchlist ? <CheckIcon /> : <PlusIcon />}
+            {inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+          </button>
+          <button 
+            className={`${styles.btnWatched} ${watchedState ? styles.btnWatchedActive : ''}`}
+            onClick={handleWatchedToggle}
+          >
+            <CheckIcon />
+            {watchedState ? 'Watched' : 'Mark as Watched'}
+          </button>
+        </div>
+
+        {watchedState && watchedDate && (
+          <div className={styles.watchedLabel}>
+            ✓ Watched: {watchedDate}
+          </div>
+        )}
+
         {/* Cast & Crew Section */}
         {cast.length > 0 && (
           <section className={styles.castSection}>
-            <h2 className={styles.sectionHeading}>Cast & Crew</h2>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionHeading}>Cast &amp; Crew</h2>
+              {cast.length > 7 && (
+                <button
+                  className={styles.viewAllBtn}
+                  onClick={() => setShowAllCast(prev => !prev)}
+                >
+                  {showAllCast ? 'Show Less' : `View All (${cast.length})`}
+                  <svg
+                    width="16" height="16" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    style={{ transform: showAllCast ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+                  >
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+              )}
+            </div>
             <div className={styles.castGrid}>
-              {cast.map((item) => (
+              {(showAllCast ? cast : cast.slice(0, 7)).map((item) => (
                 <div 
                   key={item.person.id} 
                   className={styles.castCard} 
@@ -448,7 +515,9 @@ export default function MovieDetailsPage() {
         {/* Similar Titles / You Might Also Like */}
         {recommendations.length > 0 && (
           <section className={styles.recommendationsSection}>
-            <h2 className={styles.sectionHeading}>You Might Also Like</h2>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionHeading}>You Might Also Like</h2>
+            </div>
             <div className={styles.recommendationsGrid}>
               {recommendations.map((rec) => (
                 <div key={rec.id} className={styles.recCard} onClick={() => navigate(`/movie/${rec.id}`)}>
