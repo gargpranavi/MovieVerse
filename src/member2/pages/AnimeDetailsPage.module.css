@@ -1,0 +1,625 @@
+/* =============================================
+   MovieVerse – AnimeDetailsPage.module.css
+   Member 2 | Anime Detail Page Styles
+
+   Mirrors MovieDetailsPage.module.css structure.
+   Purple accent palette.
+   ============================================= */
+
+/* ── Page ────────────────────────────────────── */
+.page {
+  min-height: 100vh;
+  background: var(--bg-base);
+  padding-bottom: 80px;
+}
+
+/* ── Loading / Error ─────────────────────────── */
+.loadingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  gap: 20px;
+  color: rgba(196, 181, 253, 0.7);
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+}
+
+.loadingSpinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(139, 92, 246, 0.2);
+  border-top-color: #8b5cf6;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.notFoundWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  gap: 20px;
+  color: #888;
+  text-align: center;
+  padding: 40px;
+}
+
+.notFoundIcon {
+  font-size: 72px;
+  opacity: 0.6;
+}
+
+.notFoundWrap h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  color: white;
+}
+
+.notFoundWrap p {
+  font-size: 16px;
+  max-width: 400px;
+  color: #666;
+}
+
+/* ═══════════════════════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════════════════════ */
+.hero {
+  position: relative;
+  min-height: 520px;
+  overflow: hidden;
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 15%;
+  filter: blur(4px) brightness(0.35);
+  transform: scale(1.05);
+}
+
+.heroGradient {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(5,5,7,0.3) 0%, rgba(5,5,7,0.92) 90%),
+    linear-gradient(to right, rgba(5,5,7,0.85) 0%, transparent 60%);
+  z-index: 1;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 2;
+  padding: 80px 5% 50px;
+}
+
+/* ── Back button ─────────────────────────────── */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: rgba(196, 181, 253, 0.7);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 28px;
+  transition: color 0.2s;
+}
+
+.backBtn:hover {
+  color: #c4b5fd;
+}
+
+/* ── Layout ──────────────────────────────────── */
+.heroLayout {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+/* ── Poster ──────────────────────────────────── */
+.posterWrap {
+  flex: 0 0 240px;
+}
+
+.poster {
+  width: 240px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(139, 92, 246, 0.3);
+}
+
+/* ── Info panel ──────────────────────────────── */
+.infoPanel {
+  flex: 1;
+  min-width: 0;
+}
+
+.typeBadge {
+  display: inline-block;
+  background: rgba(109, 40, 217, 0.3);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a78bfa;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.titleJP {
+  font-size: 14px;
+  color: rgba(196, 181, 253, 0.55);
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+/* ── Meta pills ──────────────────────────────── */
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.metaPill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+}
+
+.airingPill {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #86efac;
+}
+
+/* ── Score ───────────────────────────────────── */
+.scoreRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.scoreStar {
+  font-size: 22px;
+  color: #fcd34d;
+}
+
+.scoreNum {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fcd34d;
+  font-family: 'Outfit', sans-serif;
+}
+
+.scoreSub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  margin-left: 4px;
+}
+
+/* ── Genre tags ──────────────────────────────── */
+.genreRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.genreTag {
+  background: rgba(109, 40, 217, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #c4b5fd;
+  font-weight: 600;
+}
+
+/* ── Studio ──────────────────────────────────── */
+.studioLine {
+  font-size: 14px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 16px;
+}
+
+.studioLine strong {
+  color: rgba(255,255,255,0.85);
+}
+
+/* ── Description ─────────────────────────────── */
+.description {
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.82);
+  margin-bottom: 28px;
+  max-width: 700px;
+}
+
+/* ── Action buttons ──────────────────────────── */
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.btnPlay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.45);
+}
+
+.btnPlay:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.btnWatchlist {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 6px;
+  color: #c4b5fd;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btnWatchlist:hover { background: rgba(139, 92, 246, 0.28); }
+
+.btnWatched {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.7);
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnWatched:hover { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.4); color: #86efac; }
+
+.btnWatchedActive {
+  background: rgba(34, 197, 94, 0.15) !important;
+  border-color: rgba(34, 197, 94, 0.5) !important;
+  color: #86efac !important;
+}
+
+.btnLike {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnLike:hover { border-color: #ef4444; background: rgba(239,68,68,0.12); }
+
+.btnLikeActive {
+  border-color: #ef4444 !important;
+  background: rgba(239,68,68,0.15) !important;
+}
+
+.watchedDateLine {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #86efac;
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════
+   SECTIONS  (Rating / Characters / Related)
+   ═══════════════════════════════════════════════ */
+.section {
+  padding: 40px 5% 0;
+}
+
+.sectionTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin-bottom: 24px;
+  letter-spacing: 0.5px;
+}
+
+/* ── Star rating ─────────────────────────────── */
+.starRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.starBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  transition: transform 0.15s;
+}
+
+.starBtn:hover { transform: scale(1.2); }
+
+.starLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fcd34d;
+  margin-left: 8px;
+}
+
+/* ── Saved review ────────────────────────────── */
+.savedReview {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  max-width: 600px;
+}
+
+.savedReviewText {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.85);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.savedReviewMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+}
+
+.editReviewBtn {
+  background: none;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #a78bfa;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.editReviewBtn:hover { background: rgba(139, 92, 246, 0.15); }
+
+/* ── Review form ─────────────────────────────── */
+.reviewForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 600px;
+}
+
+.reviewTextarea {
+  width: 100%;
+  background: rgba(10, 8, 20, 0.8);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: var(--radius-md);
+  color: #f0f0f5;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 14px 16px;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.reviewTextarea:focus {
+  outline: none;
+  border-color: #8b5cf6;
+}
+
+.reviewFormActions {
+  display: flex;
+  gap: 10px;
+}
+
+.btnSubmitReview {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btnSubmitReview:disabled { opacity: 0.45; cursor: not-allowed; }
+.btnSubmitReview:not(:disabled):hover { opacity: 0.88; }
+
+.btnCancelReview {
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.6);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btnCancelReview:hover { background: rgba(255,255,255,0.1); }
+
+/* ── Characters grid ─────────────────────────── */
+.castGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.castCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(10, 8, 20, 0.7);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.castCard:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-3px);
+}
+
+.castImg {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.castInfo {
+  padding: 0 10px 12px;
+}
+
+.castName {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.castRole {
+  font-size: 11px;
+  color: #a78bfa;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.castVA {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}
+
+.showMoreBtn {
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 8px;
+  padding: 10px 24px;
+  color: #c4b5fd;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.showMoreBtn:hover { background: rgba(139, 92, 246, 0.22); }
+
+/* ── Related anime section ───────────────────── */
+.relatedSection {
+  margin-top: 40px;
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .heroLayout {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .posterWrap {
+    flex: none;
+    align-self: center;
+  }
+
+  .poster {
+    width: 180px;
+  }
+
+  .heroInner {
+    padding: 70px 5% 36px;
+  }
+
+  .castGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .actionRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btnLike {
+    align-self: flex-start;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+}

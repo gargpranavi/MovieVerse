@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { shows } from '../../data/index.js'
+import { fallbackAnime } from '../../member2/data/animeData.js'
 import styles from './TopNavbar.module.css'
 
 const NAV_ITEMS = [
   { to: '/home', label: 'Home', external: false },
   { to: '/pages/movies3.html', label: 'Movies', external: true },
   { to: '/pages/drama3.html', label: 'TV Series', external: true },
-  { to: null, label: 'Anime', external: false, disabled: true },
+  { to: '/anime', label: 'Anime', external: false },
   { to: '/watchlist', label: 'Watchlist', external: false },
   { to: '/watched', label: 'Watched', external: false },
 ]
@@ -102,22 +103,41 @@ export default function TopNavbar() {
     }
     setIsSearching(true)
     // Local instant search — no network needed
-    const matched = shows
+    const matchedShows = shows
       .filter(s =>
         s.title.toLowerCase().includes(q) ||
         s.genres.some(g => g.toLowerCase().includes(q)) ||
         s.year.includes(q) ||
         (s.language || '').toLowerCase().includes(q)
       )
-      .slice(0, 8)
       .map(s => ({
         id:     s.id,
         title:  s.title,
         year:   s.year,
         rating: s.rating || null,
         image:  s.image || null,
+        type:   'movie'
       }))
-    setSearchResults(matched)
+
+    const matchedAnime = fallbackAnime
+      .filter(a => 
+        a.title.toLowerCase().includes(q) ||
+        (a.titleJP && a.titleJP.toLowerCase().includes(q)) ||
+        (a.genres && a.genres.some(g => g.toLowerCase().includes(q))) ||
+        (a.year && a.year.toString().includes(q))
+      )
+      .map(a => ({
+        id:     a.id,
+        title:  a.title,
+        year:   a.year,
+        rating: a.rating || null,
+        image:  a.image || null,
+        type:   'anime'
+      }))
+
+    const combined = [...matchedShows, ...matchedAnime].slice(0, 8)
+    
+    setSearchResults(combined)
     setIsSearching(false)
   }, [searchQuery])
 
@@ -239,7 +259,7 @@ export default function TopNavbar() {
                 searchResults.map(show => (
                   <NavLink
                     key={show.id}
-                    to={`/movie/${show.id}`}
+                    to={`/${show.type === 'anime' ? 'anime' : 'movie'}/${show.id}`}
                     className={styles.searchResultItem}
                     onClick={() => {
                       setSearchResults([])

@@ -1,0 +1,370 @@
+/* =============================================
+   MovieVerse – AnimePage.module.css
+   Member 2 | Anime Page Styles
+
+   Mirrors HomePage.module.css.
+   Anime accent: purple / indigo gradient palette
+   instead of gold.
+   ============================================= */
+
+/* ── Page Root ───────────────────────────────── */
+.page {
+  min-height: 100vh;
+  background: var(--bg-base);
+  padding-bottom: 60px;
+}
+
+/* ── Fallback banner ─────────────────────────── */
+.fallbackBanner {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: rgba(109, 40, 217, 0.2);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.35);
+  color: #c4b5fd;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ═══════════════════════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════════════════════ */
+.hero {
+  position: relative;
+  height: 80vh;
+  min-height: 500px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Background image */
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 20%;
+  animation: heroFade 0.9s ease both;
+  filter: brightness(0.75);
+}
+
+@keyframes heroFade {
+  from { opacity: 0; transform: scale(1.04); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Gradient overlay — left-heavy with purple tint at bottom */
+.heroGradient {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(0, 0, 0, 0.85) 0%, rgba(0,0,0,0.45) 55%, transparent 100%),
+    linear-gradient(to top, var(--bg-base) 0%, rgba(13,8,36,0.7) 30%, transparent 70%);
+  z-index: 1;
+}
+
+/* Content positioned left */
+.heroContent {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding: 0 4%;
+  max-width: 800px;
+}
+
+/* ── Badge ───────────────────────────────────── */
+.animeBadgeWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.animeLetter {
+  color: #a78bfa;
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 26px;
+}
+
+.animeText {
+  color: rgba(196, 181, 253, 0.75);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 5px;
+}
+
+/* ── Title ───────────────────────────────────── */
+.heroTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 5.5vw, 76px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.08;
+  margin-bottom: 18px;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+  letter-spacing: 1px;
+}
+
+/* ── Meta row ────────────────────────────────── */
+.heroMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(196, 181, 253, 0.85);
+  margin-bottom: 18px;
+}
+
+.ratingBadge {
+  color: #fcd34d;
+  font-weight: 700;
+}
+
+.ageBadge {
+  border: 1px solid rgba(196, 181, 253, 0.4);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: white;
+  letter-spacing: 0.3px;
+}
+
+/* ── Description ─────────────────────────────── */
+.heroDesc {
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 30px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 600px;
+}
+
+/* ── Action buttons ──────────────────────────── */
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* Play Trailer — purple */
+.btnPlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+}
+
+.btnPlay:hover {
+  opacity: 0.92;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.65);
+}
+
+/* Add to Watchlist — outline purple */
+.btnWatchlist {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: rgba(139, 92, 246, 0.18);
+  border: 1px solid rgba(139, 92, 246, 0.55);
+  border-radius: 6px;
+  color: #c4b5fd;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  backdrop-filter: blur(4px);
+}
+
+.btnWatchlist:hover {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: #a78bfa;
+}
+
+/* More Info — semi-transparent */
+.btnMoreInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: rgba(109, 109, 110, 0.6);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btnMoreInfo:hover {
+  background: rgba(109, 109, 110, 0.35);
+}
+
+/* ── Bottom-right genre pills ────────────────── */
+.heroBottomRight {
+  position: absolute;
+  bottom: 28%;
+  right: 2%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.genrePill {
+  background: rgba(109, 40, 217, 0.3);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c4b5fd;
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.4px;
+}
+
+/* ═══════════════════════════════════════════════
+   CONTENT ROWS
+   ═══════════════════════════════════════════════ */
+.content {
+  margin-top: 24px;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ═══════════════════════════════════════════════
+   LOADING SKELETON
+   ═══════════════════════════════════════════════ */
+.skeletonPage {
+  min-height: 100vh;
+}
+
+.skeletonHero {
+  height: 80vh;
+  min-height: 500px;
+  background: linear-gradient(135deg, #0d0825, #150d40, #0d0825);
+  background-size: 200% 200%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.skeletonRow {
+  padding: 20px 4% 0;
+}
+
+.skeletonRowTitle {
+  width: 220px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.15);
+  margin-bottom: 14px;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.skeletonCards {
+  display: flex;
+  gap: 15px;
+}
+
+.skeletonCard {
+  flex: 0 0 calc(20% - 12px);
+  min-width: calc(20% - 12px);
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-md);
+  background: rgba(139, 92, 246, 0.1);
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1;   }
+  100% { opacity: 0.6; }
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .hero {
+    height: 65vh;
+  }
+
+  .heroTitle {
+    font-size: 30px;
+  }
+
+  .heroDesc {
+    font-size: 14px;
+    -webkit-line-clamp: 3;
+  }
+
+  .heroBottomRight {
+    display: none;
+  }
+
+  .content {
+    margin-top: 0;
+  }
+
+  .skeletonCard {
+    flex: 0 0 calc(33% - 10px);
+    min-width: calc(33% - 10px);
+  }
+}
+
+@media (max-width: 480px) {
+  .heroActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .heroTitle {
+    font-size: 24px;
+  }
+
+  .heroContent {
+    padding: 0 5%;
+  }
+
+  .skeletonCard {
+    flex: 0 0 calc(50% - 8px);
+    min-width: calc(50% - 8px);
+  }
+}

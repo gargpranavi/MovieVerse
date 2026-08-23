@@ -4,6 +4,8 @@ import LoginPage from './member2/pages/LoginPage.jsx'
 import WatchlistPage2 from './member2/pages/WatchlistPage2.jsx'
 import WatchedPage2 from './member2/pages/WatchedPage2.jsx'
 import ProfilePage from './member2/pages/ProfilePage.jsx'
+import AnimePage from './member2/pages/AnimePage.jsx'
+import AnimeDetailsPage from './member2/pages/AnimeDetailsPage.jsx'
 
 import HomePage from './pages/Home/HomePage.jsx'
 import MoviesPage from './pages/Movies/MoviesPage.jsx'
@@ -27,10 +29,12 @@ function App() {
       <Route path="/movie/:id" element={<MovieDetailsPage />} />
       <Route path="/ai-features" element={<AiFeaturesPage />} />
 
-      {/* Member 2 – Watchlist & Watched */}
+      {/* Member 2 – Watchlist, Watched & Anime */}
       <Route path="/watchlist" element={<WatchlistPage2 />} />
       <Route path="/watched" element={<WatchedPage2 />} />
       <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/anime" element={<AnimePage />} />
+      <Route path="/anime/:id" element={<AnimeDetailsPage />} />
 
       {/* Placeholder routes */}
       <Route path="/search" element={<HomePage />} />

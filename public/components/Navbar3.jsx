@@ -8,7 +8,7 @@ const NAV_LINKS = [
     { label: 'Home',      href: '/home',             external: false },
     { label: 'Movies',    href: '/pages/movies3.html', external: true  },
     { label: 'TV Series', href: '/pages/drama3.html',  external: true  },
-    { label: 'Anime',     href: null,                  disabled: true  },
+    { label: 'Anime',     href: '/anime',              external: false },
     { label: 'Watchlist', href: '/watchlist',          external: false },
     { label: 'Watched',   href: '/watched',            external: false },
 ];
