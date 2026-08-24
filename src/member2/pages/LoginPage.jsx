@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import styles from './LoginPage.module.css'
 
-/* ── Poster data ───────────────────────────── */
+/* Poster data */
 const POSTER_COLORS = [
   'linear-gradient(160deg,#1a0a2e,#3d1a6e,#7b2d8b)',
   'linear-gradient(160deg,#0d1b2a,#1b4975,#1a8a9c)',
@@ -30,7 +30,7 @@ const POSTER_COLORS = [
   'linear-gradient(160deg,#10080a,#401820,#903040)',
 ]
 
-/* ── Sub-components ────────────────────────── */
+/* Sub-components */
 function Background() {
   return (
     <div className={styles.bgScene} aria-hidden="true">
@@ -78,7 +78,7 @@ function EyeIcon({ visible }) {
   )
 }
 
-/* ── Simulated auth (replace with real API) ── */
+/* Simulated auth (replace with real API)  */
 function simulateAuth(identifier, password) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -93,7 +93,7 @@ function simulateAuth(identifier, password) {
   })
 }
 
-/* ── Main Component ────────────────────────── */
+/* Main Component */
 export default function LoginPage() {
   const navigate = useNavigate()
 
@@ -105,7 +105,7 @@ export default function LoginPage() {
   const [message, setMessage]           = useState(null) // { text, type }
   const [invalidFields, setInvalidFields] = useState({})
 
-  /* ── Load remembered identifier ─────────── */
+  /* Load remembered identifier */
   useEffect(() => {
     const saved = localStorage.getItem('movieverse_saved_identifier')
     if (saved) {
@@ -114,7 +114,7 @@ export default function LoginPage() {
     }
   }, [])
 
-  /* ── Sync remember-me to localStorage ────── */
+  /* Sync remember-me to localStorage */
   useEffect(() => {
     if (rememberMe && identifier.trim()) {
       localStorage.setItem('movieverse_saved_identifier', identifier.trim())
@@ -133,7 +133,7 @@ export default function LoginPage() {
     return Object.keys(errors).length === 0
   }, [identifier, password])
 
-  /* ── Form submit ─────────────────────────── */
+  /* Form submit */
   const handleSubmit = async (e) => {
     e.preventDefault()
     clearMessage()

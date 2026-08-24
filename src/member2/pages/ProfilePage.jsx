@@ -1,6 +1,6 @@
-/* =============================================
+/*
    MovieVerse – ProfilePage.jsx
-   Member 2 | Day 5 — Profile Page
+   Member 2 | Day 5 - Profile Page
 
    Route: /profile
 
@@ -14,7 +14,7 @@
      1. Profile Card  (avatar, name, stats)
      2. Recent Watched Movies
      3. User Reviews
-   ============================================= */
+*/
 
 import { useState, useEffect } from 'react'
 import { Link }                from 'react-router-dom'
@@ -23,13 +23,13 @@ import ProfileCard             from '../components/ProfileCard.jsx'
 import { mockUsers }           from '../data/users2.js'
 import styles                  from './ProfilePage.module.css'
 
-/* ── localStorage keys ───────────────────────── */
+/* localStorage keys */
 const LS_WATCHLIST = 'watchlist'
 const LS_WATCHED   = 'movieverse_watched'
 const LS_REVIEWS   = 'movieverse_reviews'
 const LS_RATINGS   = 'movieverse_ratings'
 
-/* ── localStorage helpers ────────────────────── */
+/* localStorage helpers */
 function loadLS(key) {
   try {
     return JSON.parse(localStorage.getItem(key) || '[]')
@@ -38,14 +38,14 @@ function loadLS(key) {
   }
 }
 
-/* ── Compute average rating ─────────────────── */
+/* Compute average rating */
 function computeAvgRating(ratings) {
   if (!ratings.length) return null
   const sum = ratings.reduce((acc, r) => acc + (r.rating ?? 0), 0)
   return Math.round((sum / ratings.length) * 10) / 10
 }
 
-/* ── Resolve a show title from its ID ────────── */
+/* Resolve a show title from its ID */
 function resolveTitle(movieId, watched, watchlist) {
   const id = String(movieId)
   const fromWatched   = watched.find(s   => String(s.id) === id)
@@ -53,9 +53,7 @@ function resolveTitle(movieId, watched, watchlist) {
   return (fromWatched?.name || fromWatched?.title) ?? (fromWatchlist?.name || fromWatchlist?.title) ?? `Show #${id}`
 }
 
-/* ══════════════════════════════════════════════
-   Inline icon components
-   ══════════════════════════════════════════════ */
+/* Inline icon components */
 
 function UserIcon() {
   return (
@@ -95,7 +93,7 @@ function StarFilledIcon() {
   )
 }
 
-/* ── Small movie poster card ─────────────────── */
+/* Small movie poster card */
 function RecentMovieCard({ show }) {
   const name   = show?.name ?? show?.title ?? 'Unknown'
   const poster = show?.image?.medium ?? null
@@ -126,7 +124,7 @@ function RecentMovieCard({ show }) {
   )
 }
 
-/* ── Single review row ────────────────────── */
+/* Single review row */
 function ReviewRow({ review, title }) {
   return (
     <div className={styles.reviewRow}>
@@ -144,18 +142,16 @@ function ReviewRow({ review, title }) {
   )
 }
 
-/* ══════════════════════════════════════════════
-   Main ProfilePage Component
-   ══════════════════════════════════════════════ */
+/* Main ProfilePage Component */
 export default function ProfilePage() {
 
-  /* ── State ───────────────────────────────── */
+  /* State */
   const [watchlist,    setWatchlist]    = useState([])
   const [watched,      setWatched]      = useState([])
   const [reviews,      setReviews]      = useState([])
   const [ratings,      setRatings]      = useState([])
 
-  /* ── Load all data from localStorage ─────── */
+  /* Load all data from localStorage */
   useEffect(() => {
     function refresh() {
       setWatchlist(loadLS(LS_WATCHLIST))
@@ -177,7 +173,7 @@ export default function ProfilePage() {
     }
   }, [])
 
-  /* ── Derived values ──────────────────────── */
+  /* Derived values */
   const user       = mockUsers[0]
   const avgRating  = computeAvgRating(ratings)
 
@@ -189,14 +185,12 @@ export default function ProfilePage() {
   /* Most recent 5 reviews */
   const recentReviews = [...reviews].reverse().slice(0, 5)
 
-  /* ════════════════════════════════════════════
-     Render
-     ════════════════════════════════════════════ */
+  /* Render */
   return (
     <DashboardLayout>
       <div className={styles.page}>
 
-        {/* ── Deep Space Background ──────────── */}
+        {/* Deep Space Background */}
         <div className={styles.bgScene} aria-hidden="true">
           <div className={styles.bgGlow1} />
           <div className={styles.bgGlow2} />
@@ -204,7 +198,7 @@ export default function ProfilePage() {
           <div className={styles.bgGlow4} />
         </div>
 
-        {/* ── Page header ────────────────────── */}
+        {/* Page header */}
         <header className={styles.pageHeader}>
           <div className={styles.headerContent}>
             <div className={styles.headerLeft}>
@@ -230,10 +224,10 @@ export default function ProfilePage() {
           </div>
         </header>
 
-        {/* ── Main content ───────────────────── */}
+        {/* Main content */}
         <main className={styles.main} id="profileMain">
 
-          {/* ── Two-column layout ──────────── */}
+          {/* Two-column layout */}
           <div className={styles.layout}>
 
             {/* Left: Profile Card (sticky) */}
@@ -250,7 +244,7 @@ export default function ProfilePage() {
             {/* Right: detail panels */}
             <section className={styles.rightCol}>
 
-              {/* ── Recent Watched ───────────── */}
+              {/* Recent Watched */}
               <div className={styles.panel} id="profile-recent-watched">
                 <div className={styles.panelHeader}>
                   <div className={styles.panelTitleRow}>
@@ -286,7 +280,7 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              {/* ── User Reviews ─────────────── */}
+              {/* User Reviews */}
               <div className={styles.panel} id="profile-reviews">
                 <div className={styles.panelHeader}>
                   <div className={styles.panelTitleRow}>
@@ -327,7 +321,7 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              {/* ── Ratings summary ──────────── */}
+              {/* Ratings summary */}
               {ratings.length > 0 && (
                 <div className={styles.panel} id="profile-ratings">
                   <div className={styles.panelHeader}>

@@ -1,10 +1,10 @@
-/* =============================================
-   MovieVerse – AnimeCarousel.module.css
-   Member 2 | Carousel styles
+/*
+MovieVerse – AnimeCarousel.module.css
+Member 2 | Carousel styles
 
-   Mirrors MovieCarousel.module.css.
-   Anime-specific: purple arrow + title glow.
-   ============================================= */
+Mirrors MovieCarousel.module.css.
+Anime-specific: purple arrow + title glow.
+*/
 
 .carouselContainer {
   margin-bottom: 40px;
@@ -62,7 +62,7 @@
   display: none;
 }
 
-/* ── Arrow buttons ───────────────────────────── */
+/*Arrow buttons*/
 .sliderArrow {
   position: absolute;
   top: 0;

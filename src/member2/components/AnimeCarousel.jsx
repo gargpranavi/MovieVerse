@@ -1,10 +1,10 @@
-/* =============================================
-   MovieVerse – AnimeCarousel.jsx
-   Member 2 | Horizontal scrolling anime row
+/*
+MovieVerse – AnimeCarousel.jsx
+Member 2 | Horizontal scrolling anime row
 
-   Identical layout to MovieCarousel.jsx but
-   renders AnimeCard instead of MovieCard.
-   ============================================= */
+Identical layout to MovieCarousel.jsx but
+renders AnimeCard instead of MovieCard.
+*/
 
 import { useRef, useState } from 'react'
 import AnimeCard from './AnimeCard.jsx'

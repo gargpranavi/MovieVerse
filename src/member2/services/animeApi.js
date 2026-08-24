@@ -1,4 +1,4 @@
-/* =============================================
+/*
    MovieVerse – animeApi.js
    Member 2 | Jikan v4 API Service
 
@@ -17,12 +17,12 @@
      // anime extras:
      episodes, type, malId, trailer, studios[]
    }
-   ============================================= */
+  */
 
 const BASE = 'https://api.jikan.moe/v4'
 const CACHE_TTL_MS = 5 * 60 * 1000   // 5 minutes
 
-// ── Genre IDs on MyAnimeList ──────────────────
+//  Genre IDs on MyAnimeList 
 export const GENRE_IDS = {
   Action:    1,
   Romance:   22,
@@ -36,9 +36,7 @@ export const GENRE_IDS = {
   Thriller:  41,
 }
 
-/* ═══════════════════════════════════════════════
-   Cache helpers  (sessionStorage-based)
-   ═══════════════════════════════════════════════ */
+/* Cache helpers  (sessionStorage-based)*/
 
 function cacheKey(key) {
   return `anime_cache_${key}`
@@ -70,10 +68,9 @@ function writeCache(key, data) {
   }
 }
 
-/* ═══════════════════════════════════════════════
-   Data normaliser
+/*  Data normaliser 
    Converts a Jikan anime item → MovieVerse shape
-   ═══════════════════════════════════════════════ */
+  */
 
 export function normaliseAnime(item) {
   if (!item) return null
@@ -88,7 +85,7 @@ export function normaliseAnime(item) {
     item.images?.webp?.large_image_url ||
     null
 
-  // Build a hero banner — Jikan doesn't provide wide banners,
+  // Build a hero banner - Jikan doesn't provide wide banners,
   // so we use the trailer thumbnail if available, else the poster
   const banner =
     item.trailer?.images?.maximum_image_url ||
@@ -122,11 +119,10 @@ export function normaliseAnime(item) {
   }
 }
 
-/* ═══════════════════════════════════════════════
-   Core fetch wrapper
-   ─ handles HTTP errors
-   ─ reads/writes cache
-   ═══════════════════════════════════════════════ */
+/* Core fetch wrapper
+   - handles HTTP errors
+   - reads/writes cache
+  */
 
 async function apiFetch(endpoint, cacheLabel) {
   // Try cache first
@@ -152,9 +148,7 @@ async function apiFetch(endpoint, cacheLabel) {
   return normalised
 }
 
-/* ═══════════════════════════════════════════════
-   Public API functions
-   ═══════════════════════════════════════════════ */
+/* Public API functions */
 
 /** Top anime (by rank) */
 export async function fetchTopAnime(limit = 20) {

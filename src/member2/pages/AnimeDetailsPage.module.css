@@ -1,19 +1,18 @@
-/* =============================================
+/*
    MovieVerse – AnimeDetailsPage.module.css
    Member 2 | Anime Detail Page Styles
 
    Mirrors MovieDetailsPage.module.css structure.
-   Purple accent palette.
-   ============================================= */
+   Purple accent palette.*/
 
-/* ── Page ────────────────────────────────────── */
+/*Page*/
 .page {
   min-height: 100vh;
   background: var(--bg-base);
   padding-bottom: 80px;
 }
 
-/* ── Loading / Error ─────────────────────────── */
+/*Loading / Error*/
 .loadingWrap {
   display: flex;
   flex-direction: column;
@@ -66,9 +65,7 @@
   color: #666;
 }
 
-/* ═══════════════════════════════════════════════
-   HERO SECTION
-   ═══════════════════════════════════════════════ */
+/*HERO SECTION*/
 .hero {
   position: relative;
   min-height: 520px;
@@ -99,7 +96,7 @@
   padding: 80px 5% 50px;
 }
 
-/* ── Back button ─────────────────────────────── */
+/*Back button*/
 .backBtn {
   display: inline-flex;
   align-items: center;
@@ -120,14 +117,14 @@
   color: #c4b5fd;
 }
 
-/* ── Layout ──────────────────────────────────── */
+/*Layout*/
 .heroLayout {
   display: flex;
   gap: 48px;
   align-items: flex-start;
 }
 
-/* ── Poster ──────────────────────────────────── */
+/*Poster*/
 .posterWrap {
   flex: 0 0 240px;
 }
@@ -140,7 +137,7 @@
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(139, 92, 246, 0.3);
 }
 
-/* ── Info panel ──────────────────────────────── */
+/*Info panel*/
 .infoPanel {
   flex: 1;
   min-width: 0;
@@ -177,7 +174,7 @@
   font-style: italic;
 }
 
-/* ── Meta pills ──────────────────────────────── */
+/*Meta pills*/
 .metaRow {
   display: flex;
   flex-wrap: wrap;
@@ -201,7 +198,7 @@
   color: #86efac;
 }
 
-/* ── Score ───────────────────────────────────── */
+/*Score*/
 .scoreRow {
   display: flex;
   align-items: baseline;
@@ -227,7 +224,7 @@
   margin-left: 4px;
 }
 
-/* ── Genre tags ──────────────────────────────── */
+/*Genre tags*/
 .genreRow {
   display: flex;
   flex-wrap: wrap;
@@ -245,7 +242,7 @@
   font-weight: 600;
 }
 
-/* ── Studio ──────────────────────────────────── */
+/*Studio*/
 .studioLine {
   font-size: 14px;
   color: rgba(255,255,255,0.55);
@@ -256,7 +253,7 @@
   color: rgba(255,255,255,0.85);
 }
 
-/* ── Description ─────────────────────────────── */
+/*Description*/
 .description {
   font-size: 16px;
   line-height: 1.65;
@@ -265,7 +262,7 @@
   max-width: 700px;
 }
 
-/* ── Action buttons ──────────────────────────── */
+/*Action buttons*/
 .actionRow {
   display: flex;
   flex-wrap: wrap;
@@ -361,9 +358,7 @@
   font-weight: 500;
 }
 
-/* ═══════════════════════════════════════════════
-   SECTIONS  (Rating / Characters / Related)
-   ═══════════════════════════════════════════════ */
+/*SECTIONS (Rating / Characters / Related)*/
 .section {
   padding: 40px 5% 0;
 }
@@ -377,7 +372,7 @@
   letter-spacing: 0.5px;
 }
 
-/* ── Star rating ─────────────────────────────── */
+/*Star rating*/
 .starRow {
   display: flex;
   align-items: center;
@@ -403,7 +398,7 @@
   margin-left: 8px;
 }
 
-/* ── Saved review ────────────────────────────── */
+/*Saved review*/
 .savedReview {
   background: rgba(139, 92, 246, 0.08);
   border: 1px solid rgba(139, 92, 246, 0.25);
@@ -442,7 +437,7 @@
 
 .editReviewBtn:hover { background: rgba(139, 92, 246, 0.15); }
 
-/* ── Review form ─────────────────────────────── */
+/*Review form*/
 .reviewForm {
   display: flex;
   flex-direction: column;
@@ -504,7 +499,7 @@
 
 .btnCancelReview:hover { background: rgba(255,255,255,0.1); }
 
-/* ── Characters grid ─────────────────────────── */
+/*Characters grid*/
 .castGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -577,14 +572,12 @@
 
 .showMoreBtn:hover { background: rgba(139, 92, 246, 0.22); }
 
-/* ── Related anime section ───────────────────── */
+/*Related anime section*/
 .relatedSection {
   margin-top: 40px;
 }
 
-/* ═══════════════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════════════ */
+/*RESPONSIVE*/
 @media (max-width: 768px) {
   .heroLayout {
     flex-direction: column;

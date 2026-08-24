@@ -6,7 +6,7 @@
 
 import styles from './EmptyState2.module.css'
 
-/* ── Film reel SVG ──────────────────────────── */
+/*Film reel SVG*/
 function FilmReelIcon() {
   return (
     <svg
@@ -32,7 +32,7 @@ function FilmReelIcon() {
   )
 }
 
-/* ── EmptyState2 Component ───────────────────── */
+/*EmptyState2 Component*/
 export default function EmptyState2() {
   return (
     <div className={styles.wrapper} role="status" aria-live="polite">

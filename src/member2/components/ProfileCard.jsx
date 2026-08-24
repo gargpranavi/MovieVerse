@@ -1,18 +1,18 @@
-/* =============================================
-   MovieVerse – ProfileCard.jsx
-   Member 2 | Day 5 — Profile Card Component
+/*
+MovieVerse – ProfileCard.jsx
+Member 2 | Day 5 — Profile Card Component
 
-   Props:
-     user        — { username, email, avatar, joined }
-     watchedCount  — number
-     watchlistCount — number
-     reviewCount   — number
-     avgRating     — number | null
-   ============================================= */
+Props:
+  user        — { username, email, avatar, joined }
+  watchedCount  — number
+  watchlistCount — number
+  reviewCount   — number
+  avgRating     — number | null
+*/
 
 import styles from './ProfileCard.module.css'
 
-/* ── Star icon ─────────────────────────────── */
+/*Star icon*/
 function StarIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="#D4A017" stroke="#D4A017" strokeWidth="0.5" aria-hidden="true">
@@ -21,7 +21,7 @@ function StarIcon() {
   )
 }
 
-/* ── Camera / avatar fallback icon ─────────── */
+/*Camera / avatar fallback icon*/
 function UserAvatarIcon() {
   return (
     <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.7)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -31,7 +31,7 @@ function UserAvatarIcon() {
   )
 }
 
-/* ── Single stat item ─────────────────────── */
+/*Single stat item*/
 function StatItem({ icon, label, value, highlight }) {
   return (
     <div className={`${styles.statItem} ${highlight ? styles.statHighlight : ''}`}>
@@ -42,9 +42,7 @@ function StatItem({ icon, label, value, highlight }) {
   )
 }
 
-/* ══════════════════════════════════════════════
-   ProfileCard Component
-   ══════════════════════════════════════════════ */
+/*ProfileCard Component*/
 export default function ProfileCard({
   user,
   watchedCount   = 0,

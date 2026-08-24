@@ -1,20 +1,20 @@
-/* =============================================
-   MovieVerse – Rating.jsx
-   Member 2 | Day 4 — Star Rating Component
+/*
+MovieVerse – Rating.jsx
+Member 2 | Day 4 — Star Rating Component
 
-   localStorage key: "movieverse_ratings"
-   Entry shape: { movieId: string, rating: number }
+localStorage key: "movieverse_ratings"
+Entry shape: { movieId: string, rating: number }
 
-   Props:
-     movieId   — string ID of the show
-     size      — 'sm' | 'md' | 'lg'  (default 'md')
-     readonly  — if true, stars are display-only (no click)
-   ============================================= */
+Props:
+  movieId   — string ID of the show
+  size      — 'sm' | 'md' | 'lg'  (default 'md')
+  readonly  — if true, stars are display-only (no click)
+*/
 
 import { useState, useEffect } from 'react'
 import styles from './Rating.module.css'
 
-/* ── localStorage helpers ─────────────────────── */
+/*localStorage helpers*/
 const LS_KEY = 'movieverse_ratings'
 
 function loadAllRatings() {
@@ -56,7 +56,7 @@ export function removeMovieRating(movieId) {
   saveAllRatings(all)
 }
 
-/* ── Star icon ───────────────────────────────── */
+/*Star icon*/
 function Star({ filled, half }) {
   if (filled) {
     return (
@@ -72,9 +72,7 @@ function Star({ filled, half }) {
   )
 }
 
-/* ══════════════════════════════════════════════
-   Rating Component
-   ══════════════════════════════════════════════ */
+/*Rating Component*/
 export default function Rating({ movieId, size = 'md', readonly = false }) {
   const [saved,   setSaved]   = useState(null)   // persisted rating
   const [hovered, setHovered] = useState(null)   // hovered star index (1-5)

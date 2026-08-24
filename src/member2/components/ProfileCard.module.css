@@ -1,9 +1,9 @@
-/* =============================================
-   MovieVerse – ProfileCard.module.css
-   Member 2 | Day 5 — Profile Card Styles
-   ============================================= */
+/*
+MovieVerse – ProfileCard.module.css
+Member 2 | Day 5 — Profile Card Styles
+*/
 
-/* ── Design tokens ──────────────────────────── */
+/*Design tokens*/
 .card {
   --gold:         #D4A017;
   --gold-light:   #F5C842;
@@ -39,7 +39,7 @@
     0 0 160px rgba(212, 160, 23, 0.08);
 }
 
-/* ── Animated glow ring behind the card ─────── */
+/*Animated glow ring behind the card*/
 .glowRing {
   position: absolute;
   inset: -60px;
@@ -58,7 +58,7 @@
   100% { opacity: 1;   transform: scale(1.06); }
 }
 
-/* ── Avatar ─────────────────────────────────── */
+/*Avatar*/
 .avatarWrapper {
   position: relative;
   z-index: 1;
@@ -90,7 +90,7 @@
     0 12px 40px rgba(0, 0, 0, 0.55);
 }
 
-/* ── Online badge ───────────────────────────── */
+/*Online badge*/
 .avatarBadge {
   position: absolute;
   bottom: 4px;
@@ -119,7 +119,7 @@
   50%       { transform: scale(1.2); opacity: 0.75; }
 }
 
-/* ── User info block ────────────────────────── */
+/*User info block*/
 .userInfo {
   position: relative;
   z-index: 1;
@@ -160,7 +160,7 @@
   margin: 0;
 }
 
-/* ── Divider ────────────────────────────────── */
+/*Divider*/
 .divider {
   width: 100%;
   height: 1px;
@@ -176,7 +176,7 @@
   z-index: 1;
 }
 
-/* ── Stats grid ─────────────────────────────── */
+/*Stats grid*/
 .statsGrid {
   position: relative;
   z-index: 1;
@@ -186,7 +186,7 @@
   width: 100%;
 }
 
-/* ── Stat item ──────────────────────────────── */
+/*Stat item*/
 .statItem {
   display: flex;
   flex-direction: column;
@@ -251,7 +251,7 @@
   line-height: 1.2;
 }
 
-/* ── Responsive ─────────────────────────────── */
+/*Responsive*/
 @media (max-width: 480px) {
   .card {
     padding: 28px 20px 24px;

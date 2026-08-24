@@ -1,4 +1,4 @@
-/* =============================================
+/*
    MovieVerse – WatchlistCard2.jsx
    Member 2 | Netflix-style portrait card
    (matches MovieCard.jsx design from member 1)
@@ -7,7 +7,7 @@
 
    Used on: /watchlist (all buttons)
             /watched   (no "mark watched" btn, shows watched date ribbon)
-   ============================================= */
+*/
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -16,7 +16,7 @@ import Rating from './Rating.jsx'
 import ReviewCard from './ReviewCard.jsx'
 import styles from './WatchlistCard2.module.css'
 
-/* ── Icons ───────────────────────────────────── */
+/*Icons*/
 function PlayIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -70,14 +70,14 @@ function UndoIcon() {
   )
 }
 
-/* ══════════════════════════════════════════════
-   WatchlistCard2
-   Props:
-     show            — TVMaze show object (may include .watchedDate)
-     onRemove(id)    — called when remove button clicked
-     onMarkWatched   — optional; if omitted, "Mark Watched" btn is hidden
-     removeLabel     — optional; custom tooltip for remove button
-   ══════════════════════════════════════════════ */
+/*
+WatchlistCard2
+  Props:
+    show            — TVMaze show object (may include .watchedDate)
+    onRemove(id)    — called when remove button clicked
+    onMarkWatched   — optional; if omitted, "Mark Watched" btn is hidden
+    removeLabel     — optional; custom tooltip for remove button
+*/
 export default function WatchlistCard2({
   show,
   onRemove,
@@ -140,7 +140,7 @@ export default function WatchlistCard2({
           </div>
         )}
 
-        {/* Status dot — Running */}
+        {/* Status dot - Running */}
         {status === 'Running' && !watchedDate && (
           <div className={styles.liveRibbon}>● Airing</div>
         )}
@@ -177,13 +177,13 @@ export default function WatchlistCard2({
             </div>
           )}
 
-          {/* ── Day 4: Star Rating ─────────────── */}
+          {/*Day 4: Star Rating*/}
           <div className={styles.ratingSection} onClick={e => e.stopPropagation()}>
             <span className={styles.ratingLabel}>Rate:</span>
             <Rating movieId={id?.toString()} size="sm" />
           </div>
 
-          {/* ── Action buttons ─────────────────── */}
+          {/*Action buttons*/}
           <div className={styles.controls}>
             {/* Play / More Info */}
             <button
@@ -196,7 +196,7 @@ export default function WatchlistCard2({
               <PlayIcon />
             </button>
 
-            {/* Mark as Watched — only on /watchlist */}
+            {/* Mark as Watched - only on /watchlist */}
             {onMarkWatched && (
               <button
                 className={styles.circleBtn}
@@ -210,7 +210,7 @@ export default function WatchlistCard2({
               </button>
             )}
 
-            {/* Move back to Watchlist — only on /watched */}
+            {/* Move back to Watchlist - only on /watched */}
             {onMoveBack && (
               <button
                 className={styles.circleBtn}
@@ -247,7 +247,7 @@ export default function WatchlistCard2({
             </button>
           </div>
 
-          {/* ── Day 4: Review button + panel ───── */}
+          {/*Day 4: Review button + panel*/}
           <div className={styles.reviewSection}>
             <ReviewCard movieId={id?.toString()} movieTitle={title} />
           </div>

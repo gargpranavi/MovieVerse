@@ -1,4 +1,4 @@
-/* =============================================
+/* 
    MovieVerse – animeData.js
    Member 2 | Local Fallback Anime Dataset
 
@@ -7,11 +7,11 @@
 
    IMAGES: All URLs have been individually verified.
    MAL CDN format: cdn.myanimelist.net/images/anime/{folder}/{file}l.jpg
-   ============================================= */
+   */
 
 export const fallbackAnime = [
 
-  // ── Top / Trending ────────────────────────────────────────────────────
+  //Top / Trending
   {
     id: 'fb-5114',
     malId: 5114,
@@ -139,7 +139,7 @@ export const fallbackAnime = [
     source: 'Original',
   },
 
-  // ── Currently Airing ──────────────────────────────────────────────────
+  //Currently Airing
   {
     id: 'fb-52991',
     malId: 52991,
@@ -225,7 +225,7 @@ export const fallbackAnime = [
     source: 'Manga',
   },
 
-  // ── Action ────────────────────────────────────────────────────────────
+  //Action 
   {
     id: 'fb-16498',
     malId: 16498,
@@ -311,7 +311,7 @@ export const fallbackAnime = [
     source: 'Manga',
   },
 
-  // ── Romance ───────────────────────────────────────────────────────────
+  //Romance
   {
     id: 'fb-50265',
     malId: 50265,
@@ -397,7 +397,7 @@ export const fallbackAnime = [
     source: 'Light novel',
   },
 
-  // ── Fantasy ───────────────────────────────────────────────────────────
+  //Fantasy
   {
     id: 'fb-1535',
     malId: 1535,
@@ -483,7 +483,7 @@ export const fallbackAnime = [
     source: 'Original',
   },
 
-  // ── Comedy ────────────────────────────────────────────────────────────
+  //Comedy
   {
     id: 'fb-33352',
     malId: 33352,
@@ -527,7 +527,7 @@ export const fallbackAnime = [
     source: 'Manga',
   },
 
-  // ── Anime Movies ──────────────────────────────────────────────────────
+  //Anime Movies
   {
     id: 'fb-32281',
     malId: 32281,
@@ -656,7 +656,7 @@ export const fallbackAnime = [
   },
 ]
 
-// ── Helper selectors ────────────────────────────────────────────────────
+//Helper selectors
 
 export const fallbackTop     = fallbackAnime.slice(0, 12)
 export const fallbackAiring  = fallbackAnime.filter(a => a.status === 'Currently Airing')
