@@ -1,6 +1,6 @@
 /*
 MovieVerse – ReviewCard.jsx
-Member 2 | Day 4 — Review System
+Member 2 | Day 4 -Review System
 
 localStorage key: "movieverse_reviews"
 Entry shape: { movieId, rating, review, date, id }
