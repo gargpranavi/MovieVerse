@@ -1,20 +1,20 @@
-/* =============================================
-   MovieVerse – ReviewCard.jsx
-   Member 2 | Day 4 — Review System
+/*
+MovieVerse – ReviewCard.jsx
+Member 2 | Day 4 — Review System
 
-   localStorage key: "movieverse_reviews"
-   Entry shape: { movieId, rating, review, date, id }
+localStorage key: "movieverse_reviews"
+Entry shape: { movieId, rating, review, date, id }
 
-   Props:
-     movieId   — string/number show ID
-     movieTitle — string, used in placeholder text
-   ============================================= */
+Props:
+  movieId   — string/number show ID
+  movieTitle — string, used in placeholder text
+*/
 
 import { useState, useEffect, useRef } from 'react'
 import Rating, { getMovieRating } from './Rating.jsx'
 import styles from './ReviewCard.module.css'
 
-/* ── localStorage helpers ─────────────────────── */
+/*localStorage helpers*/
 const LS_KEY = 'movieverse_reviews'
 
 function loadAllReviews() {
@@ -69,7 +69,7 @@ export function editReview(id, newText, newRating) {
   saveAllReviews(all)
 }
 
-/* ── Icons ───────────────────────────────────── */
+/*Icons*/
 function PenIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -115,9 +115,7 @@ function StarFilledIcon() {
   )
 }
 
-/* ══════════════════════════════════════════════
-   ReviewCard Component
-   ══════════════════════════════════════════════ */
+/*ReviewCard Component*/
 export default function ReviewCard({ movieId, movieTitle }) {
   const [reviews,      setReviews]      = useState([])
   const [panelOpen,    setPanelOpen]    = useState(false)
@@ -195,7 +193,7 @@ export default function ReviewCard({ movieId, movieTitle }) {
   return (
     <div className={styles.wrapper} onClick={e => e.stopPropagation()}>
 
-      {/* ── Trigger button ─────────────────────── */}
+      {/*Trigger button*/}
       <button
         className={`${styles.triggerBtn} ${panelOpen ? styles.triggerActive : ''}`}
         onClick={togglePanel}
@@ -210,7 +208,7 @@ export default function ReviewCard({ movieId, movieTitle }) {
         )}
       </button>
 
-      {/* ── Review Panel (slide down) ───────────── */}
+      {/*Review Panel (slide down)*/}
       {panelOpen && (
         <div className={styles.panel}>
 

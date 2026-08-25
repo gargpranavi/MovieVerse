@@ -1,14 +1,13 @@
-/* =============================================
-   MovieVerse – AnimeCard.jsx
-   Member 2 | Anime portrait card
+/*
+MovieVerse – AnimeCard.jsx
+Member 2 | Anime portrait card
+Visually IDENTICAL to MovieCard.jsx.
+Only difference: navigates to /anime/:id
+instead of /movie/:id.
 
-   Visually IDENTICAL to MovieCard.jsx.
-   Only difference: navigates to /anime/:id
-   instead of /movie/:id.
-
-   Accepts same `movie` prop shape as MovieCard,
-   plus an optional `rank` prop.
-   ============================================= */
+Accepts same `movie` prop shape as MovieCard,
+plus an optional `rank` prop.
+*/
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -16,7 +15,7 @@ import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
 import { isLiked, toggleLike } from '../../utils/likes.js'
 import styles from './AnimeCard.module.css'
 
-/* ── Icons (identical to MovieCard) ─────────── */
+/*Icons(identical to MovieCard)*/
 function PlayIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -64,13 +63,11 @@ function ChevronDownIcon() {
   )
 }
 
-/* ════════════════════════════════════════════════
-   AnimeCard
-   ════════════════════════════════════════════════ */
+/*AnimeCard*/
 export default function AnimeCard({ movie, rank }) {
   const navigate = useNavigate()
 
-  // Use movie.id for storage — this is the normalised ID (e.g. 'fb-5114' or '5114')
+  //Use movie.id for storage — this is the normalised ID (e.g. 'fb-5114' or '5114')
   const itemId = movie?.id
 
   const [inWatchlist,  setInWatchlist]  = useState(false)
@@ -157,7 +154,7 @@ export default function AnimeCard({ movie, rank }) {
               <span>{movie.episodes} eps</span>
             )}
           </div>
-
+          
           <div className={styles.genres}>
             {(movie.genres || []).slice(0, 3).map((genre, i, arr) => (
               <span key={i}>

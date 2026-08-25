@@ -1,11 +1,11 @@
-/* =============================================
+/*
    MovieVerse – AnimeDetailsPage.jsx
    Member 2 | Anime Detail View  /anime/:id
 
    Works entirely on local animeData.js —
    same pattern as MovieDetailsPage.jsx uses shows.js.
    No API calls. No loading states. Instant render.
-   ============================================= */
+*/
 
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -19,7 +19,7 @@ import { isLiked, toggleLike } from '../../utils/likes.js'
 import { fallbackAnime, findFallbackById } from '../data/animeData.js'
 import styles from './AnimeDetailsPage.module.css'
 
-/* ── Icons ───────────────────────────────────── */
+/*Icons*/
 function PlayIcon() {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5z"/></svg>
 }
@@ -44,14 +44,12 @@ function StarIcon({ filled }) {
 
 const FALLBACK_POSTER = 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80'
 
-/* ════════════════════════════════════════════════
-   AnimeDetailsPage
-   ════════════════════════════════════════════════ */
+/*AnimeDetailsPage*/
 export default function AnimeDetailsPage() {
   const { id }   = useParams()
   const navigate = useNavigate()
 
-  // ── Local data lookup (no fetch — mirrors MovieDetailsPage) ───────────
+  //Local data lookup (no fetch - mirrors MovieDetailsPage)
   const anime = findFallbackById(id) || null
 
   // Related: same-genre anime, excluding current (mirrors MovieDetailsPage logic)
@@ -59,7 +57,7 @@ export default function AnimeDetailsPage() {
     .filter(a => a.id !== id && a.genres?.some(g => anime?.genres?.includes(g)))
     .slice(0, 8)
 
-  // ── User interaction state ────────────────────────────────────────────
+  // User interaction state
   const [inWatchlist,  setInWatchlist]  = useState(false)
   const [watchedState, setWatchedState] = useState(false)
   const [watchedDate,  setWatchedDate]  = useState(null)
@@ -95,7 +93,7 @@ export default function AnimeDetailsPage() {
     return () => window.removeEventListener('watchlistUpdated', handle)
   }, [anime])
 
-  /* ── Handlers ───────────────────────────────── */
+  // Handlers
   const handleWatchlistToggle = () => { if (anime) toggleWatchlist(anime) }
 
   const handleWatchedToggle = () => {
@@ -136,7 +134,7 @@ export default function AnimeDetailsPage() {
     setIsReviewFormOpen(false)
   }
 
-  /* ── Not found (mirrors MovieDetailsPage) ──── */
+  //Not found (mirrors MovieDetailsPage) */
   if (!anime) {
     return (
       <DashboardLayout>
@@ -152,7 +150,7 @@ export default function AnimeDetailsPage() {
     )
   }
 
-  /* ── Derived values ─────────────────────────── */
+  //Derived values
   const posterImage = anime.image || FALLBACK_POSTER
   const bannerImage = anime.banner || posterImage
 
@@ -160,9 +158,7 @@ export default function AnimeDetailsPage() {
     <DashboardLayout>
       <div className={styles.page}>
 
-        {/* ════════════════════════════════════════
-            HERO BANNER
-            ════════════════════════════════════════ */}
+        {/*HERO BANNER*/}
         <div className={styles.hero}>
           <div className={styles.heroBg} style={{ backgroundImage: `url(${bannerImage})` }} />
           <div className={styles.heroGradient} />
@@ -175,7 +171,7 @@ export default function AnimeDetailsPage() {
 
             <div className={styles.heroLayout}>
 
-              {/* ── Poster ── */}
+              {/*Poster*/}
               <div className={styles.posterWrap}>
                 <img
                   src={posterImage}
@@ -185,7 +181,7 @@ export default function AnimeDetailsPage() {
                 />
               </div>
 
-              {/* ── Info panel ── */}
+              {/* Info panel*/}
               <div className={styles.infoPanel}>
                 {anime.type && (
                   <span className={styles.typeBadge}>{anime.type}</span>
@@ -290,10 +286,9 @@ export default function AnimeDetailsPage() {
           </div>
         </div>
 
-        {/* ════════════════════════════════════════
-            RATING & REVIEW SECTION
+        {/* RATING & REVIEW SECTION
             (same as MovieDetailsPage)
-            ════════════════════════════════════════ */}
+        */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Your Rating</h2>
           <div className={styles.starRow}>
@@ -348,10 +343,10 @@ export default function AnimeDetailsPage() {
           )}
         </section>
 
-        {/* ════════════════════════════════════════
+        {/*
             RELATED ANIME
             (genre-matched, like MovieDetailsPage)
-            ════════════════════════════════════════ */}
+        */}
         {related.length > 0 && (
           <div className={styles.relatedSection}>
             <AnimeCarousel title="More Like This" movies={related} />

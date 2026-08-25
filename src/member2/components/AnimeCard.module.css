@@ -1,11 +1,10 @@
-/* =============================================
-   MovieVerse – AnimeCard.module.css
-   Member 2 | Anime Card Styles
-
-   Mirrors MovieCard.module.css exactly.
-   Anime-specific tweak: purple/indigo glow
-   on hover instead of gold.
-   ============================================= */
+/*
+MovieVerse – AnimeCard.module.css
+Member 2 | Anime Card Styles
+Mirrors MovieCard.module.css exactly.
+Anime-specific tweak: purple/indigo glow
+on hover instead of gold.
+*/
 
 .cardContainer {
   position: relative;
@@ -47,7 +46,7 @@
   transform: scale(1.05);
 }
 
-/* ── Hover overlay ───────────────────────────── */
+/*Hover overlay*/
 .cardOverlay {
   position: absolute;
   bottom: 0;
@@ -68,7 +67,7 @@
   opacity: 1;
 }
 
-/* ── Title ───────────────────────────────────── */
+/*Title*/
 .cardTitle {
   font-size: 15px;
   font-family: 'Playfair Display', serif;
@@ -80,7 +79,7 @@
   text-overflow: ellipsis;
 }
 
-/* ── Rank number ─────────────────────────────── */
+/*Rank number*/
 .rank {
   position: absolute;
   left: -10px;
@@ -93,7 +92,7 @@
   z-index: 2;
 }
 
-/* ── Controls row ────────────────────────────── */
+/*Controls row*/
 .controls {
   display: flex;
   justify-content: flex-start;
@@ -194,7 +193,7 @@
   letter-spacing: 0.5px;
 }
 
-/* ── Genres ──────────────────────────────────── */
+/*Genres*/
 .genres {
   display: flex;
   flex-wrap: wrap;

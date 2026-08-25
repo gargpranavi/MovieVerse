@@ -189,12 +189,15 @@ export default function HomePage() {
           <video
             ref={heroVideoRef}
             className={styles.heroVideo}
-            src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
             autoPlay
             loop
             muted={isMuted}
             playsInline
-          />
+            onError={(e) => { e.target.style.display = 'none' }}
+          >
+            <source src="/hero-video.mp4" type="video/mp4" />
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+          </video>
           <div className={styles.heroGradient} />
           
           <div className={styles.heroContent}>

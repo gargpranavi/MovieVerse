@@ -1,8 +1,8 @@
-/* =============================================
-   MovieVerse – EmptyState2.module.css
-   Member 2 | Empty Watchlist State Styles
-   Day 2 – Watchlist + localStorage
-   ============================================= */
+/*
+MovieVerse – EmptyState2.module.css
+Member 2 | Empty Watchlist State Styles
+Day 2 – Watchlist + localStorage
+*/
 
 .wrapper {
   display: flex;
@@ -14,7 +14,7 @@
   gap: 18px;
 }
 
-/* ── Animated glow ring around the icon ──────── */
+/*Animated glow ring around the icon*/
 .iconRing {
   position: relative;
   width: 120px;
@@ -52,7 +52,7 @@
   }
 }
 
-/* ── Heading ─────────────────────────────────── */
+/*Heading*/
 .heading {
   font-family: 'Outfit', sans-serif;
   font-size: clamp(1.4rem, 3.5vw, 1.9rem);
@@ -63,7 +63,7 @@
   margin: 0;
 }
 
-/* ── Sub-text ────────────────────────────────── */
+/*Sub-text*/
 .sub {
   font-family: 'Inter', sans-serif;
   font-size: 0.93rem;
@@ -78,7 +78,7 @@
   font-weight: 600;
 }
 
-/* ── CTA button ──────────────────────────────── */
+/*CTA button*/
 .cta {
   display: inline-flex;
   align-items: center;

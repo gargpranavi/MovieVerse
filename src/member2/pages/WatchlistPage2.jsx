@@ -1,25 +1,25 @@
-/* =============================================
+/* 
    MovieVerse – WatchlistPage2.jsx
    Member 2 | Watchlist Page
    Day 2 – TVMaze API  |  localStorage-backed
 
    localStorage keys
-   ─────────────────
+   
    "watchlist"         → Array of full TVMaze show objects
    "movieverse_watched"  → Array of shows marked as watched
 
    Default Shows
-   ─────────────
+   
    6 popular TVMaze shows are ALWAYS seeded back into the watchlist
    on every page load — even after the user deletes or watches them.
 
    Flow
-   ────
+   
    Page load  →  fetch defaults  →  merge into localStorage  →  show grid
-   Add show   →  saves to localStorage  →  survives refresh  ✅
+   Add show   →  saves to localStorage  →  survives refresh  
    Remove / Mark watched  →  localStorage updated immediately
-   Refresh    →  defaults re-merged + user additions preserved  ✅
-   ============================================= */
+   Refresh    →  defaults re-merged + user additions preserved  
+*/
 
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
@@ -30,21 +30,19 @@ import styles          from './WatchlistPage2.module.css'
 
 import { shows } from '../../data/index.js'
 
-/* ── localStorage keys ───────────────────────── */
+/* localStorage keys */
 const LS_WATCHLIST        = 'watchlist'           // shared key for all team members
 const LS_WATCHED          = 'movieverse_watched'
 const LS_REMOVED_DEFAULTS = 'movieverse_removed_defaults'  // tracks defaults user intentionally removed
 
-/* ── Default show IDs ───────────────────
+/* Default show IDs 
    These 6 popular shows are ALWAYS restored on refresh.
    IDs: Person of Interest, True Detective, Grimm,
         Supernatural, Vikings, Fargo
-   ─────────────────────────────────────────────── */
+   */
 const DEFAULT_SHOW_IDS = ["2", "5", "10", "19", "29", "32"]
 
-/* ══════════════════════════════════════════════
-   localStorage helpers
-   ══════════════════════════════════════════════ */
+/* localStorage helpers */
 
 /** Load watchlist from localStorage (returns array of show objects) */
 function loadWatchlist() {
@@ -78,10 +76,7 @@ function saveWatched(list) {
   } catch { /* ignore */ }
 }
 
-/* ══════════════════════════════════════════════
-   Inline SVG icons
-   ══════════════════════════════════════════════ */
-
+/* Inline SVG icons */
 function BookmarkIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -101,7 +96,7 @@ function SearchIcon() {
   )
 }
 
-/* ── Toast notification ──────────────────────── */
+/* Toast notification */
 function Toast({ message, visible }) {
   return (
     <div
@@ -115,21 +110,19 @@ function Toast({ message, visible }) {
 }
 
 
-/* ══════════════════════════════════════════════
-   Main WatchlistPage2 Component
-   ══════════════════════════════════════════════ */
+/* Main WatchlistPage2 Component */
 export default function WatchlistPage2() {
-  /* ── State ─────────────────────────────────── */
+  /* State */
   const [watchlist,   setWatchlist]   = useState([])   // show objects
   const [search,      setSearch]      = useState('')
   const [sortBy,      setSortBy]      = useState('default')
   const [toast,       setToast]       = useState({ message: '', visible: false })
 
-  /* ── On mount: fetch default shows + merge into watchlist ─
+  /* On mount: fetch default shows + merge into watchlist 
      Default shows are seeded once on first load.
      If the user removes a default show, it won't come back.
      User-added shows are always preserved.
-     ──────────────────────────────────────────────────────── */
+  */
   useEffect(() => {
     const existing = loadWatchlist()
     setWatchlist(existing)   // show saved items immediately
@@ -164,13 +157,13 @@ export default function WatchlistPage2() {
     })
   }, [])
 
-  /* ── Toast helper ─────────────────────────── */
+  /* Toast helper */
   function showToast(msg) {
     setToast({ message: msg, visible: true })
     setTimeout(() => setToast(t => ({ ...t, visible: false })), 2800)
   }
 
-  /* ── Remove show from watchlist ───────────── */
+  /* Remove show from watchlist */
   function handleRemove(id) {
     // If removing a default show, record it so it doesn't re-appear on refresh
     if (DEFAULT_SHOW_IDS.includes(id)) {
@@ -188,7 +181,7 @@ export default function WatchlistPage2() {
     showToast('Removed from watchlist')
   }
 
-  /* ── Mark as watched (moves to watched list) ── */
+  /* Mark as watched (moves to watched list) */
   function handleMarkWatched(show) {
     // Save to watched list
     const watched = loadWatched()
@@ -203,7 +196,7 @@ export default function WatchlistPage2() {
     showToast('✓ Moved to Watched')
   }
 
-  /* ── Filtered + sorted watchlist ─────────── */
+  /* Filtered + sorted watchlist */
   const displayed = watchlist
     .filter(s =>
       ((s.name || s.title) ?? '').toLowerCase().includes(search.toLowerCase())
@@ -215,21 +208,19 @@ export default function WatchlistPage2() {
     })
 
 
-  /* ════════════════════════════════════════════
-     Render
-     ════════════════════════════════════════════ */
+  /* Render */
   return (
     <DashboardLayout>
       <div className={styles.page}>
 
-        {/* ── Deep Space Background ────────────── */}
+        {/* Deep Space Background */}
         <div className={styles.bgScene} aria-hidden="true">
           <div className={styles.bgGlow1} />
           <div className={styles.bgGlow2} />
           <div className={styles.bgGlow3} />
         </div>
 
-        {/* ── Page header ─────────────────────── */}
+        {/* Page header*/}
         <header className={styles.pageHeader}>
           <div className={styles.headerContent}>
             <div className={styles.headerLeft}>
@@ -285,7 +276,7 @@ export default function WatchlistPage2() {
           </div>
         </header>
 
-        {/* ── Main content ──────────────────────── */}
+        {/* Main content */}
         <main className={styles.main} id="watchlistMain">
 
           {/* Empty state */}
@@ -319,7 +310,7 @@ export default function WatchlistPage2() {
           )}
         </main>
 
-        {/* ── Toast ─────────────────────────────── */}
+        {/* Toast */}
         <Toast message={toast.message} visible={toast.visible} />
       </div>
     </DashboardLayout>

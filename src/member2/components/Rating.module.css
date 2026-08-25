@@ -1,16 +1,16 @@
-/* =============================================
-   MovieVerse – Rating.module.css
-   Member 2 | Day 4 — Star Rating Styles
-   ============================================= */
+/*
+MovieVerse – Rating.module.css
+Member 2 | Day 4 — Star Rating Styles
+*/
 
-/* ── Row of stars ─────────────────────────────── */
+/*Row of stars*/
 .starRow {
   display: flex;
   align-items: center;
   gap: 2px;
 }
 
-/* ── Size variants ───────────────────────────── */
+/*Size variants*/
 .sm .starBtn { width: 14px; height: 14px; }
 .md .starBtn { width: 18px; height: 18px; }
 .lg .starBtn { width: 26px; height: 26px; }
@@ -45,12 +45,12 @@
   cursor: default;
 }
 
-/* ── Read-only mode ──────────────────────────── */
+/*Read-only mode*/
 .readonly .starBtn {
   cursor: default;
 }
 
-/* ── Numeric label ───────────────────────────── */
+/*Numeric label*/
 .ratingLabel {
   font-family: 'Outfit', sans-serif;
   font-size: 0.68rem;

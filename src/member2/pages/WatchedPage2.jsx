@@ -1,19 +1,17 @@
-/* =============================================
+/*
    MovieVerse – WatchedPage2.jsx
    Member 2 | Watched Movies Page
    Day 3 – Watched Movies System
 
    localStorage keys
-   ─────────────────
    "movieverse_watched"  → Array of watched show objects (each has .watchedDate)
 
    Flow
-   ────
    /watchlist → Mark as Watched → moves show to "movieverse_watched" in localStorage
    /watched   → shows everything in "movieverse_watched"
-   Refresh    → watched list auto-loaded from localStorage ✅
-   Remove     → removed from "movieverse_watched" localStorage ✅
-   ============================================= */
+   Refresh    → watched list auto-loaded from localStorage 
+   Remove     → removed from "movieverse_watched" localStorage 
+*/
 
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
@@ -23,12 +21,11 @@ import StatusBadge2      from '../components/StatusBadge2.jsx'
 import EmptyState2       from '../components/EmptyState2.jsx'
 import styles            from './WatchedPage2.module.css'
 
-/* ── localStorage keys ───────────────────────── */
+/* localStorage keys */
 const LS_WATCHED   = 'movieverse_watched'
 const LS_WATCHLIST = 'watchlist'
 
-/* ══════════════════════════════════════════════
-   localStorage helpers
+/* localStorage helpers
    ══════════════════════════════════════════════ */
 function loadWatched() {
   try {
@@ -62,9 +59,7 @@ function loadRatings() {
   } catch { return [] }
 }
 
-/* ══════════════════════════════════════════════
-   Icon Components
-   ══════════════════════════════════════════════ */
+/* Icon Components */
 function EyeIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
@@ -98,9 +93,7 @@ function UndoIcon() {
   )
 }
 
-/* ══════════════════════════════════════════════
-   Toast Component
-   ══════════════════════════════════════════════ */
+/* Toast Component */
 function Toast({ message, visible }) {
   return (
     <div className={`${styles.toast} ${visible ? styles.toastVisible : ''}`}
@@ -110,18 +103,16 @@ function Toast({ message, visible }) {
   )
 }
 
-/* ══════════════════════════════════════════════
-   Main WatchedPage2 Component
-   ══════════════════════════════════════════════ */
+/* Main WatchedPage2 Component */
 export default function WatchedPage2() {
 
-  /* ── State ─────────────────────────────────── */
+  /* State*/
   const [watched,    setWatched]    = useState([])
   const [search,     setSearch]     = useState('')
   const [sortBy,     setSortBy]     = useState('date')   // date | rating | title
   const [toast,      setToast]      = useState({ message: '', visible: false })
 
-  /* ── On mount: load watched list from localStorage ── */
+  /* On mount: load watched list from localStorage*/
   useEffect(() => {
     // Enrich each watched item with its stored user rating
     const ratings = loadRatings()
@@ -132,13 +123,13 @@ export default function WatchedPage2() {
     setWatched(list)
   }, [])
 
-  /* ── Toast helper ─────────────────────────── */
+  /* Toast helper*/
   function showToast(msg) {
     setToast({ message: msg, visible: true })
     setTimeout(() => setToast(t => ({ ...t, visible: false })), 2800)
   }
 
-  /* ── Remove from watched list ──────────── */
+  /* Remove from watched list*/
   function handleRemove(id) {
     setWatched(prev => {
       const updated = prev.filter(s => s.id !== id)
@@ -148,7 +139,7 @@ export default function WatchedPage2() {
     showToast('Removed from Watched')
   }
 
-  /* ── Move back to Watchlist ────────────── */
+  /* Move back to Watchlist */
   function handleMoveBack(show) {
     // Remove from watched
     setWatched(prev => {
@@ -165,7 +156,7 @@ export default function WatchedPage2() {
     showToast('↩ Moved back to Watchlist')
   }
 
-  /* ── Filtered + sorted watched list ──────── */
+  /* Filtered + sorted watched list */
   const displayed = watched
     .filter(s =>
       ((s.name || s.title) ?? '').toLowerCase().includes(search.toLowerCase())
@@ -178,21 +169,19 @@ export default function WatchedPage2() {
       return 0
     })
 
-  /* ════════════════════════════════════════════
-     Render
-     ════════════════════════════════════════════ */
+  /* Render*/
   return (
     <DashboardLayout>
       <div className={styles.page}>
 
-        {/* ── Deep Space Background ────────────── */}
+        {/* Deep Space Background */}
         <div className={styles.bgScene} aria-hidden="true">
           <div className={styles.bgGlow1} />
           <div className={styles.bgGlow2} />
           <div className={styles.bgGlow3} />
         </div>
 
-        {/* ── Page header ─────────────────────── */}
+        {/* Page header */}
         <header className={styles.pageHeader}>
           <div className={styles.headerContent}>
 
@@ -252,7 +241,7 @@ export default function WatchedPage2() {
           </div>
         </header>
 
-        {/* ── Stats bar ─────────────────────────── */}
+        {/* Stats bar*/}
         {watched.length > 0 && (
           <div className={styles.statsBar}>
             <span className={styles.statItem}>
@@ -270,7 +259,7 @@ export default function WatchedPage2() {
           </div>
         )}
 
-        {/* ── Main content ──────────────────────── */}
+        {/* Main content*/}
         <main className={styles.main} id="watchedMain">
 
           {/* Empty state — nothing watched yet */}
@@ -317,7 +306,7 @@ export default function WatchedPage2() {
           )}
         </main>
 
-        {/* ── Toast ─────────────────────────────── */}
+        {/* Toast */}
         <Toast message={toast.message} visible={toast.visible} />
       </div>
     </DashboardLayout>

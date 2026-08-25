@@ -1,18 +1,18 @@
-/* =============================================
-   MovieVerse – StatusBadge2.jsx
-   Member 2 | Reusable Status / Watched Badge
-   Day 3 – Watched Movies
+/*
+MovieVerse – StatusBadge2.jsx
+Member 2 | Reusable Status / Watched Badge
+Day 3 – Watched Movies
 
-   Usage:
-     <StatusBadge2 type="watched" />
-     <StatusBadge2 type="running" />
-     <StatusBadge2 type="ended" />
-     <StatusBadge2 type="genre" label="Drama" />
-   ============================================= */
+Usage:
+  <StatusBadge2 type="watched" />
+  <StatusBadge2 type="running" />
+  <StatusBadge2 type="ended" />
+  <StatusBadge2 type="genre" label="Drama" />
+*/
 
 import styles from './StatusBadge2.module.css'
 
-/* ── Tiny icons ──────────────────────────────── */
+/*Tiny icons*/
 function EyeIcon() {
   return (
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
@@ -32,13 +32,13 @@ function DotIcon() {
   )
 }
 
-/* ══════════════════════════════════════════════
+/*
    StatusBadge2 Component
    Props:
      type  — 'watched' | 'running' | 'ended' | 'genre' | 'custom'
      label — override badge text (defaults per type)
      size  — 'sm' (default) | 'md'
-   ══════════════════════════════════════════════ */
+*/
 export default function StatusBadge2({ type = 'custom', label, size = 'sm' }) {
   /* Resolve display text and style variant */
   const config = {

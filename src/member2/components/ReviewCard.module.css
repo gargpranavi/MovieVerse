@@ -1,15 +1,15 @@
-/* =============================================
-   MovieVerse – ReviewCard.module.css
-   Member 2 | Day 4 — Review Panel Styles
-   ============================================= */
+/*
+MovieVerse – ReviewCard.module.css
+Member 2 | Day 4 — Review Panel Styles
+*/
 
-/* ── Wrapper ──────────────────────────────────── */
+/*Wrapper*/
 .wrapper {
   position: relative;
   width: 100%;
 }
 
-/* ── Trigger button ───────────────────────────── */
+/*Trigger button*/
 .triggerBtn {
   display: inline-flex;
   align-items: center;
@@ -34,7 +34,7 @@
   color: #F5C842;
 }
 
-/* ── Review count badge ──────────────────────── */
+/*Review count badge*/
 .badge {
   display: inline-flex;
   align-items: center;
@@ -50,7 +50,7 @@
   line-height: 1;
 }
 
-/* ── Review panel ─────────────────────────────── */
+/*Review panel*/
 .panel {
   position: absolute;
   bottom: calc(100% + 8px);
@@ -82,7 +82,7 @@
   }
 }
 
-/* ── Panel header ─────────────────────────────── */
+/*Panel header*/
 .panelHeader {
   display: flex;
   align-items: center;
@@ -120,7 +120,7 @@
   color: rgba(240, 240, 245, 0.9);
 }
 
-/* ── Review list ──────────────────────────────── */
+/*Review list*/
 .reviewList {
   max-height: 160px;
   overflow-y: auto;
@@ -140,7 +140,7 @@
   border-radius: 10px;
 }
 
-/* ── Individual review item ───────────────────── */
+/*Individual review item*/
 .reviewItem {
   padding: 7px 9px;
   background: rgba(255, 255, 255, 0.035);
@@ -216,7 +216,7 @@
   word-break: break-word;
 }
 
-/* ── Edit mode ───────────────────────────────── */
+/*Edit mode*/
 .editRow {
   display: flex;
   flex-direction: column;
@@ -278,7 +278,7 @@
   color: rgba(240, 240, 245, 0.9);
 }
 
-/* ── Write section ────────────────────────────── */
+/*Write section*/
 .writeSection {
   padding: 8px 12px 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -356,7 +356,7 @@
   cursor: not-allowed;
 }
 
-/* ── Hint text ────────────────────────────────── */
+/*Hint text*/
 .hint {
   font-family: 'Inter', sans-serif;
   font-size: 0.57rem;

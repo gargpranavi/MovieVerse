@@ -1,10 +1,10 @@
-/* =============================================
+/*
    MovieVerse – WatchlistCard2.module.css
    Member 2 | Netflix-style portrait hover card
    (mirrors MovieCard.module.css design)
-   ============================================= */
+*/
 
-/* ── Card container ──────────────────────────── */
+/*Card container*/
 .cardContainer {
   position: relative;
   flex: 0 0 auto;
@@ -28,14 +28,14 @@
   z-index: 2;
 }
 
-/* ── Image wrapper ────────────────────────────── */
+/*Image wrapper*/
 .cardImageWrapper {
   width: 100%;
   height: 100%;
   position: relative;
 }
 
-/* ── Poster image ─────────────────────────────── */
+/*Poster image*/
 .cardImage {
   width: 100%;
   height: 100%;
@@ -48,7 +48,7 @@
   transform: scale(1.05);
 }
 
-/* ── Ribbon badges ───────────────────────────── */
+/*Ribbon badges*/
 .watchedRibbon {
   position: absolute;
   top: 8px;
@@ -87,10 +87,10 @@
   pointer-events: none;
 }
 
-/* ══════════════════════════════════════════════
-   Hover overlay — slides up from bottom
-   (identical mechanic to MovieCard.module.css)
-   ══════════════════════════════════════════════ */
+/*
+Hover overlay — slides up from bottom
+(identical mechanic to MovieCard.module.css)
+*/
 .cardOverlay {
   position: absolute;
   bottom: 0;
@@ -116,7 +116,7 @@
   opacity: 1;
 }
 
-/* ── Card title ───────────────────────────────── */
+/*Card title*/
 .cardTitle {
   font-size: 15px;
   font-family: 'Playfair Display', serif;
@@ -128,7 +128,7 @@
   text-overflow: ellipsis;
 }
 
-/* ── Meta info row ────────────────────────────── */
+/*Meta info row*/
 .metaInfo {
   display: flex;
   align-items: center;
@@ -150,7 +150,7 @@
   font-size: 10px;
 }
 
-/* ── Genres ───────────────────────────────────── */
+/*Genres*/
 .genres {
   display: flex;
   flex-wrap: wrap;
@@ -167,7 +167,7 @@
   margin: 0 1px;
 }
 
-/* ── Watched date in overlay ──────────────────── */
+/*Watched date in overlay*/
 .watchedDateInOverlay {
   display: flex;
   align-items: center;
@@ -179,7 +179,7 @@
   letter-spacing: 0.02em;
 }
 
-/* ── Controls row ─────────────────────────────── */
+/*Controls row*/
 .controls {
   display: flex;
   justify-content: flex-start;
@@ -188,7 +188,7 @@
   margin-top: 4px;
 }
 
-/* ── Play button ──────────────────────────────── */
+/*Play button*/
 .playBtn {
   width: 38px;
   height: 38px;
@@ -209,7 +209,7 @@
   transform: scale(1.1);
 }
 
-/* ── Circle icon buttons ──────────────────────── */
+/*Circle icon buttons*/
 .circleBtn {
   width: 32px;
   height: 32px;
@@ -232,14 +232,14 @@
   background: rgba(212, 160, 23, 0.12);
 }
 
-/* ── Remove button ────────────────────────────── */
+/*Remove button*/
 .removeBtn:hover {
   border-color: #e50914 !important;
   color: #e50914 !important;
   background: rgba(229, 9, 20, 0.1) !important;
 }
 
-/* ── Day 4: Rating section ────────────────────── */
+/*Day 4: Rating section*/
 .ratingSection {
   display: flex;
   align-items: center;
@@ -255,7 +255,7 @@
   white-space: nowrap;
 }
 
-/* ── Day 4: Review section ────────────────────── */
+/*Day 4: Review section*/
 .reviewSection {
   margin-top: 4px;
   position: relative;

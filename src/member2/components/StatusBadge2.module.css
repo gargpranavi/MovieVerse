@@ -1,10 +1,10 @@
-/* =============================================
+/*
    MovieVerse – StatusBadge2.module.css
    Member 2 | Status Badge Styles
    Day 3 – Watched Movies
-   ============================================= */
+*/
 
-/* ── Base badge ──────────────────────────────── */
+/*Base badge*/
 .badge {
   display: inline-flex;
   align-items: center;
@@ -33,7 +33,7 @@
   align-items: center;
 }
 
-/* ── Type variants ───────────────────────────── */
+/*Type variants*/
 
 /* ✅ Watched — green */
 .watched {
@@ -55,14 +55,14 @@
   50%       { opacity: 0.7; }
 }
 
-/* ⬜ Ended — muted */
+/*Ended-muted */
 .ended {
   background: rgba(180, 180, 200, 0.08);
   border: 1px solid rgba(180, 180, 200, 0.18);
   color: rgba(255, 255, 255, 0.4);
 }
 
-/* 🏷 Genre — subtle outline */
+/*Genre-subtle outline */
 .genre {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);

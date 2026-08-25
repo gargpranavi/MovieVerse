@@ -1,11 +1,11 @@
-/* =============================================
+/*
    MovieVerse – AnimePage.jsx
    Member 2 | Anime Hub Page
 
-   Works entirely on local animeData.js —
+   Works entirely on local animeData.js -
    same pattern as HomePage.jsx uses shows.js.
    No API calls. No loading states. Instant render.
-   ============================================= */
+*/
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -23,7 +23,7 @@ import {
 import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
 import styles from './AnimePage.module.css'
 
-/* ── Icons ───────────────────────────────────── */
+/*Icons*/
 function PlayIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -62,10 +62,10 @@ function InfoIcon() {
   )
 }
 
-/* ════════════════════════════════════════════════
+/*
    Derive all sections from local data
    (mirrors how HomePage.jsx slices shows[])
-   ════════════════════════════════════════════════ */
+*/
 
 const featured    = fallbackAnime[0]
 const trending    = fallbackAnime.slice(1, 10)
@@ -79,9 +79,9 @@ const romanceList = fallbackRomance.slice(0, 10)
 const fantasyList = fallbackFantasy.slice(0, 10)
 const comedyList  = fallbackComedy.slice(0, 10)
 
-/* ════════════════════════════════════════════════
+/*
    AnimePage
-   ════════════════════════════════════════════════ */
+*/
 export default function AnimePage() {
   const navigate = useNavigate()
 
@@ -99,7 +99,7 @@ export default function AnimePage() {
   const handleWatchlistToggle = () => toggleWatchlist(featured)
   const handleMoreInfo        = () => navigate(`/anime/${featured.id}`)
 
-  /* ── Hero image / fallback ─────────────────── */
+  /*Hero image / fallback */
   const HERO_FALLBACK = 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1600&q=80'
   const heroImage     = featured?.banner || featured?.image || HERO_FALLBACK
 
@@ -107,9 +107,7 @@ export default function AnimePage() {
     <DashboardLayout>
       <div className={styles.page}>
 
-        {/* ════════════════════════════════════════
-            HERO SECTION
-            ════════════════════════════════════════ */}
+        {/*HERO SECTION*/}
         <section className={styles.hero}>
           {/* Background image */}
           <div
@@ -181,7 +179,7 @@ export default function AnimePage() {
             </div>
           </div>
 
-          {/* Genre pills — bottom right */}
+          {/* Genre pills - bottom right */}
           <div className={styles.heroBottomRight}>
             {(featured.genres || []).slice(0, 3).map((g, i) => (
               <span key={i} className={styles.genrePill}>{g}</span>
@@ -189,10 +187,8 @@ export default function AnimePage() {
           </div>
         </section>
 
-        {/* ════════════════════════════════════════
-            CAROUSEL ROWS
-            Mirrors HomePage.jsx structure exactly
-            ════════════════════════════════════════ */}
+        {/* CAROUSEL ROWS
+            Mirrors HomePage.jsx structure exactly*/}
         <div className={styles.content}>
           <AnimeCarousel title="Trending Now"        movies={trending}    />
           <AnimeCarousel title="Top 10 Anime"        movies={topRated}    isNumbered />
@@ -205,7 +201,7 @@ export default function AnimePage() {
         </div>
       </div>
 
-      {/* Video Player Modal — reused from existing components */}
+      {/* Video Player Modal - reused from existing components */}
       <VideoPlayerModal
         isOpen={isPlayerOpen}
         onClose={() => setIsPlayerOpen(false)}

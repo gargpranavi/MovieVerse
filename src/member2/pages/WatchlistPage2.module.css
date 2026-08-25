@@ -1,12 +1,12 @@
-/* =============================================
+/* 
    MovieVerse – WatchlistPage2.module.css
    Member 2 | Watchlist Page Styles
    Day 2 – TVMaze API + localStorage
-   ============================================= */
+   */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
 
-/* ── Design tokens ──────────────────────────── */
+/* Design tokens */
 .page {
   --gold:           #D4A017;
   --gold-light:     #F5C842;
@@ -18,7 +18,7 @@
   --surface:        rgba(20, 16, 6, 0.6);
 }
 
-/* ── Page root ──────────────────────────────── */
+/* Page root */
 .page {
   min-height: 100vh;
   position: relative;
@@ -27,9 +27,7 @@
   background: #05040e;
 }
 
-/* ══════════════════════════════════════════════
-   Deep Space Background — Gold / Bookmark Theme
-   ══════════════════════════════════════════════ */
+/* Deep Space Background — Gold / Bookmark Theme */
 
 .bgScene {
   position: fixed;
@@ -169,7 +167,7 @@
 }
 
 
-/* ── Page header ────────────────────────────── */
+/* Page header */
 .pageHeader {
   position: relative;
   z-index: 1;
@@ -233,7 +231,7 @@
   margin-top: 2px;
 }
 
-/* ── Controls row ───────────────────────────── */
+/* Controls row */
 .controls {
   display: flex;
   align-items: center;
@@ -315,7 +313,7 @@
   color: var(--text-primary);
 }
 
-/* ── Add Shows button ───────────────────────── */
+/* Add Shows button */
 .navBtn {
   display: inline-flex;
   align-items: center;
@@ -344,7 +342,7 @@
   transform: translateY(0);
 }
 
-/* ── Main content area ─────────────────────── */
+/* Main content area */
 .main {
   position: relative;
   z-index: 1;
@@ -355,7 +353,7 @@
   overflow: visible;
 }
 
-/* ── Movie / Show grid (portrait 5-col — mirrors home page) ── */
+/* Movie / Show grid (portrait 5-col — mirrors home page) */
 .grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -363,7 +361,7 @@
   padding-bottom: 40px;
 }
 
-/* ── Card drop-in animation ──────────────────── */
+/* Card drop-in animation */
 .cardDrop {
   position: relative;     /* needed so z-index works */
   opacity: 0;
@@ -389,7 +387,7 @@
   }
 }
 
-/* ── No results ─────────────────────────────── */
+/* No results */
 .noResults {
   text-align: center;
   padding: 60px 24px;
@@ -400,7 +398,7 @@
 
 .noResults strong { color: var(--gold-light); }
 
-/* ── Toast ──────────────────────────────────── */
+/* Toast */
 .toast {
   position: fixed;
   bottom: 32px;
@@ -428,7 +426,7 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* ── Skeleton (portrait) ────────────────────── */
+/* Skeleton (portrait)  */
 .skeleton {
   border-radius: 8px;
   overflow: hidden;
@@ -448,7 +446,7 @@
   100% { background-position: -200% 0; }
 }
 
-/* ── Responsive ─────────────────────────────── */
+/* Responsive */
 @media (max-width: 1200px) {
   .grid {
     grid-template-columns: repeat(4, 1fr);

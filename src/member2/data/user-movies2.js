@@ -1,7 +1,7 @@
-/* =============================================
-   MovieVerse – user-movies2.js
-   Member 2 | Mock Movie Data
-   ============================================= */
+/*
+MovieVerse – user-movies2.js
+Member 2 | Mock Movie Data
+*/
 
 export const MOCK_WATCHLIST = [
   {

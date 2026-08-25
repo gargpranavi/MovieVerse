@@ -1,12 +1,12 @@
-/* =============================================
+/*
    MovieVerse – WatchedPage2.module.css
    Member 2 | Watched Movies Page Styles
    Day 3 – Green accent theme
-   ============================================= */
+*/
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
 
-/* ── CSS variables ───────────────────────────── */
+/* CSS variables */
 .page {
   --green:        #46d369;
   --green-dim:    rgba(70, 211, 105, 0.15);
@@ -17,7 +17,7 @@
   --border:       rgba(255, 255, 255, 0.08);
 }
 
-/* ── Page root ──────────────────────────────── */
+/* Page root*/
 .page {
   min-height: 100vh;
   position: relative;
@@ -26,9 +26,7 @@
   background: #04100a;
 }
 
-/* ══════════════════════════════════════════════
-   Deep Space Background — Emerald / Watched Theme
-   ══════════════════════════════════════════════ */
+/* Deep Space Background — Emerald / Watched Theme*/
 
 /* Fixed canvas */
 .bgScene {
@@ -168,7 +166,7 @@
   100% { transform: translate(-3%, -2%)  scale(0.93); opacity: 0.70; }
 }
 
-/* ── Page header ─────────────────────────────── */
+/* Page header */
 .pageHeader {
   position: relative;
   z-index: 10;
@@ -195,7 +193,7 @@
   gap: 14px;
 }
 
-/* Icon ring — green accent */
+/* Icon ring - green accent */
 .headerIcon {
   width: 44px;
   height: 44px;
@@ -226,7 +224,7 @@
   font-weight: 500;
 }
 
-/* ── Controls row ────────────────────────────── */
+/* Controls row */
 .controls {
   display: flex;
   align-items: center;
@@ -305,7 +303,7 @@
   border-color: rgba(70, 211, 105, 0.4);
 }
 
-/* ── Navigation Button ───────────────────────── */
+/* Navigation Button */
 .navBtn {
   display: inline-flex;
   align-items: center;
@@ -334,7 +332,7 @@
   transform: translateY(0);
 }
 
-/* ── Stats bar ───────────────────────────────── */
+/* Stats bar */
 .statsBar {
   position: relative;
   z-index: 5;
@@ -351,7 +349,7 @@
   align-items: center;
 }
 
-/* ── Main content area ─────────────────────── */
+/* Main content area */
 .main {
   position: relative;
   z-index: 1;
@@ -361,7 +359,7 @@
   overflow: visible;
 }
 
-/* ── Empty state ─────────────────────────────── */
+/* Empty state */
 .emptyWrapper {
   display: flex;
   flex-direction: column;
@@ -426,7 +424,7 @@
   border-color: var(--green);
 }
 
-/* ── No results ──────────────────────────────── */
+/* No results */
 .noResults {
   text-align: center;
   font-family: 'Inter', sans-serif;
@@ -435,7 +433,7 @@
   padding: 60px 0;
 }
 
-/* ── Watched grid (portrait 5-col — mirrors home page) ── */
+/* Watched grid (portrait 5-col — mirrors home page) */
 .grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -443,7 +441,7 @@
   padding-bottom: 40px;
 }
 
-/* ── Card drop-in animation ──────────────────── */
+/* Card drop-in animation */
 .cardDrop {
   position: relative;
   opacity: 0;
@@ -462,7 +460,7 @@
   }
 }
 
-/* ── Toast ───────────────────────────────────── */
+/* Toast */
 .toast {
   position: fixed;
   bottom: 32px;
@@ -490,7 +488,7 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* ── Responsive ─────────────────────────────── */
+/* Responsive */
 @media (max-width: 1200px) {
   .grid {
     grid-template-columns: repeat(4, 1fr);
