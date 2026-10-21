@@ -3,21 +3,21 @@
 **Branch:** `feature/piyush-eval2-tmdb-infinite-scroll`  
 **Member:** Piyush  
 **Project:** MovieVerse – A Netflix-style movie discovery web app  
-**Tech Stack:** React 19, Vite 8, React Router 7, Vanilla CSS
+**Tech Stack:** React 19, Vite 8, React Router 7, Vanilla CSS, Supabase
 
 ---
 
 ## 📋 What I Am Building (Full Scope)
 
-My job in Evaluation 2 is to connect MovieVerse to real, live movie data from the internet — instead of the fake local data it currently uses.
+My job in Evaluation 2 is to connect MovieVerse to real, live movie data and add real user authentication.
 
 Here's everything I'll build across 5 days:
 
 | Day | Task | Status |
 |-----|------|--------|
 | Day 1 | TMDB API Service + Caching + Error Handling + Fallback | ✅ Done |
-| Day 2 | Shimmer Skeleton Loaders | 🔜 Upcoming |
-| Day 3 | Infinite Scroll on Movies Page | 🔜 Upcoming |
+| Day 2 | Professional Login UI + Supabase Authentication (Google OAuth, Email/Password, Password Reset) | ✅ Done |
+| Day 3 | Shimmer Skeleton Loaders + Infinite Scroll on Movies Page | 🔜 Upcoming |
 | Day 4 | Infinite Scroll on TV Series Page | 🔜 Upcoming |
 | Day 5 | Image CDN Optimization + Lazy Loading + Final Polish | 🔜 Upcoming |
 
@@ -219,4 +219,265 @@ Starting **Day 3**, these pages will call `fetchPopularMovies()` and show real T
 
 ---
 
-*Day 2 will add shimmer skeleton loaders — animated placeholders that show while movies are loading from TMDB.*
+## ✅ Day 2 — Professional Login UI + Supabase Authentication
+
+### What I Built
+
+A complete, production-quality authentication system with a cinematic dark-themed login page.  
+This covers the entire auth lifecycle — sign-in, sign-up, Google OAuth, forgot password, and setting a new password after a reset link.
+
+---
+
+### New Files Created (Day 2)
+
+| File | What it is |
+|------|-----------|
+| `src/member2/services/supabaseClient.js` | Single Supabase client instance for the whole app |
+| `src/member2/hooks/useAuth.js` | React hook managing the full auth lifecycle |
+| `src/member2/context/AuthContext.jsx` | React context + provider for app-wide auth state |
+| `src/member2/hooks/useAuthContext.js` | Consumer hook that reads from AuthContext |
+| `src/member2/components/ProtectedRoute.jsx` | Route guard — redirects unauthenticated users to `/login` |
+| `src/member2/components/ProtectedRoute.module.css` | Spinner styles for the loading state |
+
+### Existing Files Modified (Day 2)
+
+| File | What changed |
+|------|-------------|
+| `src/member2/pages/LoginPage.jsx` | Full redesign: cinematic UI, all auth modes, validation, error messages |
+| `src/member2/pages/LoginPage.module.css` | Complete premium dark-mode stylesheet |
+| `src/member2/pages/ProfilePage.jsx` | Now reads real Supabase user (name, avatar, email) |
+| `src/App.jsx` | All routes now wrapped in `<ProtectedRoute>`, OAuth callback route added |
+| `src/main.jsx` | `<AuthProvider>` now wraps `<App>` |
+| `.env.example` | Supabase variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) added |
+
+---
+
+### Architecture
+
+```
+src/main.jsx
+  └─ <BrowserRouter>
+       └─ <AuthProvider>          ← wraps everything, provides auth state app-wide
+            └─ <App>
+                 ├─ /login        ← LoginPage (public, no guard)
+                 ├─ /home         ← <ProtectedRoute> → HomePage
+                 ├─ /profile      ← <ProtectedRoute> → ProfilePage
+                 ├─ /watchlist    ← <ProtectedRoute> → WatchlistPage2
+                 ├─ /anime        ← <ProtectedRoute> → AnimePage
+                 └─ ...all other routes guarded the same way
+```
+
+**Data flow:**
+```
+supabaseClient.js  →  useAuth.js (hook)  →  AuthContext.jsx (provider)
+                                                    ↓
+                                          useAuthContext.js (consumer hook)
+                                                    ↓
+                           LoginPage.jsx / ProtectedRoute.jsx / ProfilePage.jsx
+```
+
+---
+
+### File Details
+
+#### `src/member2/services/supabaseClient.js`
+- Creates **one** Supabase client (singleton — no duplicate clients anywhere)
+- Reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from `.env`
+- Shows a console warning in dev mode if credentials are missing
+- Configured with `persistSession: true`, `autoRefreshToken: true`, `detectSessionInUrl: true`
+
+#### `src/member2/hooks/useAuth.js`
+All authentication logic in one place:
+
+| Function | What it does |
+|----------|-------------|
+| `signIn(email, password)` | Signs in with email + password |
+| `signUp(email, password)` | Creates new account, triggers confirmation email |
+| `signInWithGoogle()` | Starts Google OAuth redirect flow |
+| `sendPasswordReset(email)` | Emails a password reset link |
+| `updatePassword(newPassword)` | Sets a new password after clicking reset link |
+| `signOut()` | Logs out and clears the session |
+
+All errors pass through `friendlyError()` which converts raw Supabase errors into human-readable messages  
+(e.g., "Invalid login credentials" → "Incorrect email or password. Please try again.").
+
+#### `src/member2/context/AuthContext.jsx` + `useAuthContext.js`
+- `AuthProvider` wraps the app and makes auth state available everywhere
+- Any component calls `const { user, signOut } = useAuthContext()` — no prop-drilling needed
+
+#### `src/member2/components/ProtectedRoute.jsx`
+Behaviour:
+- **Loading** → shows a full-screen spinner (prevents unauthenticated flash on slow connections)
+- **Not signed in** → redirects to `/login`, remembers the attempted URL via React Router `state`
+- **Signed in** → renders the page normally
+- After sign-in, the user is sent back to the page they originally tried to visit
+
+---
+
+### Login Page — 4 Modes
+
+| Mode | Trigger | What the user sees |
+|------|---------|-------------------|
+| Sign In | Default on load | Email + password + "Continue with Google" + "Forgot password?" |
+| Sign Up | Click "Sign Up" tab | Email + password + confirm-password + "Create Account" |
+| Forgot Password | Click "Forgot password?" | Email field + "Send Reset Link" button |
+| Set New Password | Clicking the reset link in email | New password field + "Update Password" button |
+
+**UI highlights:**
+- Cinematic dark-mode design with glassmorphism card and gradient background
+- Animated film-reel branding
+- Show/hide password toggle
+- Remember Me (saves email in `localStorage`)
+- Field-level validation with inline error messages under each input
+- Alert banners for success and error feedback
+- Buttons show a spinner and disable during requests (prevents double-submit)
+- Fully responsive: desktop, tablet, and mobile
+- Accessible: semantic labels, ARIA attributes, keyboard navigation, visible focus states
+
+---
+
+### Google OAuth — How It Works
+
+```
+User clicks "Continue with Google"
+    ↓
+supabase.auth.signInWithOAuth({ provider: 'google', redirectTo: '/home' })
+    ↓
+Browser opens Google account chooser
+    ↓
+User picks their Google account
+    ↓
+Google redirects to Supabase callback URL
+    ↓
+Supabase exchanges the code, sets session in localStorage, redirects to /home
+    ↓
+ProtectedRoute detects session → renders HomePage normally
+```
+
+---
+
+### Password Reset — How It Works (End-to-End)
+
+```
+1. User clicks "Forgot password?" → enters email → clicks "Send Reset Link"
+2. Supabase emails a link:  /login#access_token=...&type=recovery
+3. User clicks link → browser opens LoginPage
+4. useEffect detects #type=recovery in the URL hash
+5. Hash is cleaned from the address bar immediately
+6. Page switches to "Set new password" mode
+7. User enters new password (min 6 chars) → clicks "Update Password"
+8. supabase.auth.updateUser({ password }) is called
+9. Success → "Password updated! Redirecting…" banner → auto-navigates to /home after 1.8s
+```
+
+---
+
+### Environment Variables Required
+
+| Variable | Where to find it |
+|----------|-----------------|
+| `VITE_SUPABASE_URL` | Supabase Dashboard → Project Settings → API → Project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase Dashboard → Project Settings → API → anon/public key |
+| `VITE_TMDB_API_KEY` | Already set ✅ — TMDB works without any extra steps |
+
+> **Important:** After editing `.env`, always restart `npm run dev`. Vite reads `.env` only at startup.
+
+---
+
+### Supabase Dashboard Settings
+
+| Setting | Location | Required Value |
+|---------|----------|---------------|
+| Google provider | Authentication → Providers → Google | Enabled + Client ID + Client Secret (from Google Cloud) |
+| Site URL | Authentication → URL Configuration | `http://localhost:5173` |
+| Redirect URLs | Authentication → URL Configuration | `http://localhost:5173/home`, `http://localhost:5173/login`, `http://localhost:5173/auth/callback` |
+
+---
+
+### ✅ Test Results (Day 2)
+
+| Test | Result |
+|------|--------|
+| Lint check on all new files | ✅ 0 errors, 0 warnings |
+| Production build | ✅ Built in 1.36s, exit 0 |
+| Google OAuth sign-in | ✅ Confirmed working |
+| Email + password sign-in | ✅ Confirmed working |
+| Session persists after page refresh | ✅ (`persistSession: true`) |
+| Protected routes redirect to `/login` | ✅ All routes guarded |
+| Password reset email flow (end-to-end) | ✅ Complete |
+| Profile page shows real Supabase user name + avatar | ✅ |
+| No credentials committed to Git | ✅ `.env` in `.gitignore` |
+
+---
+
+### 🧠 How to Test Day 2 Manually
+
+#### Prerequisites
+1. Paste real Supabase credentials into `.env` (restart dev server after)
+2. Google provider enabled in Supabase (Authentication → Providers → Google) with Client ID + Secret
+3. Redirect URLs configured in Supabase (Authentication → URL Configuration)
+4. Run `npm run dev`
+
+#### Test: Route Protection
+```
+Open http://localhost:5173/home       → redirects to /login  ✓
+Open http://localhost:5173/watchlist  → redirects to /login  ✓
+```
+
+#### Test: Google Sign-In
+```
+1. Click "Continue with Google"
+2. Google account chooser opens
+3. Pick your account → lands on /home  ✓
+```
+
+#### Test: Email Sign-Up
+```
+1. Click "Sign Up" tab
+2. Enter email, password (≥6 chars), confirm password
+3. Click "Create Account" → "Account created! Check your email…" banner  ✓
+4. Click confirmation link in email → now signed in  ✓
+```
+
+#### Test: Email Sign-In
+```
+1. Enter wrong password → "Incorrect email or password."  ✓
+2. Enter correct credentials → spinner → "Welcome back! Redirecting…" → /home  ✓
+```
+
+#### Test: Forgot Password
+```
+1. Click "Forgot password?"
+2. Enter email → "Send Reset Link" → email arrives in inbox
+3. Click link in email → auto-switches to "Set new password" form  ✓
+4. Enter new password → "Password updated! Redirecting to home…" → /home  ✓
+```
+
+---
+
+### 📁 Complete Files Summary — Day 1 + Day 2
+
+| File | Type | Day |
+|------|------|-----|
+| `src/member2/services/tmdbApi.js` | ✅ New | Day 1 |
+| `src/member2/hooks/useTmdb.js` | ✅ New | Day 1 |
+| `src/member2/services/tmdbApi.verify.js` | ✅ New | Day 1 |
+| `src/member2/services/supabaseClient.js` | ✅ New | Day 2 |
+| `src/member2/hooks/useAuth.js` | ✅ New | Day 2 |
+| `src/member2/context/AuthContext.jsx` | ✅ New | Day 2 |
+| `src/member2/hooks/useAuthContext.js` | ✅ New | Day 2 |
+| `src/member2/components/ProtectedRoute.jsx` | ✅ New | Day 2 |
+| `src/member2/components/ProtectedRoute.module.css` | ✅ New | Day 2 |
+| `src/member2/pages/LoginPage.jsx` | ✏️ Modified | Day 2 |
+| `src/member2/pages/LoginPage.module.css` | ✏️ Modified | Day 2 |
+| `src/member2/pages/ProfilePage.jsx` | ✏️ Modified | Day 2 |
+| `src/App.jsx` | ✏️ Modified | Day 2 |
+| `src/main.jsx` | ✏️ Modified | Day 2 |
+| `.env.example` | ✏️ Modified | Day 1 + Day 2 |
+| `.env` | ✅ New (local only, not committed) | Day 1 + Day 2 |
+
+**No teammate files were touched. All Day 1 TMDB functionality is preserved.**
+
+---
+
+*Day 3 will add shimmer skeleton loaders and infinite scroll on the Movies page.*

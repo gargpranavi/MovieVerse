@@ -6,6 +6,7 @@ import WatchedPage2 from './member2/pages/WatchedPage2.jsx'
 import ProfilePage from './member2/pages/ProfilePage.jsx'
 import AnimePage from './member2/pages/AnimePage.jsx'
 import AnimeDetailsPage from './member2/pages/AnimeDetailsPage.jsx'
+import ProtectedRoute from './member2/components/ProtectedRoute.jsx'
 
 import HomePage from './pages/Home/HomePage.jsx'
 import MoviesPage from './pages/Movies/MoviesPage.jsx'
@@ -19,32 +20,72 @@ function App() {
       {/* Default → Login */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
-      {/* Authentication */}
+      {/* Authentication (Google OAuth also redirects back here) */}
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Movie Discovery */}
-      <Route path="/home" element={<HomePage />} />
-      <Route path="/movies" element={<MoviesPage />} />
-      <Route path="/tv-series" element={<TvSeriesPage />} />
-      <Route path="/movie/:id" element={<MovieDetailsPage />} />
-      <Route path="/ai-features" element={<AiFeaturesPage />} />
+      {/* OAuth callback — Supabase detectSessionInUrl handles this automatically.
+          We redirect to /home; ProtectedRoute will guard it. */}
+      <Route path="/auth/callback" element={<Navigate to="/home" replace />} />
 
-      {/* Member 2 – Watchlist, Watched & Anime */}
-      <Route path="/watchlist" element={<WatchlistPage2 />} />
-      <Route path="/watched" element={<WatchedPage2 />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/anime" element={<AnimePage />} />
-      <Route path="/anime/:id" element={<AnimeDetailsPage />} />
+      {/* ── Protected: Movie Discovery ── */}
+      <Route path="/home" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>
+      } />
+      <Route path="/movies" element={
+        <ProtectedRoute><MoviesPage /></ProtectedRoute>
+      } />
+      <Route path="/tv-series" element={
+        <ProtectedRoute><TvSeriesPage /></ProtectedRoute>
+      } />
+      <Route path="/movie/:id" element={
+        <ProtectedRoute><MovieDetailsPage /></ProtectedRoute>
+      } />
+      <Route path="/ai-features" element={
+        <ProtectedRoute><AiFeaturesPage /></ProtectedRoute>
+      } />
 
-      {/* Placeholder routes */}
-      <Route path="/search" element={<HomePage />} />
-      <Route path="/explore" element={<HomePage />} />
-      <Route path="/ratings" element={<HomePage />} />
-      <Route path="/ai-recommender" element={<HomePage />} />
-      <Route path="/actors" element={<HomePage />} />
-      <Route path="/genres" element={<HomePage />} />
-      <Route path="/directors" element={<HomePage />} />
-      <Route path="/settings" element={<HomePage />} />
+      {/* ── Protected: Member 2 – Watchlist, Watched & Anime ── */}
+      <Route path="/watchlist" element={
+        <ProtectedRoute><WatchlistPage2 /></ProtectedRoute>
+      } />
+      <Route path="/watched" element={
+        <ProtectedRoute><WatchedPage2 /></ProtectedRoute>
+      } />
+      <Route path="/profile" element={
+        <ProtectedRoute><ProfilePage /></ProtectedRoute>
+      } />
+      <Route path="/anime" element={
+        <ProtectedRoute><AnimePage /></ProtectedRoute>
+      } />
+      <Route path="/anime/:id" element={
+        <ProtectedRoute><AnimeDetailsPage /></ProtectedRoute>
+      } />
+
+      {/* ── Protected: Placeholder routes ── */}
+      <Route path="/search" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>
+      } />
+      <Route path="/explore" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>
+      } />
+      <Route path="/ratings" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>
+      } />
+      <Route path="/ai-recommender" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>
+      } />
+      <Route path="/actors" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>
+      } />
+      <Route path="/genres" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>
+      } />
+      <Route path="/directors" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>
+      } />
+      <Route path="/settings" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>
+      } />
     </Routes>
   )
 }

@@ -21,6 +21,7 @@ import { Link }                from 'react-router-dom'
 import DashboardLayout         from '../../components/layout/DashboardLayout.jsx'
 import ProfileCard             from '../components/ProfileCard.jsx'
 import { mockUsers }           from '../data/users2.js'
+import { useAuthContext }      from '../hooks/useAuthContext'
 import styles                  from './ProfilePage.module.css'
 
 /* localStorage keys */
@@ -173,8 +174,20 @@ export default function ProfilePage() {
     }
   }, [])
 
-  /* Derived values */
-  const user       = mockUsers[0]
+  /* Auth — real Supabase user (falls back to Eval-I mock so nothing breaks) */
+  const { user: authUser } = useAuthContext()
+  const base   = mockUsers[0]
+  const user   = {
+    ...base,
+    displayName: authUser?.user_metadata?.full_name
+                  ?? authUser?.user_metadata?.name
+                  ?? authUser?.email?.split('@')[0]
+                  ?? base.displayName,
+    email:  authUser?.email  ?? base.email,
+    avatar: authUser?.user_metadata?.avatar_url
+              ?? authUser?.user_metadata?.picture
+              ?? base.avatar,
+  }
   const avgRating  = computeAvgRating(ratings)
 
   /* Most recent 6 watched shows */
