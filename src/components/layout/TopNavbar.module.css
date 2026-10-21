@@ -883,3 +883,28 @@
   box-shadow: 0 4px 16px rgba(212, 160, 23, 0.20);
 }
 
+
+/* ── Logout button ──────────────────────────── */
+.logoutBtn {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+}
+
+.logoutBtn:hover {
+  background: rgba(220, 60, 60, 0.10) !important;
+  color: #ff6b6b !important;
+  transform: translateX(3px);
+}
+
+.logoutBtn:hover .logoutIcon {
+  background: rgba(220, 60, 60, 0.14) !important;
+  border-color: rgba(220, 60, 60, 0.30) !important;
+  color: #ff6b6b !important;
+}
+
+.logoutBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
