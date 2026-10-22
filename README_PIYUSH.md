@@ -17,7 +17,7 @@ Here's everything I'll build across 5 days:
 |-----|------|--------|
 | Day 1 | TMDB API Service + Caching + Error Handling + Fallback | ✅ Done |
 | Day 2 | Professional Login UI + Supabase Authentication (Google OAuth, Email/Password, Password Reset) | ✅ Done |
-| Day 3 | Shimmer Skeleton Loaders + Infinite Scroll on Movies Page | 🔜 Upcoming |
+| Day 3 | Shimmer Skeleton Loaders + Infinite Scroll on Movies Page | ✅ Done |
 | Day 4 | Infinite Scroll on TV Series Page | 🔜 Upcoming |
 | Day 5 | Image CDN Optimization + Lazy Loading + Final Polish | 🔜 Upcoming |
 
@@ -480,4 +480,161 @@ Open http://localhost:5173/watchlist  → redirects to /login  ✓
 
 ---
 
-*Day 3 will add shimmer skeleton loaders and infinite scroll on the Movies page.*
+*Day 4 will add infinite scroll to the TV Series page.*
+
+---
+
+## ✅ Day 3 — Infinite Scrolling for Movies
+
+### What I Built
+
+Replaced the static local-data Movies page with a fully dynamic, live-TMDB, infinite-scroll experience. The page streams real movies from TMDB one page at a time as the user scrolls — no page reloads, no manual "Load more" button required.
+
+---
+
+### New Files Created (Day 3)
+
+| File | What it is |
+|------|-----------|
+| `src/member2/hooks/useInfiniteMovies.js` | Core infinite-scroll hook — all pagination logic lives here |
+| `src/pages/Movies/MoviesPage.module.css` | Grid, skeleton cards, category tabs, spinner, error, end-of-results CSS |
+
+### Existing Files Modified (Day 3)
+
+| File | What changed |
+|------|-------------|
+| `src/member2/services/tmdbApi.js` | Added `fetchTopRatedMovies`, `fetchUpcomingMovies`, `fetchNowPlayingMovies` (same pattern as `fetchPopularMovies`) |
+| `src/pages/Movies/MoviesPage.jsx` | Complete rewrite — infinite scroll, category tabs, skeleton loaders, hero, error + retry |
+
+**File extension audit:** All `.js` / `.jsx` extensions were already correct — no renames needed.
+
+---
+
+### Architecture — How Infinite Scroll Works
+
+```
+MoviesPage.jsx
+  │
+  ├─ useInfiniteMovies(category)     ← manages all pagination state
+  │    ├─ fetchedPages Set           ← idempotency: each page fetched once
+  │    ├─ seenIds Set                ← deduplicates movies by tmdb-{id}
+  │    ├─ loadingRef                 ← single-flight guard (prevents concurrent fetches)
+  │    ├─ AbortController            ← cancels in-flight requests on category change
+  │    └─ categoryRef                ← stale-check after async response arrives
+  │
+  └─ IntersectionObserver            ← watches 1px sentinel div below the grid
+       └─ fires loadMore()           ← only when sentinel is visible AND not loading
+```
+
+**Page flow:**
+```
+1. Component mounts → useInfiniteMovies detects currentPage === 0 → fetches page 1
+2. 15 shimmer skeleton cards render during the initial fetch
+3. Page 1 loads → movies fill the grid, hero banner populates with first movie
+4. User scrolls → sentinel div enters viewport → observer fires → loadMore() called
+5. Page 2 fetched → movies appended below existing cards (old cards preserved)
+6. Steps 4–5 repeat until TMDB reports no more pages
+7. "You've reached the end · N movies loaded" message appears
+```
+
+---
+
+### Duplicate Prevention — All 3 Layers
+
+| Layer | Mechanism | Guards Against |
+|-------|-----------|---------------|
+| 1 | `loadingRef.current` (boolean ref, not state) | Concurrent calls from rapid scroll events or React StrictMode double-invokes |
+| 2 | `fetchedPages` Set (`"category:page"` keys) | Re-requesting the same page after fast repeated observer callbacks |
+| 3 | `seenIds` Set (stable `tmdb-{id}` strings) | Duplicate movie objects if TMDB returns overlapping items across pages |
+
+The `IntersectionObserver` is torn down and rebuilt whenever `loading` or `hasMore` changes — naturally disconnecting it while any fetch is active.
+
+---
+
+### Category Tabs
+
+Four categories are available via pill-style tabs at the top of the grid:
+
+| Tab | TMDB Endpoint |
+|-----|--------------|
+| Popular | `/movie/popular` |
+| Top Rated | `/movie/top_rated` |
+| Now Playing | `/movie/now_playing` |
+| Upcoming | `/movie/upcoming` |
+
+Switching a tab **fully resets** pagination: the movie list is cleared, the page counter goes back to 0, all Sets are cleared, any in-flight request is aborted, and page 1 of the new category is fetched immediately.
+
+---
+
+### Loading, Error, and End States
+
+| State | What the user sees |
+|-------|--------------------|
+| **Initial load** | 15 shimmer skeleton placeholder cards (gold gradient animation) |
+| **Loading more pages** | Gold spinner + "Loading more…" below the grid; existing cards stay |
+| **API error on a later page** | Error box with the TMDB message + gold **Retry** button; loaded movies preserved |
+| **Retry** | Removes the failed page from `fetchedPages`, retries without resetting the loaded list |
+| **End of results** | Gold divider + "You've reached the end · N movies loaded" |
+| **TMDB unreachable (fallback)** | Yellow info banner; local `shows.js` data served once; no further requests attempted |
+
+---
+
+### ✅ Test Results (Day 3)
+
+| Test | Result |
+|------|--------|
+| Lint on new files (`useInfiniteMovies.js`, `MoviesPage.jsx`, `MoviesPage.module.css`) | ✅ 0 warnings, 0 errors |
+| Pre-existing lint warnings in `public/js/` scratch files | ⚠️ 63 warnings — pre-existing, not caused by Day 3 |
+| Production build (`vite build`) | ✅ Exit 0 — built in 1.56s, 134 modules transformed |
+| IntersectionObserver sentinel present in JSX | ✅ |
+| Category reset clears movies + Sets + page counter | ✅ (unit-verifiable via code review) |
+| Duplicate guard layers (3 layers) | ✅ (unit-verifiable via code review) |
+| Fallback stops pagination immediately | ✅ |
+| AbortController cancels stale requests | ✅ |
+| TV Series page untouched | ✅ |
+| Day 1 & Day 2 features preserved | ✅ Build verified |
+
+---
+
+### 🧠 How to Test Day 3 Manually
+
+```
+1. npm run dev  →  open http://localhost:5173/movies
+2. Sign in (required — route is protected)
+3. Hero banner populates with first live TMDB movie poster + metadata
+4. Scroll down slowly → watch new movie cards append below the grid
+5. Switch category tabs (Popular → Top Rated) → grid resets and reloads
+6. DevTools → Network → set to Offline after page 1 loads
+   → scroll to bottom → error box + Retry button appear, loaded cards stay
+7. Click Retry → if still offline, error reappears; go online → Retry loads next page
+8. Scroll all the way to the end → "You've reached the end" message appears
+9. Resize browser to 375px → 2-column grid, readable hero, tabs wrap correctly
+```
+
+---
+
+### 📁 Complete Files Summary — Day 1 + Day 2 + Day 3
+
+| File | Type | Day |
+|------|------|-----|
+| `src/member2/services/tmdbApi.js` | ✅ New → ✏️ Extended | Day 1 + Day 3 |
+| `src/member2/hooks/useTmdb.js` | ✅ New | Day 1 |
+| `src/member2/services/tmdbApi.verify.js` | ✅ New | Day 1 |
+| `src/member2/services/supabaseClient.js` | ✅ New | Day 2 |
+| `src/member2/hooks/useAuth.js` | ✅ New | Day 2 |
+| `src/member2/context/AuthContext.jsx` | ✅ New | Day 2 |
+| `src/member2/hooks/useAuthContext.js` | ✅ New | Day 2 |
+| `src/member2/components/ProtectedRoute.jsx` | ✅ New | Day 2 |
+| `src/member2/components/ProtectedRoute.module.css` | ✅ New | Day 2 |
+| `src/member2/hooks/useInfiniteMovies.js` | ✅ New | Day 3 |
+| `src/pages/Movies/MoviesPage.module.css` | ✅ New | Day 3 |
+| `src/member2/pages/LoginPage.jsx` | ✏️ Modified | Day 2 |
+| `src/member2/pages/LoginPage.module.css` | ✏️ Modified | Day 2 |
+| `src/member2/pages/ProfilePage.jsx` | ✏️ Modified | Day 2 |
+| `src/pages/Movies/MoviesPage.jsx` | ✏️ Rewritten | Day 3 |
+| `src/App.jsx` | ✏️ Modified | Day 2 |
+| `src/main.jsx` | ✏️ Modified | Day 2 |
+| `.env.example` | ✏️ Modified | Day 1 + Day 2 |
+| `.env` | ✅ New (local only, not committed) | Day 1 + Day 2 |
+
+**No teammate files were touched across all three days.**

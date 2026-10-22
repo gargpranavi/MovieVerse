@@ -62,7 +62,7 @@ export const TMDB_IMAGE_SIZES = {
 
 const CACHE_TTL_MS = 5 * 60 * 1000  // 5 minutes
 
-// ─── TMDB Genre Maps ─────────────────────────────────────────────────────────
+//  TMDB Genre Maps 
 // TMDB list endpoints return genre_ids (not names). These maps resolve them.
 
 export const MOVIE_GENRE_MAP = {
@@ -106,7 +106,7 @@ export const TV_GENRE_MAP = {
   37:    'Western',
 }
 
-// ─── Cache Helpers (sessionStorage, 5-min TTL) ───────────────────────────────
+//  Cache Helpers (sessionStorage, 5-min TTL) 
 
 function cacheKey(label) {
   return `tmdb_cache_${label}`
@@ -137,7 +137,7 @@ function readCache(label) {
 
     return parsed   // Return the whole cached envelope (data + page meta)
   } catch {
-    // Malformed JSON or storage unavailable — treat as cache miss
+    // Malformed JSON or storage unavailable - treat as cache miss
     return null
   }
 }
@@ -149,7 +149,7 @@ function writeCache(label, envelope) {
       JSON.stringify({ ...envelope, expiresAt: Date.now() + CACHE_TTL_MS })
     )
   } catch {
-    // sessionStorage quota exceeded or unavailable — silently skip
+    // sessionStorage quota exceeded or unavailable - silently skip
   }
 }
 
@@ -168,7 +168,7 @@ export function clearTmdbCache() {
   }
 }
 
-// ─── Credential Helper ───────────────────────────────────────────────────────
+//  Credential Helper 
 
 /**
  * Returns the API key string if configured, otherwise null.
@@ -183,7 +183,7 @@ export function isTmdbConfigured() {
   return getApiKey() !== null
 }
 
-// ─── Normaliser ──────────────────────────────────────────────────────────────
+//  Normaliser 
 
 /**
  * Converts a raw TMDB item into the MovieVerse show shape.
@@ -229,12 +229,12 @@ export function normaliseTmdbItem(item, mediaType = 'movie') {
   }
 
   return {
-    // ── ID (prefixed to prevent collision with sequential local IDs "1".."52") ──
+    //  ID (prefixed to prevent collision with sequential local IDs "1".."52") 
     id:         `tmdb-${item.id}`,
     tmdbId:     item.id,
     mediaType,
 
-    // ── Core MovieVerse shape ─────────────────────────────────────────────────
+    //  Core MovieVerse shape 
     title:       item.title || item.name || 'Unknown',
     year:        (item.release_date || item.first_air_date || '').slice(0, 4) || 'N/A',
     duration,
@@ -242,23 +242,23 @@ export function normaliseTmdbItem(item, mediaType = 'movie') {
     genres:      genreNames,
     description: item.overview || 'No description available.',
 
-    // ── Images (full CDN URLs, null-safe) ─────────────────────────────────────
+    //  Images (full CDN URLs, null-safe) 
     image:    item.poster_path   ? `${IMAGE_BASE_W500}${item.poster_path}`   : null,
     backdrop: item.backdrop_path ? `${IMAGE_BASE_W1280}${item.backdrop_path}` : null,
 
-    // ── Ratings ───────────────────────────────────────────────────────────────
+    //  Ratings 
     rating: typeof item.vote_average === 'number'
       ? Math.round(item.vote_average * 10) / 10
       : null,
 
-    // ── Metadata ──────────────────────────────────────────────────────────────
+    //  Metadata 
     language: item.original_language
       ? item.original_language.toUpperCase()
       : 'EN',
     network,
     status: item.status || (isTV ? 'N/A' : 'Released'),
 
-    // ── Source tag (distinguishes live TMDB from local fallback) ──────────────
+    //  Source tag (distinguishes live TMDB from local fallback) 
     source: 'tmdb',
   }
 }
@@ -296,7 +296,7 @@ export function normaliseCredits(creditsJson) {
   }))
 }
 
-// ─── Shared Fetch Wrapper ────────────────────────────────────────────────────
+//  Shared Fetch Wrapper 
 
 /**
  * Core fetch wrapper shared by all public API functions.
@@ -329,7 +329,7 @@ async function tmdbFetch({
   isDetail   = false,
   isCredits  = false,
 }) {
-  // ── 1. Credential check ───────────────────────────────────────────────────
+  //  1. Credential check 
   const apiKey = getApiKey()
   if (!apiKey) {
     return {
@@ -345,7 +345,7 @@ async function tmdbFetch({
     }
   }
 
-  // ── 2. Cache hit ──────────────────────────────────────────────────────────
+  //  2. Cache hit 
   const cached = readCache(cacheLabel)
   if (cached) {
     return {
@@ -359,13 +359,13 @@ async function tmdbFetch({
     }
   }
 
-  // ── 3. Build URL ──────────────────────────────────────────────────────────
+  //  3. Build URL 
   const url = new URL(`${TMDB_BASE}${endpoint}`)
   // Defaults that all endpoints benefit from
   url.searchParams.set('language', 'en-US')
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)))
 
-  // ── 4–6. Fetch + error handling ───────────────────────────────────────────
+  //  4–6. Fetch + error handling 
   let json
   try {
     const res = await fetch(url.toString(), {
@@ -409,7 +409,7 @@ async function tmdbFetch({
     }
   }
 
-  // ── 7. Normalise ──────────────────────────────────────────────────────────
+  //  7. Normalise 
   let normalisedData
   let page       = null
   let totalPages = null
@@ -441,12 +441,12 @@ async function tmdbFetch({
     totalPages = json.total_pages ?? null
   }
 
-  // ── 8. Write to cache (only successful, non-empty results) ────────────────
+  //  8. Write to cache (only successful, non-empty results) 
   if (normalisedData.length > 0) {
     writeCache(cacheLabel, { data: normalisedData, page, totalPages })
   }
 
-  // ── 9. Return ApiResult ───────────────────────────────────────────────────
+  //  9. Return ApiResult 
   return {
     success:    true,
     data:       normalisedData,
@@ -458,7 +458,7 @@ async function tmdbFetch({
   }
 }
 
-// ─── Local Fallback Helper ───────────────────────────────────────────────────
+//  Local Fallback Helper 
 
 /**
  * Wraps localShows as a fallback ApiResult.
@@ -480,7 +480,7 @@ export function buildFallbackResult(reason = 'TMDB unavailable', subset = null) 
   }
 }
 
-// ─── Public API Functions ────────────────────────────────────────────────────
+//  Public API Functions 
 
 /**
  * Fetches trending content (movies + TV) from TMDB.
@@ -527,6 +527,76 @@ export async function fetchPopularMovies(page = 1) {
   }
   return result
 }
+
+/**
+ * Fetches top-rated movies from TMDB.
+ * Falls back to genre-filtered localShows on failure.
+ *
+ * @param {number} page – 1-based, up to 500
+ * @returns {Promise<ApiResult>}
+ */
+export async function fetchTopRatedMovies(page = 1) {
+  const result = await tmdbFetch({
+    endpoint:   '/movie/top_rated',
+    cacheLabel: `top_rated_movies_p${page}`,
+    params:     { page },
+    mediaType:  'movie',
+  })
+
+  if (!result.success) {
+    const movieGenres = ['Action', 'Crime', 'Thriller', 'Adventure', 'Horror', 'Mystery']
+    const fallbackMovies = localShows.filter(s => s.genres.some(g => movieGenres.includes(g)))
+    return buildFallbackResult(result.error, fallbackMovies)
+  }
+  return result
+}
+
+/**
+ * Fetches upcoming movies from TMDB.
+ * Falls back to genre-filtered localShows on failure.
+ *
+ * @param {number} page – 1-based, up to 500
+ * @returns {Promise<ApiResult>}
+ */
+export async function fetchUpcomingMovies(page = 1) {
+  const result = await tmdbFetch({
+    endpoint:   '/movie/upcoming',
+    cacheLabel: `upcoming_movies_p${page}`,
+    params:     { page },
+    mediaType:  'movie',
+  })
+
+  if (!result.success) {
+    const movieGenres = ['Action', 'Crime', 'Thriller', 'Adventure', 'Horror', 'Mystery']
+    const fallbackMovies = localShows.filter(s => s.genres.some(g => movieGenres.includes(g)))
+    return buildFallbackResult(result.error, fallbackMovies)
+  }
+  return result
+}
+
+/**
+ * Fetches now-playing movies from TMDB.
+ * Falls back to genre-filtered localShows on failure.
+ *
+ * @param {number} page – 1-based, up to 500
+ * @returns {Promise<ApiResult>}
+ */
+export async function fetchNowPlayingMovies(page = 1) {
+  const result = await tmdbFetch({
+    endpoint:   '/movie/now_playing',
+    cacheLabel: `now_playing_movies_p${page}`,
+    params:     { page },
+    mediaType:  'movie',
+  })
+
+  if (!result.success) {
+    const movieGenres = ['Action', 'Crime', 'Thriller', 'Adventure', 'Horror', 'Mystery']
+    const fallbackMovies = localShows.filter(s => s.genres.some(g => movieGenres.includes(g)))
+    return buildFallbackResult(result.error, fallbackMovies)
+  }
+  return result
+}
+
 
 /**
  * Fetches popular TV shows from TMDB.
