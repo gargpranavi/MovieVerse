@@ -1,7 +1,7 @@
 /*
    MovieVerse – LoginPage.jsx
    Member 2 | Professional cinematic login / sign-up / password-reset page
-   Supabase Auth: email+password, Google OAuth, password reset
+   Auth: localStorage-based email + password (no external service required)
 */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -10,10 +10,9 @@ import { useAuthContext } from '../hooks/useAuthContext'
 import styles from './LoginPage.module.css'
 
 /* ─── Mode constants ─────────────────────────────────────────────────────── */
-const MODE_SIGNIN       = 'signin'
-const MODE_SIGNUP       = 'signup'
-const MODE_RESET        = 'reset'
-const MODE_NEW_PASSWORD = 'new_password'  // After clicking a Supabase reset-email link
+const MODE_SIGNIN = 'signin'
+const MODE_SIGNUP = 'signup'
+const MODE_RESET  = 'reset'    // Ask for email + new password directly
 
 /* ─── Icons ──────────────────────────────────────────────────────────────── */
 function FilmReelIcon() {
@@ -162,29 +161,20 @@ function isValidEmail(email) {
 export default function LoginPage() {
   const navigate  = useNavigate()
   const location  = useLocation()
-  const { session, loading: authLoading, signIn, signUp, signInWithGoogle,
-          sendPasswordReset, updatePassword: setNewPassword } = useAuthContext()
+  const { session, loading: authLoading, signIn, signUp,
+          sendPasswordReset, updatePassword } = useAuthContext()
 
   /* Where to go after login (supports /login redirects from ProtectedRoute) */
   const from = location.state?.from || '/home'
 
-  /* ── Form mode: signin | signup | reset | new_password ── */
+  /* ── Form mode: signin | signup | reset ── */
   const [mode, setMode] = useState(MODE_SIGNIN)
 
-  /* ── Detect Supabase password-recovery token in the URL hash on mount ──
-     When a user clicks the reset-password email link, Supabase appends
-     #access_token=...&type=recovery to the redirectTo URL.
-     detectSessionInUrl:true in supabaseClient.js consumes the hash and fires
-     an onAuthStateChange("PASSWORD_RECOVERY") event, but we also check the
-     hash ourselves so we can show the new-password form immediately. */
-  useEffect(() => {
-    const hash = window.location.hash
-    if (hash.includes('type=recovery')) {
-      setMode(MODE_NEW_PASSWORD)
-      // Clean the hash from the URL bar without triggering a navigation
-      window.history.replaceState(null, '', window.location.pathname + window.location.search)
-    }
-  }, [])
+  /* ── Extra field: new password when resetting ── */
+  const [newPassword,    setNewPassword]    = useState('')
+  const [showNewPass,    setShowNewPass]    = useState(false)
+  const [confirmNewPass, setConfirmNewPass] = useState('')
+  const [showConfNewPass, setShowConfNewPass] = useState(false)
 
   /* ── Field state ── */
   const [email,       setEmail]       = useState('')
@@ -195,9 +185,8 @@ export default function LoginPage() {
   const [rememberMe,  setRememberMe]  = useState(false)
 
   /* ── UI state ── */
-  const [submitting,    setSubmitting]    = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
-  const [alert,         setAlert]         = useState(null)   // { text, type }
+  const [submitting,  setSubmitting]  = useState(false)
+  const [alert,       setAlert]       = useState(null)   // { text, type }
   const [fieldErrors,   setFieldErrors]   = useState({})
 
   /* ── Redirect if already authenticated (but not when setting a new password) ── */
@@ -229,8 +218,12 @@ export default function LoginPage() {
     setFieldErrors({})
     setPassword('')
     setConfirmPass('')
+    setNewPassword('')
+    setConfirmNewPass('')
     setShowPass(false)
     setShowConfirm(false)
+    setShowNewPass(false)
+    setShowConfNewPass(false)
   }, [])
 
   const clearAlert = () => setAlert(null)
@@ -239,24 +232,22 @@ export default function LoginPage() {
   const validate = useCallback(() => {
     const errors = {}
 
-    // Email is hidden in new-password mode; Supabase already has the session
-    if (mode !== MODE_NEW_PASSWORD) {
-      if (!email.trim()) {
-        errors.email = 'Email is required.'
-      } else if (!isValidEmail(email)) {
-        errors.email = 'Enter a valid email address.'
-      }
+    if (!email.trim()) {
+      errors.email = 'Email is required.'
+    } else if (!isValidEmail(email)) {
+      errors.email = 'Enter a valid email address.'
     }
 
-    if (mode !== MODE_RESET) {
+    if (mode === MODE_SIGNIN) {
+      if (!password) errors.password = 'Password is required.'
+    }
+
+    if (mode === MODE_SIGNUP) {
       if (!password) {
         errors.password = 'Password is required.'
       } else if (password.length < 6) {
         errors.password = 'Password must be at least 6 characters.'
       }
-    }
-
-    if (mode === MODE_SIGNUP) {
       if (!confirmPass) {
         errors.confirmPass = 'Please confirm your password.'
       } else if (confirmPass !== password) {
@@ -264,9 +255,22 @@ export default function LoginPage() {
       }
     }
 
+    if (mode === MODE_RESET) {
+      if (!newPassword) {
+        errors.newPassword = 'New password is required.'
+      } else if (newPassword.length < 6) {
+        errors.newPassword = 'New password must be at least 6 characters.'
+      }
+      if (!confirmNewPass) {
+        errors.confirmNewPass = 'Please confirm the new password.'
+      } else if (confirmNewPass !== newPassword) {
+        errors.confirmNewPass = 'Passwords do not match.'
+      }
+    }
+
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
-  }, [email, password, confirmPass, mode])
+  }, [email, password, confirmPass, newPassword, confirmNewPass, mode])
 
   /* ── Form submit ── */
   const handleSubmit = async (e) => {
@@ -279,27 +283,15 @@ export default function LoginPage() {
     setSubmitting(true)
 
     try {
-      if (mode === MODE_NEW_PASSWORD) {
-        const result = await setNewPassword(password)
-        if (result.success) {
-          setAlert({
-            text: 'Password updated! You are now signed in. Redirecting to home…',
-            type: 'success',
-          })
-          setTimeout(() => navigate('/home', { replace: true }), 1800)
-        } else {
-          setAlert({ text: result.error, type: 'error' })
-        }
-        return
-      }
-
       if (mode === MODE_RESET) {
-        const result = await sendPasswordReset(email.trim())
+        // Local reset: verify email exists, then update password directly
+        const result = await updatePassword(email.trim(), newPassword)
         if (result.success) {
           setAlert({
-            text: 'Password reset email sent! Check your inbox (and spam folder).',
+            text: 'Password updated! You can now sign in with your new password.',
             type: 'success',
           })
+          setTimeout(() => switchMode(MODE_SIGNIN), 1800)
         } else {
           setAlert({ text: result.error, type: 'error' })
         }
@@ -309,11 +301,9 @@ export default function LoginPage() {
       if (mode === MODE_SIGNUP) {
         const result = await signUp(email.trim(), password)
         if (result.success) {
-          setAlert({
-            text: 'Account created! Please check your email to confirm your address before signing in.',
-            type: 'success',
-          })
-          switchMode(MODE_SIGNIN)
+          // Signed in immediately — navigate to home
+          setAlert({ text: 'Account created! Redirecting…', type: 'success' })
+          // session update triggers the useEffect redirect
         } else {
           setAlert({ text: result.error, type: 'error' })
         }
@@ -324,26 +314,12 @@ export default function LoginPage() {
       const result = await signIn(email.trim(), password)
       if (result.success) {
         setAlert({ text: 'Welcome back! Redirecting…', type: 'success' })
-        /* onAuthStateChange will update session → useEffect above navigates */
       } else {
         setAlert({ text: result.error, type: 'error' })
       }
     } finally {
       setSubmitting(false)
     }
-  }
-
-  /* ── Google OAuth ── */
-  const handleGoogleSignIn = async () => {
-    if (googleLoading || submitting) return
-    setGoogleLoading(true)
-    clearAlert()
-    const result = await signInWithGoogle()
-    if (!result.success) {
-      setAlert({ text: result.error, type: 'error' })
-      setGoogleLoading(false)
-    }
-    /* On success the browser navigates away; no need to reset loading */
   }
 
   /* ── Clear field errors on change ── */
@@ -361,17 +337,24 @@ export default function LoginPage() {
     setConfirmPass(v)
     if (fieldErrors.confirmPass) setFieldErrors(f => ({ ...f, confirmPass: null }))
   }
+  const onNewPasswordChange = (v) => {
+    setNewPassword(v)
+    if (fieldErrors.newPassword) setFieldErrors(f => ({ ...f, newPassword: null }))
+  }
+  const onConfirmNewPassChange = (v) => {
+    setConfirmNewPass(v)
+    if (fieldErrors.confirmNewPass) setFieldErrors(f => ({ ...f, confirmNewPass: null }))
+  }
 
-  const isSubmitDisabled = submitting || googleLoading
+  const isSubmitDisabled = submitting
 
   /* ── Dynamic heading / CTA ── */
   const headingMap = {
-    [MODE_SIGNIN]:       { title: 'Welcome back',         cta: 'Sign In',           sub: null },
-    [MODE_SIGNUP]:       { title: 'Create account',       cta: 'Create Account',    sub: null },
-    [MODE_RESET]:        { title: 'Reset password',       cta: 'Send Reset Link',   sub: "Enter your email and we'll send a link to reset your password." },
-    [MODE_NEW_PASSWORD]: { title: 'Set new password',     cta: 'Update Password',   sub: 'Enter a new password for your account. Minimum 6 characters.' },
+    [MODE_SIGNIN]: { title: 'Welcome back',   cta: 'Sign In',        sub: null },
+    [MODE_SIGNUP]: { title: 'Create account', cta: 'Create Account', sub: null },
+    [MODE_RESET]:  { title: 'Reset password', cta: 'Update Password', sub: 'Enter your email and a new password to reset your account.' },
   }
-  const { title, cta, sub } = headingMap[mode]
+  const { title, cta, sub } = headingMap[mode] ?? headingMap[MODE_SIGNIN]
 
   /* Don't render the page at all while we confirm the auth state (avoids flicker) */
   if (authLoading) {
@@ -402,8 +385,8 @@ export default function LoginPage() {
             <p className={styles.brandTagline}>Discover &bull; Watch &bull; Remember</p>
           </header>
 
-          {/* ── Mode tabs (hidden when in new-password mode from reset email) ── */}
-          {mode !== MODE_NEW_PASSWORD && (
+          {/* ── Mode tabs (hidden in reset mode) ── */}
+          {mode !== MODE_RESET && (
           <div className={styles.modeTabs} role="tablist" aria-label="Authentication mode">
             <button
               type="button"
@@ -424,8 +407,8 @@ export default function LoginPage() {
           </div>
           )}
 
-          {/* ── Sub-heading for non-signin modes ── */}
-          {(mode !== MODE_SIGNIN) && (
+          {/* ── Sub-heading for reset mode ── */}
+          {mode === MODE_RESET && (
             <div className={styles.modeHeading}>
               <h2 className={styles.modeTitle}>{title}</h2>
               {sub && <p className={styles.modeSub}>{sub}</p>}
@@ -448,8 +431,7 @@ export default function LoginPage() {
             aria-label={`MovieVerse ${title} form`}
           >
 
-            {/* Email — hidden in new-password mode (session is already set by Supabase) */}
-            {mode !== MODE_NEW_PASSWORD && (
+            {/* Email */}
             <div className={styles.field}>
               <label htmlFor="authEmail" className={styles.label}>
                 Email address
@@ -473,13 +455,12 @@ export default function LoginPage() {
               </div>
               <FieldError message={fieldErrors.email} />
             </div>
-            )}
 
-            {/* Password (hidden in reset mode; shown in new-password mode with new-password label) */}
+            {/* Password (hidden in reset mode) */}
             {mode !== MODE_RESET && (
               <div className={styles.field}>
                 <label htmlFor="authPassword" className={styles.label}>
-                  {mode === MODE_NEW_PASSWORD ? 'New password' : 'Password'}
+                  Password
                 </label>
                 <div className={`${styles.inputWrap} ${fieldErrors.password ? styles.inputInvalid : ''}`}>
                   <span className={styles.inputIcon}><LockIcon /></span>
@@ -572,7 +553,74 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Primary CTA */}
+            {/* New password fields (reset mode only) */}
+            {mode === MODE_RESET && (
+              <>
+                <div className={styles.field}>
+                  <label htmlFor="authNewPassword" className={styles.label}>
+                    New password
+                  </label>
+                  <div className={`${styles.inputWrap} ${fieldErrors.newPassword ? styles.inputInvalid : ''}`}>
+                    <span className={styles.inputIcon}><LockIcon /></span>
+                    <input
+                      id="authNewPassword"
+                      type={showNewPass ? 'text' : 'password'}
+                      className={`${styles.input} ${styles.inputWithToggle}`}
+                      value={newPassword}
+                      onChange={e => onNewPasswordChange(e.target.value)}
+                      placeholder="Minimum 6 characters"
+                      autoComplete="new-password"
+                      aria-required="true"
+                      aria-invalid={!!fieldErrors.newPassword}
+                      disabled={isSubmitDisabled}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className={styles.eyeBtn}
+                      aria-label={showNewPass ? 'Hide new password' : 'Show new password'}
+                      aria-pressed={showNewPass}
+                      onClick={() => setShowNewPass(v => !v)}
+                    >
+                      {showNewPass ? <EyeOffIcon /> : <EyeOpenIcon />}
+                    </button>
+                  </div>
+                  <FieldError message={fieldErrors.newPassword} />
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor="authConfirmNewPass" className={styles.label}>
+                    Confirm new password
+                  </label>
+                  <div className={`${styles.inputWrap} ${fieldErrors.confirmNewPass ? styles.inputInvalid : ''}`}>
+                    <span className={styles.inputIcon}><LockIcon /></span>
+                    <input
+                      id="authConfirmNewPass"
+                      type={showConfNewPass ? 'text' : 'password'}
+                      className={`${styles.input} ${styles.inputWithToggle}`}
+                      value={confirmNewPass}
+                      onChange={e => onConfirmNewPassChange(e.target.value)}
+                      placeholder="Re-enter new password"
+                      autoComplete="new-password"
+                      aria-required="true"
+                      aria-invalid={!!fieldErrors.confirmNewPass}
+                      disabled={isSubmitDisabled}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className={styles.eyeBtn}
+                      aria-label={showConfNewPass ? 'Hide confirm password' : 'Show confirm password'}
+                      aria-pressed={showConfNewPass}
+                      onClick={() => setShowConfNewPass(v => !v)}
+                    >
+                      {showConfNewPass ? <EyeOffIcon /> : <EyeOpenIcon />}
+                    </button>
+                  </div>
+                  <FieldError message={fieldErrors.confirmNewPass} />
+                </div>
+              </>
+            )}
             <button
               id="authSubmitBtn"
               type="submit"
@@ -586,8 +634,8 @@ export default function LoginPage() {
               }
             </button>
 
-            {/* Back to sign-in (from reset or new-password mode) */}
-            {(mode === MODE_RESET || mode === MODE_NEW_PASSWORD) && (
+            {/* Back to sign-in (from reset mode) */}
+            {mode === MODE_RESET && (
               <button
                 type="button"
                 className={styles.backBtn}
@@ -599,37 +647,7 @@ export default function LoginPage() {
 
           </form>
 
-          {/* ── Divider + Google (not shown in reset or new-password mode) ── */}
-          {(mode !== MODE_RESET && mode !== MODE_NEW_PASSWORD) && (
-            <>
-              <div className={styles.divider} role="separator">
-                <div className={styles.dividerLine} />
-                <span className={styles.dividerText}>or continue with</span>
-                <div className={styles.dividerLine} />
-              </div>
-
-              {/* Google sign-in — full-width prominent button */}
-              <button
-                id="googleSignInBtn"
-                type="button"
-                className={styles.btnGoogle}
-                onClick={handleGoogleSignIn}
-                disabled={isSubmitDisabled}
-                aria-busy={googleLoading}
-                aria-label="Continue with Google"
-              >
-                {googleLoading
-                  ? <span className={styles.btnSpinnerDark} aria-label="Connecting to Google…" />
-                  : (
-                    <>
-                      <span className={styles.googleIconWrap}><GoogleIcon /></span>
-                      <span>Continue with Google</span>
-                    </>
-                  )
-                }
-              </button>
-            </>
-          )}
+          {/* No Google OAuth in local-auth mode */}
 
           {/* ── Footer toggle ── */}
           <p className={styles.footerPrompt}>

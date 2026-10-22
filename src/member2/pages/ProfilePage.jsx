@@ -174,19 +174,16 @@ export default function ProfilePage() {
     }
   }, [])
 
-  /* Auth — real Supabase user (falls back to Eval-I mock so nothing breaks) */
+  /* Auth — local auth session ({ name, email, avatar }) */
   const { user: authUser } = useAuthContext()
   const base   = mockUsers[0]
   const user   = {
     ...base,
-    displayName: authUser?.user_metadata?.full_name
-                  ?? authUser?.user_metadata?.name
+    displayName: authUser?.name
                   ?? authUser?.email?.split('@')[0]
                   ?? base.displayName,
     email:  authUser?.email  ?? base.email,
-    avatar: authUser?.user_metadata?.avatar_url
-              ?? authUser?.user_metadata?.picture
-              ?? base.avatar,
+    avatar: authUser?.avatar ?? base.avatar,
   }
   const avgRating  = computeAvgRating(ratings)
 
