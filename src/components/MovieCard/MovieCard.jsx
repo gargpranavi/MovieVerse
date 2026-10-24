@@ -53,6 +53,7 @@ export default function MovieCard({ movie, rank }) {
   const [inWatchlist, setInWatchlist] = useState(false)
   const [liked, setLiked] = useState(false)
   const [likeAnimate, setLikeAnimate] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   useEffect(() => {
     setInWatchlist(isInWatchlist(movie.id))
@@ -69,8 +70,12 @@ export default function MovieCard({ movie, rank }) {
     }
   }, [movie.id])
 
-  // Use dummy image if movie.image is not provided in mock data
-  const imageUrl = movie.image || `https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80&auto=format&fit=crop`
+  // Poster image: prefer the movie's own image; fall back to a neutral placeholder.
+  // imgError flag prevents an infinite onError loop when the fallback itself fails.
+  const FALLBACK_IMG = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&q=70&auto=format&fit=crop'
+  const imageUrl = (!imgError && movie.image) ? movie.image : FALLBACK_IMG
+
+  const handleImgError = () => setImgError(true)
   
   const handleCardClick = () => {
     navigate(`/movie/${movie.id}`)
@@ -93,7 +98,16 @@ export default function MovieCard({ movie, rank }) {
     <div className={styles.cardContainer} onClick={handleCardClick}>
       <div className={styles.cardImageWrapper}>
         {rank && <span className={styles.rank}>{rank}</span>}
-        <img src={imageUrl} alt={movie.title} className={styles.cardImage} />
+        <img
+          src={imageUrl}
+          alt={movie.title}
+          className={styles.cardImage}
+          loading={rank === 1 ? 'eager' : 'lazy'}
+          decoding="async"
+          width="300"
+          height="450"
+          onError={handleImgError}
+        />
         
         {/* Slide & Glow Overlay */}
         <div className={styles.cardOverlay}>

@@ -21,7 +21,7 @@ import { Link }                from 'react-router-dom'
 import DashboardLayout         from '../../components/layout/DashboardLayout.jsx'
 import ProfileCard             from '../components/ProfileCard.jsx'
 import { mockUsers }           from '../data/users2.js'
-import { useAuthContext }      from '../hooks/useAuthContext'
+import { getSession }          from '../services/localAuth.js'
 import styles                  from './ProfilePage.module.css'
 
 /* localStorage keys */
@@ -174,8 +174,8 @@ export default function ProfilePage() {
     }
   }, [])
 
-  /* Auth — local auth session ({ name, email, avatar }) */
-  const { user: authUser } = useAuthContext()
+  /* Auth — read local session ({ name, email, avatar }) */
+  const authUser = getSession()
   const base   = mockUsers[0]
   const user   = {
     ...base,

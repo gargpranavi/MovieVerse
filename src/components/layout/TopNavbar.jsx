@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { shows } from '../../data/index.js'
 import { fallbackAnime } from '../../member2/data/animeData.js'
-import { useAuthContext } from '../../member2/hooks/useAuthContext'
+import { signOut as localSignOut } from '../../member2/services/localAuth.js'
 import styles from './TopNavbar.module.css'
 
 const NAV_ITEMS = [
@@ -77,14 +77,13 @@ export default function TopNavbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
-  const { signOut } = useAuthContext()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
     setLoggingOut(true)
     setIsProfileOpen(false)
-    await signOut()
-    navigate('/login', { replace: true })
+    localSignOut()
+    navigate('/home', { replace: true })
     setLoggingOut(false)
   }
 

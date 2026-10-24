@@ -620,6 +620,69 @@ export async function fetchPopularTvShows(page = 1) {
 }
 
 /**
+ * Fetches top-rated TV shows from TMDB.
+ * Falls back to localShows on failure.
+ *
+ * @param {number} page – 1-based
+ * @returns {Promise<ApiResult>}
+ */
+export async function fetchTopRatedTvShows(page = 1) {
+  const result = await tmdbFetch({
+    endpoint:   '/tv/top_rated',
+    cacheLabel: `top_rated_tv_p${page}`,
+    params:     { page },
+    mediaType:  'tv',
+  })
+
+  if (!result.success) {
+    return buildFallbackResult(result.error, localShows.slice(0, 20))
+  }
+  return result
+}
+
+/**
+ * Fetches TV shows airing today from TMDB.
+ * Falls back to localShows on failure.
+ *
+ * @param {number} page – 1-based
+ * @returns {Promise<ApiResult>}
+ */
+export async function fetchAiringTodayTvShows(page = 1) {
+  const result = await tmdbFetch({
+    endpoint:   '/tv/airing_today',
+    cacheLabel: `airing_today_tv_p${page}`,
+    params:     { page },
+    mediaType:  'tv',
+  })
+
+  if (!result.success) {
+    return buildFallbackResult(result.error, localShows.slice(0, 20))
+  }
+  return result
+}
+
+/**
+ * Fetches TV shows currently on-the-air from TMDB.
+ * Falls back to localShows on failure.
+ *
+ * @param {number} page – 1-based
+ * @returns {Promise<ApiResult>}
+ */
+export async function fetchOnTheAirTvShows(page = 1) {
+  const result = await tmdbFetch({
+    endpoint:   '/tv/on_the_air',
+    cacheLabel: `on_the_air_tv_p${page}`,
+    params:     { page },
+    mediaType:  'tv',
+  })
+
+  if (!result.success) {
+    return buildFallbackResult(result.error, localShows.slice(0, 20))
+  }
+  return result
+}
+
+/**
  * Fetches full details for a single movie by TMDB ID.
  * Returns a single-item data array for API shape consistency.
  * No local fallback (details are ID-specific and can't be approximated).

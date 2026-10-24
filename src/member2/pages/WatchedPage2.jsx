@@ -18,7 +18,6 @@ import { Link } from 'react-router-dom'
 import DashboardLayout   from '../../components/layout/DashboardLayout.jsx'
 import WatchlistCard2    from '../components/WatchlistCard2.jsx'
 import StatusBadge2      from '../components/StatusBadge2.jsx'
-import EmptyState2       from '../components/EmptyState2.jsx'
 import styles            from './WatchedPage2.module.css'
 
 /* localStorage keys */
@@ -78,17 +77,6 @@ function SearchIcon() {
          aria-hidden="true">
       <circle cx="11" cy="11" r="8"/>
       <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-    </svg>
-  )
-}
-
-function UndoIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-         aria-hidden="true">
-      <path d="M3 7v6h6"/>
-      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
     </svg>
   )
 }

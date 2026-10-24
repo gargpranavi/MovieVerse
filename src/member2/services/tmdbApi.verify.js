@@ -222,9 +222,9 @@ check('TV_GENRE_MAP[10765] = "Science-Fiction"',  m.TV_GENRE_MAP[10765]  === 'Sc
 console.groupEnd()
 console.log('')
 
-
+ 
 // SUMMARY
-
+ 
 const total = passed + failed
 console.log(
   `%c RESULTS: ${passed}/${total} passed, ${failed} failed`,

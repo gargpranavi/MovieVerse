@@ -1,31 +1,33 @@
 /*
    MovieVerse – MoviesPage.jsx
-   Infinite-scroll Movies page (Day 3 — Member 2)
+   Member 2 | Day 3 — Infinite-scroll Movies page
 
    Architecture
    ────────────
    • useInfiniteMovies() hook manages pagination state, deduplication,
      AbortController cancellation, and category-driven resets.
    • IntersectionObserver watches a 1-pixel sentinel element positioned
-     below the grid; when it enters the viewport, loadMore() is called.
-   • The observer is disconnected while loading or when there are no more
-     pages, preventing duplicate requests from rapid scroll events.
-   • Category tabs trigger a category change → the hook resets its state
-     (page counter, movie list, flags) automatically via a useEffect.
-   • Skeleton cards are rendered during the initial page load.
-   • A spinner + "Loading…" appears at the bottom while fetching later pages.
-   • If a later-page request fails, an error box with Retry appears; already-
-     loaded movies remain visible.
+     below the grid. The observer is created once per category and reads
+     the latest loading/hasMore state via refs — avoiding rapid
+     disconnect/reconnect cycles that could miss scroll events.
+   • Category tabs trigger a state reset in the hook and re-mount of the
+     observer (via a key on the sentinel container).
+   • MovieSkeletonCard is shown for the initial page load (15 cards).
+   • A spinner + "Loading more…" appears while fetching subsequent pages.
+   • If a later-page request fails, an error box with Retry appears;
+     already-loaded movies remain visible.
    • An end-of-results message appears when hasMore becomes false.
+   • Observer is cleaned up correctly on unmount and category change.
 */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import MovieCard from '../../components/MovieCard/MovieCard.jsx'
+import MovieSkeletonCard from '../../member2/components/MovieSkeletonCard.jsx'
 import { useInfiniteMovies } from '../../member2/hooks/useInfiniteMovies.js'
 import styles from './MoviesPage.module.css'
 
-// ── Category definitions ─────────────────────────────────────────────────────
+// ── Category definitions ──────────────────────────────────────────────────────
 const CATEGORIES = [
   { key: 'popular',     label: 'Popular' },
   { key: 'top_rated',   label: 'Top Rated' },
@@ -33,12 +35,10 @@ const CATEGORIES = [
   { key: 'upcoming',    label: 'Upcoming' },
 ]
 
-// ── Skeleton placeholder ──────────────────────────────────────────────────────
-function SkeletonCard() {
-  return <div className={styles.skeletonCard} aria-hidden="true" />
-}
+// ── Number of skeleton cards to show on initial load ─────────────────────────
+const SKELETON_COUNT = 15
 
-// ── Retry / error icon ────────────────────────────────────────────────────────
+// ── Retry icon ────────────────────────────────────────────────────────────────
 function RetryIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -67,13 +67,19 @@ export default function MoviesPage() {
     totalPages,
   } = useInfiniteMovies(category)
 
-  // ── Sentinel ref for IntersectionObserver ───────────────────────────────────
-  const sentinelRef = useRef(null)
-  // Stable ref to loadMore so the observer callback never captures a stale closure
-  const loadMoreRef = useRef(loadMore)
-  useEffect(() => { loadMoreRef.current = loadMore }, [loadMore])
+  // ── Stable refs so the observer callback always reads the latest state ──────
+  const loadMoreRef  = useRef(loadMore)
+  const loadingRef2  = useRef(loading)       // "2" to avoid shadowing the hook's internal ref
+  const hasMoreRef2  = useRef(hasMore)
 
-  // ── IntersectionObserver setup ──────────────────────────────────────────────
+  useEffect(() => { loadMoreRef.current  = loadMore  }, [loadMore])
+  useEffect(() => { loadingRef2.current  = loading   }, [loading])
+  useEffect(() => { hasMoreRef2.current  = hasMore   }, [hasMore])
+
+  // ── Sentinel ref for IntersectionObserver ────────────────────────────────────
+  const sentinelRef = useRef(null)
+
+  // ── IntersectionObserver — created once per category, reads refs internally ─
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
@@ -81,34 +87,34 @@ export default function MoviesPage() {
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0]
-        // Fire loadMore only when sentinel is intersecting and we're not busy
-        if (entry.isIntersecting && !loading && hasMore) {
+        // Always read the latest state via refs — no stale-closure risk
+        if (entry.isIntersecting && !loadingRef2.current && hasMoreRef2.current) {
           loadMoreRef.current()
         }
       },
       {
-        root:       null,        // viewport
-        rootMargin: '200px',     // trigger 200 px before the sentinel is visible
+        root:       null,    // viewport
+        rootMargin: '300px', // trigger 300 px before the sentinel reaches the fold
         threshold:  0,
       }
     )
 
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [loading, hasMore])
-  // Note: re-creating the observer when loading/hasMore changes intentionally
-  // disconnects it while a fetch is active, preventing duplicate triggers.
+    // Re-create observer only when category changes (sentinel DOM node is stable)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category])
 
-  // ── Category change handler ─────────────────────────────────────────────────
+  // ── Category change handler ───────────────────────────────────────────────
   const handleCategoryChange = useCallback((key) => {
     if (key === category) return
     setCategory(key)
   }, [category])
 
-  // ── Derive hero movie from first loaded card ─────────────────────────────────
+  // ── Hero: first loaded movie ──────────────────────────────────────────────
   const heroMovie = movies[0] ?? null
 
-  // ── Category display label ───────────────────────────────────────────────────
+  // ── Current category display label ───────────────────────────────────────
   const currentCatLabel = CATEGORIES.find(c => c.key === category)?.label ?? 'Movies'
 
   return (
@@ -164,13 +170,13 @@ export default function MoviesPage() {
         {/* ── Content ── */}
         <div className={styles.content}>
 
-          {/* Category Tabs */}
+          {/* ── Category Tabs ── */}
           <div className={styles.tabsWrapper} role="tablist" aria-label="Movie categories">
             <span className={styles.tabsLabel}>Browse</span>
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.key}
-                id={`tab-${cat.key}`}
+                id={`tab-movies-${cat.key}`}
                 role="tab"
                 aria-selected={category === cat.key}
                 className={`${styles.tab} ${category === cat.key ? styles.tabActive : ''}`}
@@ -181,7 +187,7 @@ export default function MoviesPage() {
             ))}
           </div>
 
-          {/* Fallback banner */}
+          {/* ── Fallback banner ── */}
           {isFallback && (
             <div className={styles.fallbackBanner} role="alert">
               <span className={styles.fallbackIcon}>📡</span>
@@ -192,7 +198,7 @@ export default function MoviesPage() {
             </div>
           )}
 
-          {/* Section header */}
+          {/* ── Section header ── */}
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>{currentCatLabel} Movies</h2>
             {movies.length > 0 && !initialLoad && (
@@ -203,16 +209,22 @@ export default function MoviesPage() {
             )}
           </div>
 
-          {/* ── Initial Load: skeleton grid ── */}
+          {/* ── Initial load: skeleton grid ── */}
           {initialLoad && (
-            <div className={styles.grid} aria-busy="true" aria-label="Loading movies">
-              {Array.from({ length: 15 }).map((_, i) => (
-                <SkeletonCard key={i} />
+            <div
+              className={styles.grid}
+              aria-busy="true"
+              aria-label="Loading movies"
+              id="movies-skeleton-grid"
+            >
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <MovieSkeletonCard key={i} />
               ))}
             </div>
           )}
 
-          {/* ── Movie Grid ── */}
+          {/* ── Movie grid ── */}
           {!initialLoad && movies.length > 0 && (
             <div
               className={styles.grid}
@@ -223,6 +235,14 @@ export default function MoviesPage() {
               {movies.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
+
+              {/* ── Inline skeleton cards while loading more pages ── */}
+              {loading && (
+                Array.from({ length: 5 }).map((_, i) => (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <MovieSkeletonCard key={`skel-more-${i}`} />
+                ))
+              )}
             </div>
           )}
 
@@ -235,15 +255,21 @@ export default function MoviesPage() {
           )}
 
           {/* ── Sentinel element (IntersectionObserver target) ── */}
+          {/*    Placed outside the grid so it's always in the DOM  */}
           <div
             ref={sentinelRef}
             className={styles.sentinel}
             aria-hidden="true"
+            data-testid="infinite-scroll-sentinel"
           />
 
-          {/* ── Loading more indicator ── */}
+          {/* ── "Loading more" text indicator (below the grid) ── */}
           {loading && !initialLoad && (
-            <div className={styles.loadingMore} aria-live="polite" aria-label="Loading more movies">
+            <div
+              className={styles.loadingMore}
+              aria-live="polite"
+              aria-label="Loading more movies"
+            >
               <div className={styles.spinner} />
               <span className={styles.loadingText}>Loading more…</span>
             </div>
@@ -259,6 +285,7 @@ export default function MoviesPage() {
                 className={styles.retryBtn}
                 onClick={retry}
                 aria-label="Retry loading movies"
+                type="button"
               >
                 <RetryIcon />
                 Retry

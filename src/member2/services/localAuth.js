@@ -76,20 +76,43 @@ export function clearSession() {
 
 /**
  * Sign in with email + password.
+ * If the email has never been registered, the account is created automatically
+ * so first-time users don't need to visit the Sign Up tab.
  * @returns {{ session, error }}
  */
 export function signIn(email, password) {
   const users = getUsers()
   const user  = users.find(u => u.email.toLowerCase() === email.toLowerCase().trim())
 
-  if (!user) {
-    return { session: null, error: 'No account found with that email address.' }
-  }
-  if (user.password !== password) {
-    return { session: null, error: 'Incorrect password. Please try again.' }
+  // ── Existing account: verify password ────────────────────────────────────
+  if (user) {
+    if (user.password !== password) {
+      return { session: null, error: 'Incorrect password. Please try again.' }
+    }
+    const session = buildSession(user)
+    saveSession(session)
+    return { session, error: null }
   }
 
-  const session = buildSession(user)
+  // ── No account yet: auto-register and sign in ────────────────────────────
+  if (!password || password.length < 6) {
+    return {
+      session: null,
+      error: 'No account found. Password must be at least 6 characters to create one automatically.',
+    }
+  }
+
+  const newUser = {
+    id:        generateId(),
+    email:     email.toLowerCase().trim(),
+    password,
+    name:      email.split('@')[0],
+    avatar:    null,
+    createdAt: new Date().toISOString(),
+  }
+  saveUsers([...users, newUser])
+
+  const session = buildSession(newUser)
   saveSession(session)
   return { session, error: null }
 }

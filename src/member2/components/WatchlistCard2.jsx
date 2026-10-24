@@ -98,7 +98,7 @@ export default function WatchlistCard2({
   const duration    = runtime ? (String(runtime).includes('min') || String(runtime).includes('h') ? runtime : `${runtime} min`) : null
   const watchedDate = show?.watchedDate       ?? null
 
-  const [inWatchlist, setInWatchlist] = useState(false)
+  const [_inWatchlist, setInWatchlist] = useState(false)
 
   useEffect(() => {
     setInWatchlist(isInWatchlist(id?.toString()))

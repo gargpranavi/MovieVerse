@@ -87,7 +87,7 @@ export function useTmdb(fetchFn, args, { immediate = true } = {}) {
       return
     }
     execute(args)
-    // Serialise args for dep comparison — keeps effect stable for primitive arrays
+    // Serialise args for dep comparison - keeps effect stable for primitive arrays
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [execute, JSON.stringify(args)])
 

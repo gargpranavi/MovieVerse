@@ -5,7 +5,6 @@ import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
 import { isWatched, addToWatched, removeFromWatched, getWatchedDate } from '../../utils/watched.js'
 import { getUserRating, getUserReview, saveUserRating, saveUserReview } from '../../utils/reviews.js'
 import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
-import MovieCard from '../../components/MovieCard/MovieCard.jsx'
 import { shows, castByShowId, people } from '../../data/index.js'
 import styles from './MovieDetailsPage.module.css'
 
