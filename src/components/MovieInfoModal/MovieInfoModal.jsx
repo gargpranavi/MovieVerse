@@ -1,4 +1,6 @@
-﻿import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
+import { isWatched, toggleWatched } from '../../utils/watched.js'
 import styles from './MovieInfoModal.module.css'
 
 function CloseIcon() {
@@ -39,7 +41,45 @@ function PlusIcon() {
   )
 }
 
+function CheckIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2.5"
+         strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
+}
+
+function EyeIcon({ width = 18, height = 18, filled = false }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
 export default function MovieInfoModal({ isOpen, onClose, movie, onPlay }) {
+  const [inWatchlist, setInWatchlist] = useState(false)
+  const [watchedState, setWatchedState] = useState(false)
+
+  useEffect(() => {
+    if (!movie) return
+    setInWatchlist(isInWatchlist(movie.id))
+    setWatchedState(isWatched(movie.id))
+
+    const handleWl = () => setInWatchlist(isInWatchlist(movie.id))
+    const handleWd = () => setWatchedState(isWatched(movie.id))
+
+    window.addEventListener('watchlistUpdated', handleWl)
+    window.addEventListener('watchedUpdated',   handleWd)
+    return () => {
+      window.removeEventListener('watchlistUpdated', handleWl)
+      window.removeEventListener('watchedUpdated',   handleWd)
+    }
+  }, [movie])
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -59,10 +99,18 @@ export default function MovieInfoModal({ isOpen, onClose, movie, onPlay }) {
 
   const rating = movie.rating ? Number(movie.rating).toFixed(1) : null
 
+  const handleWatchlistClick = () => {
+    toggleWatchlist(movie)
+  }
+
+  const handleWatchedClick = () => {
+    toggleWatched(movie)
+  }
+
   return (
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label={`More info about ${movie.title}`}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.banner} style={{ backgroundImage: `url(${movie.image})` }}>
+        <div className={styles.banner} style={{ backgroundImage: `url(${movie.backdrop || movie.image})` }}>
           <div className={styles.bannerGradient} />
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close info panel">
             <CloseIcon />
@@ -77,8 +125,21 @@ export default function MovieInfoModal({ isOpen, onClose, movie, onPlay }) {
               <button className={styles.playBtn} onClick={() => { onClose(); onPlay && onPlay() }}>
                 <PlayIcon /> Play
               </button>
-              <button className={styles.addBtn} aria-label="Add to My List">
-                <PlusIcon /> My List
+              <button
+                className={`${styles.addBtn} ${inWatchlist ? styles.addBtnActive : ''}`}
+                onClick={handleWatchlistClick}
+                aria-label={inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+              >
+                {inWatchlist ? <CheckIcon /> : <PlusIcon />}
+                {inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+              </button>
+              <button
+                className={`${styles.watchedModalBtn} ${watchedState ? styles.watchedModalBtnActive : ''}`}
+                onClick={handleWatchedClick}
+                aria-label={watchedState ? 'Watched' : 'Mark Watched'}
+              >
+                <EyeIcon filled={watchedState} />
+                {watchedState ? 'Watched' : 'Mark Watched'}
               </button>
             </div>
           </div>

@@ -2,31 +2,23 @@
    MovieVerse – WatchedPage2.jsx
    Member 2 | Watched Movies Page
    Day 3 – Watched Movies System
-
-   localStorage keys
-   "movieverse_watched"  → Array of watched show objects (each has .watchedDate)
-
-   Flow
-   /watchlist → Mark as Watched → moves show to "movieverse_watched" in localStorage
-   /watched   → shows everything in "movieverse_watched"
-   Refresh    → watched list auto-loaded from localStorage 
-   Remove     → removed from "movieverse_watched" localStorage 
 */
 
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import DashboardLayout   from '../../components/layout/DashboardLayout.jsx'
-import WatchlistCard2    from '../components/WatchlistCard2.jsx'
-import StatusBadge2      from '../components/StatusBadge2.jsx'
-import EmptyState2       from '../components/EmptyState2.jsx'
-import { useWatchlist }  from '../../context/index.js'
-import { useToast }      from '../../components/common/Toast/index.js'
-import styles            from './WatchedPage2.module.css'
+import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
+import WatchlistCard2 from '../components/WatchlistCard2.jsx'
+import StatusBadge2 from '../components/StatusBadge2.jsx'
+import { useWatchlist } from '../../context/index.js'
+import { useToast } from '../../components/common/Toast/index.js'
+import styles from './WatchedPage2.module.css'
 
 function loadRatings() {
   try {
     return JSON.parse(localStorage.getItem('movieverse_ratings') || '[]')
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 /* Icon Components */
@@ -52,66 +44,76 @@ function SearchIcon() {
   )
 }
 
-function UndoIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-         aria-hidden="true">
-      <path d="M3 7v6h6"/>
-      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
-    </svg>
-  )
-}
-
-
-
 /* Main WatchedPage2 Component */
 export default function WatchedPage2() {
   const { watchedHistory, removeFromWatched, moveBackToWatchlist } = useWatchlist()
   const { success, info, warning } = useToast()
 
-  /* Local UI State */
+  /* Local UI state */
   const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState('date')   // date | rating | title
+  const [sortBy, setSortBy] = useState('date') // date | rating | title
+  const [ratings, setRatings] = useState(loadRatings)
 
-  /* Remove from watched list*/
+  /* Keep ratings in sync with changes made elsewhere in the app */
+  useEffect(() => {
+    const refreshRatings = () => setRatings(loadRatings())
+
+    window.addEventListener('ratingsUpdated', refreshRatings)
+    window.addEventListener('storage', refreshRatings)
+
+    return () => {
+      window.removeEventListener('ratingsUpdated', refreshRatings)
+      window.removeEventListener('storage', refreshRatings)
+    }
+  }, [])
+
+  /* Remove from watched list */
   function handleRemove(id) {
-    const show = watchedHistory.find(s => String(s.id) === String(id))
+    const show = watchedHistory.find(item => String(item.id) === String(id))
     removeFromWatched(id)
-    warning(`Removed '${show?.name || show?.title || 'show'}' from Watched`, { duration: 2800 })
+    warning(`Removed '${show?.name || show?.title || 'show'}' from Watched`, {
+      duration: 2800,
+    })
   }
 
   /* Move back to Watchlist */
   function handleMoveBack(show) {
     moveBackToWatchlist(show)
-    success(`↩ Moved '${show?.name || show?.title}' back to Watchlist`, { duration: 3200 })
+    success(`↩ Moved '${show?.name || show?.title || 'show'}' back to Watchlist`, {
+      duration: 3200,
+    })
   }
 
-  // Enrich each watched item with stored user rating
-  const ratings = loadRatings()
+  /* Enrich each watched item with its stored user rating */
   const watched = watchedHistory.map(show => {
-    const entry = ratings.find(r => r.movieId === String(show.id))
+    const entry = ratings.find(r => String(r.movieId) === String(show.id))
     return entry ? { ...show, userRating: entry.rating } : show
   })
 
   /* Filtered + sorted watched list */
   const displayed = watched
-    .filter(s =>
-      ((s.name || s.title) ?? '').toLowerCase().includes(search.toLowerCase())
+    .filter(show =>
+      ((show.name || show.title) ?? '').toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
-      if (sortBy === 'rating') return (b.rating?.average ?? 0) - (a.rating?.average ?? 0)
-      if (sortBy === 'title')  return ((a.name || a.title) ?? '').localeCompare((b.name || b.title) ?? '')
+      if (sortBy === 'rating') {
+        return (b.rating?.average ?? b.userRating ?? 0) -
+          (a.rating?.average ?? a.userRating ?? 0)
+      }
+      if (sortBy === 'title') {
+        return ((a.name || a.title) ?? '').localeCompare((b.name || b.title) ?? '')
+      }
       // 'date' → most recently watched first
-      if (sortBy === 'date')   return (b.watchedDate ?? '').localeCompare(a.watchedDate ?? '')
+      if (sortBy === 'date') {
+        return (b.watchedDate ?? '').localeCompare(a.watchedDate ?? '')
+      }
       return 0
     })
 
-  /* Render*/
+  /* Render */
   return (
     <DashboardLayout>
       <div className={styles.page}>
-
         {/* Deep Space Background */}
         <div className={styles.bgScene} aria-hidden="true">
           <div className={styles.bgGlow1} />
@@ -122,8 +124,6 @@ export default function WatchedPage2() {
         {/* Page header */}
         <header className={styles.pageHeader}>
           <div className={styles.headerContent}>
-
-            {/* Left: icon + title */}
             <div className={styles.headerLeft}>
               <div className={styles.headerIcon}><EyeIcon /></div>
               <div>
@@ -134,9 +134,7 @@ export default function WatchedPage2() {
               </div>
             </div>
 
-            {/* Right: controls */}
             <div className={styles.controls}>
-
               {/* Search */}
               <div className={styles.searchWrapper}>
                 <span className={styles.searchIcon}><SearchIcon /></span>
@@ -174,33 +172,31 @@ export default function WatchedPage2() {
                 </svg>
                 <span>Watchlist</span>
               </Link>
-
             </div>
           </div>
         </header>
 
-        {/* Stats bar*/}
+        {/* Stats bar */}
         {watched.length > 0 && (
           <div className={styles.statsBar}>
             <span className={styles.statItem}>
               <StatusBadge2 type="watched" size="md" label={`${watched.length} Watched`} />
             </span>
-            {watched.filter(s => s.status === 'Running').length > 0 && (
+            {watched.filter(show => show.status === 'Running').length > 0 && (
               <span className={styles.statItem}>
                 <StatusBadge2
                   type="running"
                   size="md"
-                  label={`${watched.filter(s => s.status === 'Running').length} Still Airing`}
+                  label={`${watched.filter(show => show.status === 'Running').length} Still Airing`}
                 />
               </span>
             )}
           </div>
         )}
 
-        {/* Main content*/}
+        {/* Main content */}
         <main className={styles.main} id="watchedMain">
-
-          {/* Empty state — nothing watched yet */}
+          {/* Empty state */}
           {watched.length === 0 && (
             <div className={styles.emptyWrapper}>
               <div className={styles.emptyIconRing}>
@@ -208,7 +204,7 @@ export default function WatchedPage2() {
               </div>
               <h2 className={styles.emptyHeading}>Nothing watched yet!</h2>
               <p className={styles.emptySub}>
-                Go to your <a href="/watchlist" className={styles.emptyLink}>Watchlist</a> and
+                Go to your <Link to="/watchlist" className={styles.emptyLink}>Watchlist</Link> and
                 click the ✓ button on any show to mark it as watched.
               </p>
             </div>
@@ -243,7 +239,6 @@ export default function WatchedPage2() {
             </div>
           )}
         </main>
-
       </div>
     </DashboardLayout>
   )

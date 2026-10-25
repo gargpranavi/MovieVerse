@@ -41,14 +41,21 @@
 
 .row {
   display: flex;
-  gap: 15px; /* updated gap for vertical posters */
+  gap: 15px;
   padding: 10px 4%;
   overflow-x: auto;
-  overflow-y: visible; /* changed from hidden to visible for the hover effect */
+  overflow-y: visible;
   scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
   align-items: flex-start;
+  cursor: grab;
+  /* Prevent text/image selection while dragging */
+  user-select: none;
+}
+
+.row:active {
+  cursor: grabbing;
 }
 
 .row::-webkit-scrollbar {

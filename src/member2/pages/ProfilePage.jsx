@@ -97,12 +97,15 @@ function StarFilledIcon() {
 /* Small movie poster card */
 function RecentMovieCard({ show }) {
   const name   = show?.name ?? show?.title ?? 'Unknown'
-  const poster = show?.image?.medium ?? null
-  const rating = show?.rating?.average ?? show?.userRating ?? null
-  const date   = show?.watchedDate ?? null
+  const poster = (typeof show?.image === 'string' ? show.image : (show?.image?.medium || show?.image?.original)) || show?.poster || null
+  const rating = show?.rating?.average ?? show?.userRating ?? show?.rating ?? null
+  const date   = show?.watchedDate ?? show?.watchedAt ?? null
+  const linkUrl = (show?.mediaType === 'tv' || (show?.source === 'tmdb' && show?.mediaType === 'tv'))
+    ? `/movie/${show?.id}?type=tv`
+    : `/movie/${show?.id}`
 
   return (
-    <div className={styles.recentCard}>
+    <Link to={linkUrl} className={styles.recentCard} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className={styles.recentPoster}>
         {poster ? (
           <img src={poster} alt={name} className={styles.recentImg} />
@@ -121,7 +124,7 @@ function RecentMovieCard({ show }) {
         )}
         {date && <span className={styles.recentDate}>{date}</span>}
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -149,32 +152,37 @@ export default function ProfilePage() {
   const { user: authUser } = useAuth()
 
   /* State */
-  const [reviews,      setReviews]      = useState([])
-  const [ratings,      setRatings]      = useState([])
+  const [reviews, setReviews] = useState([])
+  const [ratings, setRatings] = useState([])
 
   /* Load reviews & ratings data */
   useEffect(() => {
     function refresh() {
-      setReviews  (loadLS(LS_REVIEWS))
-      setRatings  (loadLS(LS_RATINGS))
+      setReviews(loadLS(LS_REVIEWS))
+      setRatings(loadLS(LS_RATINGS))
     }
+
     refresh()
 
-    /* Re-sync if other pages update reviews/ratings */
+    /* Re-sync if other pages update data */
+    window.addEventListener('watchlistUpdated', refresh)
+    window.addEventListener('watchedUpdated', refresh)
     window.addEventListener('reviewsUpdated', refresh)
     window.addEventListener('ratingsUpdated', refresh)
-    window.addEventListener('storage',        refresh)
+    window.addEventListener('storage', refresh)
 
     return () => {
+      window.removeEventListener('watchlistUpdated', refresh)
+      window.removeEventListener('watchedUpdated', refresh)
       window.removeEventListener('reviewsUpdated', refresh)
       window.removeEventListener('ratingsUpdated', refresh)
-      window.removeEventListener('storage',        refresh)
+      window.removeEventListener('storage', refresh)
     }
   }, [])
 
   /* Derived values */
-  const user       = authUser || mockUsers[0]
-  const avgRating  = computeAvgRating(ratings)
+  const user = authUser || mockUsers[0]
+  const avgRating = computeAvgRating(ratings)
 
   /* Most recent 6 watched shows */
   const recentWatched = [...watched]
@@ -210,7 +218,7 @@ export default function ProfilePage() {
 
             {/* Quick navigation links */}
             <nav className={styles.quickNav} aria-label="Quick navigation">
-              <Link to="/watched"   className={styles.navLink} id="profile-nav-watched">
+              <Link to="/watched" className={styles.navLink} id="profile-nav-watched">
                 <EyeIcon /> Watched
               </Link>
               <Link to="/watchlist" className={styles.navLink} id="profile-nav-watchlist">
@@ -232,11 +240,11 @@ export default function ProfilePage() {
             {/* Left: Profile Card (sticky) */}
             <aside className={styles.leftCol}>
               <ProfileCard
-                user           = {user}
-                watchedCount   = {watched.length}
-                watchlistCount = {watchlist.length}
-                reviewCount    = {reviews.length}
-                avgRating      = {avgRating}
+                user={user}
+                watchedCount={watched.length}
+                watchlistCount={watchlist.length}
+                reviewCount={reviews.length}
+                avgRating={avgRating}
               />
             </aside>
 

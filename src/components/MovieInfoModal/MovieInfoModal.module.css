@@ -1,4 +1,4 @@
-﻿/* MovieInfoModal.module.css */
+/* MovieInfoModal.module.css */
 
 .overlay {
   position: fixed;
@@ -166,6 +166,39 @@
 .addBtn:hover {
   background: rgba(255,255,255,0.2);
   transform: scale(1.03);
+}
+
+.addBtnActive {
+  background: rgba(212, 160, 23, 0.25) !important;
+  border-color: #D4A017 !important;
+  color: #F5D061 !important;
+}
+
+.watchedModalBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.watchedModalBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.03);
+}
+
+.watchedModalBtnActive {
+  background: rgba(212, 160, 23, 0.25) !important;
+  border-color: #D4A017 !important;
+  color: #F5D061 !important;
 }
 
 /* ── Body ───────────────────────────────────── */

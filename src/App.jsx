@@ -1,26 +1,26 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute, { PublicRoute } from './components/auth/ProtectedRoute.jsx'
 
-import LoginPage        from './member2/pages/LoginPage.jsx'
-import WatchlistPage2   from './member2/pages/WatchlistPage2.jsx'
-import WatchedPage2     from './member2/pages/WatchedPage2.jsx'
-import ProfilePage      from './member2/pages/ProfilePage.jsx'
-import AnimePage        from './member2/pages/AnimePage.jsx'
+import LoginPage from './member2/pages/LoginPage.jsx'
+import WatchlistPage2 from './member2/pages/WatchlistPage2.jsx'
+import WatchedPage2 from './member2/pages/WatchedPage2.jsx'
+import ProfilePage from './member2/pages/ProfilePage.jsx'
+import AnimePage from './member2/pages/AnimePage.jsx'
 import AnimeDetailsPage from './member2/pages/AnimeDetailsPage.jsx'
 
-import HomePage         from './pages/Home/HomePage.jsx'
-import MoviesPage       from './pages/Movies/MoviesPage.jsx'
-import TvSeriesPage     from './pages/TvSeries/TvSeriesPage.jsx'
+import HomePage from './pages/Home/HomePage.jsx'
+import MoviesPage from './pages/Movies/MoviesPage.jsx'
+import TvSeriesPage from './pages/TvSeries/TvSeriesPage.jsx'
 import MovieDetailsPage from './pages/MovieDetails/MovieDetailsPage.jsx'
-import AiFeaturesPage   from './pages/AiFeatures/AiFeaturesPage.jsx'
+import AiFeaturesPage from './pages/AiFeatures/AiFeaturesPage.jsx'
 
 function App() {
   return (
     <Routes>
-      {/* Default → Login */}
+      {/* Default route */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
-      {/* ── Public: only accessible when NOT logged in ── */}
+      {/* Public route: login */}
       <Route
         path="/login"
         element={
@@ -30,36 +30,160 @@ function App() {
         }
       />
 
-      {/* ── Protected: requires authentication ── */}
+      {/* Protected movie discovery routes */}
+      <Route
+        path="/home"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/movies"
+        element={
+          <ProtectedRoute>
+            <MoviesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tv-series"
+        element={
+          <ProtectedRoute>
+            <TvSeriesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/movie/:id"
+        element={
+          <ProtectedRoute>
+            <MovieDetailsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai-features"
+        element={
+          <ProtectedRoute>
+            <AiFeaturesPage />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Movie Discovery */}
-      <Route path="/home"      element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-      <Route path="/movies"    element={<ProtectedRoute><MoviesPage /></ProtectedRoute>} />
-      <Route path="/tv-series" element={<ProtectedRoute><TvSeriesPage /></ProtectedRoute>} />
-      <Route path="/movie/:id" element={<ProtectedRoute><MovieDetailsPage /></ProtectedRoute>} />
-      <Route path="/ai-features" element={<ProtectedRoute><AiFeaturesPage /></ProtectedRoute>} />
+      {/* Protected watchlist, watched, profile and anime routes */}
+      <Route
+        path="/watchlist"
+        element={
+          <ProtectedRoute>
+            <WatchlistPage2 />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/watched"
+        element={
+          <ProtectedRoute>
+            <WatchedPage2 />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/anime"
+        element={
+          <ProtectedRoute>
+            <AnimePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/anime/:id"
+        element={
+          <ProtectedRoute>
+            <AnimeDetailsPage />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Member 2 – Watchlist, Watched & Anime */}
-      <Route path="/watchlist"  element={<ProtectedRoute><WatchlistPage2 /></ProtectedRoute>} />
-      <Route path="/watched"    element={<ProtectedRoute><WatchedPage2 /></ProtectedRoute>} />
-      <Route path="/profile"    element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-      <Route path="/anime"      element={<ProtectedRoute><AnimePage /></ProtectedRoute>} />
-      <Route path="/anime/:id"  element={<ProtectedRoute><AnimeDetailsPage /></ProtectedRoute>} />
+      {/* Placeholder routes */}
+      <Route
+        path="/search"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/explore"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ratings"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai-recommender"
+        element={
+          <ProtectedRoute>
+            <AiFeaturesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/actors"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/genres"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/directors"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Placeholder routes (also protected) */}
-      <Route path="/search"        element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-      <Route path="/explore"       element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-      <Route path="/ratings"       element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-      <Route path="/ai-recommender" element={<ProtectedRoute><AiFeaturesPage /></ProtectedRoute>} />
-      <Route path="/actors"        element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-      <Route path="/genres"        element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-      <Route path="/directors"     element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-      <Route path="/settings"      element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-
-      {/* 404 → back to login */}
+      {/* Unknown routes */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )
 }
 
-export default App
+export default App

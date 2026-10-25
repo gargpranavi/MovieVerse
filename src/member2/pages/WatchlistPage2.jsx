@@ -1,41 +1,22 @@
-/* 
+/*
    MovieVerse – WatchlistPage2.jsx
    Member 2 | Watchlist Page
-   Day 2 – TVMaze API  |  localStorage-backed
-
-   localStorage keys
-   
-   "watchlist"         → Array of full TVMaze show objects
-   "movieverse_watched"  → Array of shows marked as watched
-
-   Default Shows
-   
-   6 popular TVMaze shows are ALWAYS seeded back into the watchlist
-   on every page load — even after the user deletes or watches them.
-
-   Flow
-   
-   Page load  →  fetch defaults  →  merge into localStorage  →  show grid
-   Add show   →  saves to localStorage  →  survives refresh  
-   Remove / Mark watched  →  localStorage updated immediately
-   Refresh    →  defaults re-merged + user additions preserved  
+   Day 2 – TVMaze API | localStorage-backed
 */
 
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import WatchlistCard2 from '../components/WatchlistCard2.jsx'
-import EmptyState2     from '../components/EmptyState2.jsx'
-import styles          from './WatchlistPage2.module.css'
+import EmptyState2 from '../components/EmptyState2.jsx'
+import styles from './WatchlistPage2.module.css'
 import { shows } from '../../data/index.js'
 import { useWatchlist } from '../../context/index.js'
 import { useToast } from '../../components/common/Toast/index.js'
 
-/* Default show IDs — these are always seeded back on refresh.
-   IDs: Person of Interest, True Detective, Grimm,
-        Supernatural, Vikings, Fargo
-*/
-const DEFAULT_SHOW_IDS = ["2", "5", "10", "19", "29", "32"]
+/* Default show IDs. Removed defaults are remembered so they do not return. */
+const DEFAULT_SHOW_IDS = ['2', '5', '10', '19', '29', '32']
+const LS_REMOVED_DEFAULTS = 'movieverse_removed_defaults'
 
 /* Inline SVG icons */
 function BookmarkIcon() {
@@ -57,9 +38,6 @@ function SearchIcon() {
   )
 }
 
-
-
-
 /* Main WatchlistPage2 Component */
 export default function WatchlistPage2() {
   const {
@@ -69,69 +47,109 @@ export default function WatchlistPage2() {
     setWatchlist,
     removedDefaults,
   } = useWatchlist()
-
   const { success, info } = useToast()
 
-  /* Local UI State */
+  /* Local UI state */
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('default')
 
-  /* On mount: seed default shows if needed */
+  /* Seed default shows once, respecting removals, and keep context in sync */
   useEffect(() => {
-    const removedSet = new Set(removedDefaults.map(String))
-    const idsToFetch = DEFAULT_SHOW_IDS.filter(id => !removedSet.has(String(id)))
-    if (idsToFetch.length === 0) return
+    const syncWatchlist = () => {
+      setWatchlist(current => {
+        // The context is the source of truth; update only when local storage differs.
+        let stored = []
+        try {
+          stored = JSON.parse(localStorage.getItem('watchlist') || '[]')
+        } catch {
+          stored = []
+        }
+        return Array.isArray(stored) ? stored : current
+      })
+    }
 
-    const defaults = shows.filter(show => idsToFetch.includes(show.id))
-    const map = new Map(watchlist.map(s => [String(s.id), s]))
-    let hasChanges = false
+    let storedRemoved = []
+    try {
+      storedRemoved = JSON.parse(localStorage.getItem(LS_REMOVED_DEFAULTS) || '[]')
+    } catch {
+      storedRemoved = []
+    }
+
+    const removedSet = new Set([
+      ...storedRemoved.map(String),
+      ...(Array.isArray(removedDefaults) ? removedDefaults.map(String) : []),
+    ])
+    const idsToSeed = DEFAULT_SHOW_IDS.filter(id => !removedSet.has(String(id)))
+    const defaults = shows.filter(show => idsToSeed.includes(String(show.id)))
+    const map = new Map(watchlist.map(show => [String(show.id), show]))
+    let changed = false
+
     defaults.forEach(show => {
-      if (show?.id && !map.has(String(show.id))) {
+      if (show?.id != null && !map.has(String(show.id))) {
         map.set(String(show.id), show)
-        hasChanges = true
+        changed = true
       }
     })
 
-    if (hasChanges) {
-      const defaultIdSet = new Set(DEFAULT_SHOW_IDS)
-      const merged = [
-        ...defaults.filter(s => s?.id && map.has(String(s.id))),
-        ...[...map.values()].filter(s => !defaultIdSet.has(String(s.id))),
-      ]
+    if (changed) {
+      const merged = [...map.values()]
       setWatchlist(merged)
     }
-  }, [removedDefaults])
+
+    window.addEventListener('watchlistUpdated', syncWatchlist)
+    return () => window.removeEventListener('watchlistUpdated', syncWatchlist)
+  // Context methods are expected to be stable; this runs once on mount.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   /* Remove show from watchlist */
   function handleRemove(id) {
-    const show = watchlist.find(s => String(s.id) === String(id))
+    const show = watchlist.find(item => String(item.id) === String(id))
+
+    if (DEFAULT_SHOW_IDS.includes(String(id))) {
+      try {
+        const removed = new Set(JSON.parse(localStorage.getItem(LS_REMOVED_DEFAULTS) || '[]').map(String))
+        removed.add(String(id))
+        localStorage.setItem(LS_REMOVED_DEFAULTS, JSON.stringify([...removed]))
+      } catch {
+        // Ignore storage errors; still remove through context.
+      }
+    }
+
     removeFromWatchlist(id)
-    info(`Removed '${show?.name || show?.title || 'show'}' from Watchlist`, { duration: 2800 })
+    info(`Removed '${show?.name || show?.title || 'show'}' from Watchlist`, {
+      duration: 2800,
+    })
   }
 
   /* Mark as watched (moves to watched list) */
   function handleMarkWatched(show) {
     markAsWatched(show)
-    success(`✓ Marked '${show?.name || show?.title}' as Watched!`, { duration: 3200 })
+    success(`✓ Marked '${show?.name || show?.title || 'show'}' as Watched!`, {
+      duration: 3200,
+    })
   }
 
   /* Filtered + sorted watchlist */
   const displayed = watchlist
-    .filter(s =>
-      ((s.name || s.title) ?? '').toLowerCase().includes(search.toLowerCase())
+    .filter(show =>
+      ((show.name || show.title) ?? '').toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
-      if (sortBy === 'rating') return (b.rating?.average ?? 0) - (a.rating?.average ?? 0)
-      if (sortBy === 'title')  return ((a.name || a.title) ?? '').localeCompare((b.name || b.title) ?? '')
-      return 0 // default = insertion order
+      if (sortBy === 'rating') {
+        return (b.rating?.average ?? b.userRating ?? 0) -
+          (a.rating?.average ?? a.userRating ?? 0)
+      }
+      if (sortBy === 'title') {
+        return ((a.name || a.title) ?? '').localeCompare((b.name || b.title) ?? '')
+      }
+      return 0
     })
-
 
   /* Render */
   return (
     <DashboardLayout>
       <div className={styles.page}>
-
         {/* Deep Space Background */}
         <div className={styles.bgScene} aria-hidden="true">
           <div className={styles.bgGlow1} />
@@ -139,7 +157,7 @@ export default function WatchlistPage2() {
           <div className={styles.bgGlow3} />
         </div>
 
-        {/* Page header*/}
+        {/* Page header */}
         <header className={styles.pageHeader}>
           <div className={styles.headerContent}>
             <div className={styles.headerLeft}>
@@ -182,7 +200,6 @@ export default function WatchlistPage2() {
                 </select>
               </div>
 
-              {/* Navigation to Watched */}
               <Link to="/watched" className={styles.navBtn} title="View Watched Movies">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -190,25 +207,20 @@ export default function WatchlistPage2() {
                 </svg>
                 <span>Watched</span>
               </Link>
-
             </div>
           </div>
         </header>
 
         {/* Main content */}
         <main className={styles.main} id="watchlistMain">
-
-          {/* Empty state */}
           {watchlist.length === 0 && <EmptyState2 />}
 
-          {/* No search results */}
           {watchlist.length > 0 && displayed.length === 0 && search && (
             <div className={styles.noResults} role="status">
               No shows matched "<strong>{search}</strong>"
             </div>
           )}
 
-          {/* Movie grid */}
           {displayed.length > 0 && (
             <div className={styles.grid} role="list" aria-label="Watchlist shows">
               {displayed.map((show, index) => (

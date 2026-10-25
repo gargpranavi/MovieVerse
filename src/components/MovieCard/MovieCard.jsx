@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useWatchlist } from '../../context/index.js'
 import { useToast } from '../common/Toast/index.js'
+import { isWatched, toggleWatched } from '../../utils/watched.js'
 import { isLiked, toggleLike } from '../../utils/likes.js'
 import styles from './MovieCard.module.css'
 
@@ -30,12 +31,27 @@ function CheckIcon() {
   )
 }
 
+function EyeIcon({ width = 16, height = 16, filled = false }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
 function HeartIcon({ filled }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24"
-         fill={filled ? '#ef4444' : 'none'}
-         stroke={filled ? '#ef4444' : 'currentColor'}
-         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill={filled ? '#ef4444' : 'none'}
+      stroke={filled ? '#ef4444' : 'currentColor'}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   )
@@ -53,45 +69,84 @@ export default function MovieCard({ movie, rank }) {
   const navigate = useNavigate()
   const { isInWatchlist, toggleWatchlist } = useWatchlist()
   const { success, info } = useToast()
+
+  const [isWatchedMovie, setIsWatchedMovie] = useState(false)
   const [liked, setLiked] = useState(false)
   const [likeAnimate, setLikeAnimate] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   const inWatchlist = isInWatchlist(movie.id)
 
   useEffect(() => {
+    setIsWatchedMovie(isWatched(movie.id))
     setLiked(isLiked(movie.id))
 
-    const handleLikesUpdate = () => setLiked(isLiked(movie.id))
+    const handleWatchedUpdate = () => {
+      setIsWatchedMovie(isWatched(movie.id))
+    }
+
+    const handleLikesUpdate = () => {
+      setLiked(isLiked(movie.id))
+    }
+
+    window.addEventListener('watchedUpdated', handleWatchedUpdate)
     window.addEventListener('likesUpdated', handleLikesUpdate)
+
     return () => {
+      window.removeEventListener('watchedUpdated', handleWatchedUpdate)
       window.removeEventListener('likesUpdated', handleLikesUpdate)
     }
   }, [movie.id])
 
-  // Use dummy image if movie.image is not provided in mock data
-  const imageUrl = movie.image || `https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80&auto=format&fit=crop`
-  
+  // Poster image: prefer the movie's own image; fall back to a neutral placeholder.
+  const FALLBACK_IMG =
+    'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&q=70&auto=format&fit=crop'
+
+  const imageUrl = !imgError && movie.image ? movie.image : FALLBACK_IMG
+
+  const handleImgError = () => setImgError(true)
+
   const handleCardClick = () => {
-    navigate(`/movie/${movie.id}`)
+    if (movie.source === 'tmdb' && movie.mediaType === 'tv') {
+      navigate(`/movie/${movie.id}?type=tv`)
+    } else {
+      navigate(`/movie/${movie.id}`)
+    }
   }
 
   const handleWatchlistToggle = (e) => {
     e.stopPropagation()
+
     const wasInWatchlist = isInWatchlist(movie.id)
+
     toggleWatchlist(movie)
+
     if (wasInWatchlist) {
-      info(`Removed '${movie.title}' from your Watchlist`, { duration: 2800 })
+      info(`Removed '${movie.title}' from your Watchlist`, {
+        duration: 2800,
+      })
     } else {
-      success(`Added '${movie.title}' to your Watchlist ✨`, { duration: 3000 })
+      success(`Added '${movie.title}' to your Watchlist ✨`, {
+        duration: 3000,
+      })
     }
+  }
+
+  const handleWatchedToggle = (e) => {
+    e.stopPropagation()
+    toggleWatched(movie)
   }
 
   const handleLikeToggle = (e) => {
     e.stopPropagation()
+
     const wasLiked = liked
+
     toggleLike(movie)
+
     setLikeAnimate(true)
     setTimeout(() => setLikeAnimate(false), 400)
+
     if (wasLiked) {
       info(`Unliked '${movie.title}'`, { duration: 2200 })
     } else {
@@ -103,46 +158,115 @@ export default function MovieCard({ movie, rank }) {
     <div className={styles.cardContainer} onClick={handleCardClick}>
       <div className={styles.cardImageWrapper}>
         {rank && <span className={styles.rank}>{rank}</span>}
-        <img src={imageUrl} alt={movie.title} className={styles.cardImage} />
-        
+
+        {/* Live Watched indicator */}
+        {isWatchedMovie && (
+          <div className={styles.watchedCardBadge} title="Watched">
+            <EyeIcon width={12} height={12} filled={true} />
+            <span>Watched</span>
+          </div>
+        )}
+
+        <img
+          src={imageUrl}
+          alt={movie.title}
+          className={styles.cardImage}
+          loading={rank === 1 ? 'eager' : 'lazy'}
+          decoding="async"
+          width="300"
+          height="450"
+          onError={handleImgError}
+        />
+
         {/* Slide & Glow Overlay */}
         <div className={styles.cardOverlay}>
           <h3 className={styles.cardTitle}>{movie.title}</h3>
-          
+
           <div className={styles.metaInfo}>
             <span className={styles.match}>98% Match</span>
-            <span className={styles.ageBadge}>{movie.ageRating || 'U/A 16+'}</span>
+            <span className={styles.ageBadge}>
+              {movie.ageRating || 'U/A 16+'}
+            </span>
             <span>{movie.duration || '2h 14m'}</span>
           </div>
-          
+
           <div className={styles.genres}>
-            {(movie.genres || ['Action', 'Thriller', 'Sci-Fi']).map((genre, i) => (
-              <span key={i}>
-                {genre}
-                {i < (movie.genres || ['Action', 'Thriller', 'Sci-Fi']).length - 1 && <span className={styles.dot}>•</span>}
-              </span>
-            ))}
+            {(movie.genres || ['Action', 'Thriller', 'Sci-Fi']).map(
+              (genre, i) => (
+                <span key={i}>
+                  {genre}
+                  {i <
+                    (movie.genres || ['Action', 'Thriller', 'Sci-Fi']).length -
+                      1 && <span className={styles.dot}>•</span>}
+                </span>
+              )
+            )}
           </div>
 
           <div className={styles.controls}>
-            <button className={styles.playBtn} onClick={(e) => { e.stopPropagation(); handleCardClick(); }}><PlayIcon /></button>
-            <button 
-              className={styles.circleBtn} 
+            <button
+              className={styles.playBtn}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleCardClick()
+              }}
+              aria-label="Play"
+            >
+              <PlayIcon />
+            </button>
+
+            <button
+              className={styles.circleBtn}
               onClick={handleWatchlistToggle}
-              title={inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
-              aria-label={inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+              title={
+                inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'
+              }
+              aria-label={
+                inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'
+              }
             >
               {inWatchlist ? <CheckIcon /> : <PlusIcon />}
             </button>
+
             <button
-              className={`${styles.circleBtn} ${liked ? styles.circleBtnLiked : ''} ${likeAnimate ? styles.likeAnimate : ''}`}
+              className={`${styles.circleBtn} ${
+                isWatchedMovie ? styles.circleBtnWatched : ''
+              }`}
+              onClick={handleWatchedToggle}
+              title={
+                isWatchedMovie
+                  ? 'Marked as Watched (Click to remove)'
+                  : 'Mark as Watched'
+              }
+              aria-label={
+                isWatchedMovie ? 'Marked as Watched' : 'Mark as Watched'
+              }
+            >
+              <EyeIcon width={16} height={16} filled={isWatchedMovie} />
+            </button>
+
+            <button
+              className={`${styles.circleBtn} ${
+                liked ? styles.circleBtnLiked : ''
+              } ${likeAnimate ? styles.likeAnimate : ''}`}
               onClick={handleLikeToggle}
               title={liked ? 'Unlike' : 'Like'}
               aria-label={liked ? 'Unlike this movie' : 'Like this movie'}
             >
               <HeartIcon filled={liked} />
             </button>
-            <button className={styles.circleBtn} style={{ marginLeft: 'auto' }} onClick={(e) => { e.stopPropagation(); handleCardClick(); }}><ChevronDownIcon /></button>
+
+            <button
+              className={styles.circleBtn}
+              style={{ marginLeft: 'auto' }}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleCardClick()
+              }}
+              aria-label="More info"
+            >
+              <ChevronDownIcon />
+            </button>
           </div>
         </div>
       </div>

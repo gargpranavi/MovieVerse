@@ -18,10 +18,12 @@ This document summarizes the contributions and feature ownership across the 3-me
 ---
 
 ## 👤 Member 2 (My Work)
-**Branch/Focus:** `feature/user-watchlist` & Anime Integration
-**Core Responsibilities:** User Features, Data Persistence, and the Anime Hub
+**Branch/Focus:** `feature/user-watchlist` & Anime Integration & TMDB Infinite Scroll
+**Core Responsibilities:** User Features, Data Persistence, Anime Hub, TMDB API & Infinite Scrolling
 
-*   **User Pages:** Developed the `LoginPage`, `ProfilePage`, `WatchlistPage`, and `WatchedPage`.
+*   **TMDB API Service (Day 1):** Built `tmdbApi.js` — a full REST API service with response normalisation, sessionStorage caching (5-min TTL), 3-layer error handling, and automatic local-data fallback.
+*   **Auth System (Day 2):** Built a production-quality auth layer using Supabase — cinematic `LoginPage` with email/password, Google OAuth, forgot-password flow; `useAuth` hook; `AuthContext` provider; `ProtectedRoute` guard; `ProfilePage` reads live Supabase user data.
+*   **Infinite Scroll Movies (Day 3):** Replaced the static Movies page with a live TMDB infinite-scroll grid. Uses `IntersectionObserver` with a sentinel element, a 3-layer duplicate-prevention system (`loadingRef` + `fetchedPages` Set + `seenIds` Set), `AbortController` request cancellation, shimmer skeleton loaders, category tabs (Popular / Top Rated / Now Playing / Upcoming), per-page error + Retry, and an end-of-results indicator.
 *   **Anime Ecosystem:** Built the complete `/anime` and `/anime/:id` experience (`AnimePage`, `AnimeDetailsPage`), ensuring it matches the premium aesthetic of the main app.
 *   **Anime Data & Fallback:** Created `animeData.js` (a robust local dataset) and `animeApi.js` to ensure the Anime section works flawlessly even without an API connection.
 *   **State & Persistence:** Built the utility functions (`utils/watchlist.js`, `utils/watched.js`, `utils/likes.js`, `utils/reviews.js`) that use `localStorage` and custom window events to sync user interactions across the app in real-time.

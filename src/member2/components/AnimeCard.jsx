@@ -13,10 +13,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useWatchlist } from '../../context/index.js'
 import { useToast } from '../../components/common/Toast/index.js'
+import { isWatched, toggleWatched } from '../../utils/watched.js'
 import { isLiked, toggleLike } from '../../utils/likes.js'
 import styles from './AnimeCard.module.css'
 
-/*Icons(identical to MovieCard)*/
+/* Icons (identical to MovieCard) */
 function PlayIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -44,6 +45,15 @@ function CheckIcon() {
   )
 }
 
+function EyeIcon({ width = 16, height = 16, filled = false }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
 function HeartIcon({ filled }) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24"
@@ -64,27 +74,34 @@ function ChevronDownIcon() {
   )
 }
 
-/*AnimeCard*/
+/* AnimeCard */
 export default function AnimeCard({ movie, rank }) {
   const navigate = useNavigate()
-
-  //Use movie.id for storage — this is the normalised ID (e.g. 'fb-5114' or '5114')
-  const itemId = movie?.id
-
   const { isInWatchlist, toggleWatchlist } = useWatchlist()
   const { success, info } = useToast()
-  const inWatchlist = isInWatchlist(itemId)
 
-  const [liked,        setLiked]        = useState(false)
-  const [likeAnimate,  setLikeAnimate]  = useState(false)
+  // Use movie.id for storage — this is the normalised ID (e.g. 'fb-5114' or '5114')
+  const itemId = movie?.id
+  const inWatchlist = itemId ? isInWatchlist(itemId) : false
+
+  const [isWatchedAnime, setIsWatchedAnime] = useState(false)
+  const [liked, setLiked] = useState(false)
+  const [likeAnimate, setLikeAnimate] = useState(false)
 
   useEffect(() => {
     if (!itemId) return
+
+    setIsWatchedAnime(isWatched(itemId))
     setLiked(isLiked(itemId))
 
+    const handleWatchedUpdate = () => setIsWatchedAnime(isWatched(itemId))
     const handleLikesUpdate = () => setLiked(isLiked(itemId))
+
+    window.addEventListener('watchedUpdated', handleWatchedUpdate)
     window.addEventListener('likesUpdated', handleLikesUpdate)
+
     return () => {
+      window.removeEventListener('watchedUpdated', handleWatchedUpdate)
       window.removeEventListener('likesUpdated', handleLikesUpdate)
     }
   }, [itemId])
@@ -103,18 +120,19 @@ export default function AnimeCard({ movie, rank }) {
     ? movie.title.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % FALLBACK_IMAGES.length
     : 0
   const FALLBACK_IMAGE = FALLBACK_IMAGES[fallbackIdx]
-
   const imageUrl = movie?.image || FALLBACK_IMAGE
 
   const handleCardClick = () => {
-    // Navigate to anime detail route, not /movie/:id
     navigate(`/anime/${itemId}`)
   }
 
   const handleWatchlistToggle = (e) => {
     e.stopPropagation()
+    if (!itemId || !movie) return
+
     const wasInWatchlist = isInWatchlist(itemId)
     toggleWatchlist(movie)
+
     if (wasInWatchlist) {
       info(`Removed '${movie.title}' from your Watchlist`, { duration: 2800 })
     } else {
@@ -122,12 +140,21 @@ export default function AnimeCard({ movie, rank }) {
     }
   }
 
+  const handleWatchedToggle = (e) => {
+    e.stopPropagation()
+    if (!movie) return
+    toggleWatched(movie)
+  }
+
   const handleLikeToggle = (e) => {
     e.stopPropagation()
+    if (!movie) return
+
     const wasLiked = liked
     toggleLike(movie)
     setLikeAnimate(true)
     setTimeout(() => setLikeAnimate(false), 400)
+
     if (wasLiked) {
       info(`Unliked '${movie.title}'`, { duration: 2200 })
     } else {
@@ -141,6 +168,13 @@ export default function AnimeCard({ movie, rank }) {
     <div className={styles.cardContainer} onClick={handleCardClick}>
       <div className={styles.cardImageWrapper}>
         {rank && <span className={styles.rank}>{rank}</span>}
+
+        {isWatchedAnime && (
+          <div className={styles.watchedCardBadge} title="Watched">
+            <EyeIcon width={12} height={12} filled={true} />
+            <span>Watched</span>
+          </div>
+        )}
 
         <img
           src={imageUrl}
@@ -165,7 +199,7 @@ export default function AnimeCard({ movie, rank }) {
               <span>{movie.episodes} eps</span>
             )}
           </div>
-          
+
           <div className={styles.genres}>
             {(movie.genres || []).slice(0, 3).map((genre, i, arr) => (
               <span key={i}>
@@ -191,6 +225,15 @@ export default function AnimeCard({ movie, rank }) {
               aria-label={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
             >
               {inWatchlist ? <CheckIcon /> : <PlusIcon />}
+            </button>
+
+            <button
+              className={`${styles.circleBtn} ${isWatchedAnime ? styles.circleBtnWatched : ''}`}
+              onClick={handleWatchedToggle}
+              title={isWatchedAnime ? 'Marked as Watched (Click to remove)' : 'Mark as Watched'}
+              aria-label={isWatchedAnime ? 'Marked as Watched' : 'Mark as Watched'}
+            >
+              <EyeIcon width={16} height={16} filled={isWatchedAnime} />
             </button>
 
             <button
