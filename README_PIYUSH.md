@@ -19,7 +19,7 @@ Here's everything I'll build across 5 days:
 | Day 2 | Auth UI + localStorage Email/Password Auth (Supabase removed — no external deps) | ✅ Done |
 | Day 3 | Shimmer Skeleton Loaders + Infinite Scroll on Movies Page | ✅ Done |
 | Day 4 | Shared Infinite-Scroll Hook + Infinite Scroll on TV Series Page | ✅ Done |
-| Day 5 | Image CDN Optimization + Lazy Loading + Final Polish | 🔜 Upcoming |
+| Day 5 | TMDB Home Page + Drag Carousels + Full Watchlist & Watched Connection | ✅ Done |
 
 ---
 
@@ -768,7 +768,99 @@ Supabase was removed as an external dependency. Authentication is now handled en
 
 ---
 
-### 📁 Complete Files Summary — Day 1 + Day 2 + Day 3 + Day 4
+---
+
+## ✅ Day 5 — TMDB Home Page Integration, Draggable Carousels & Full Watchlist/Watched Connection
+
+### What Was Built on Day 5
+
+Day 5 brought everything together into a unified, interactive streaming experience:
+1. **Full Home Page TMDB Integration**: Connected the home page to real TMDB data — hero banner, 4 live carousels, and an infinite-scroll "Discover Movies" feed.
+2. **Netflix-style Draggable Carousels**: Added smooth click-and-drag horizontal scrolling to all movie carousels with drag threshold protection.
+3. **Seamless Watchlist & Watched Connection**: Unified localStorage data structures and custom event broadcasting so Watchlist and Watched work synchronously across every card, page, modal, and navbar link in the application.
+
+---
+
+### 1. Home Page Live TMDB Integration
+
+The home page now streams live TMDB movies and shows, while gracefully falling back to local `shows.js` if the network is disconnected:
+
+- **Hero Banner**: Displays the #1 trending title from TMDB with live backdrop imagery, genre tags, and metadata.
+- **4 Live Carousels**:
+  - 📈 **Trending This Week** (`fetchTrending`)
+  - ⭐ **Top Rated Movies** (`fetchTopRatedMovies`)
+  - 🎬 **Now Playing** (`fetchNowPlayingMovies`)
+  - 📺 **Popular TV Series** (`fetchPopularTvShows`)
+- **Discover Movies Infinite Scroll**: Located below the carousels, dynamically loads additional pages of trending movies as the user scrolls downwards.
+- **Offline / Fallback Resilience**: If TMDB is offline or the API key is unavailable, a discreet status indicator appears and local data is shown seamlessly.
+
+---
+
+### 2. Netflix-Style Mouse-Draggable Carousels (`MovieCarousel.jsx`)
+
+Added full click-and-drag horizontal scrolling to `MovieCarousel.jsx` and `MovieCarousel.module.css`:
+- **Mouse Drag Support**: Uses `onMouseDown`, `mousemove`, and `mouseup` to track drag distances and smoothly scroll the row.
+- **Drag Threshold Protection**: A 5px drag threshold prevents accidental card click/navigation when users are dragging.
+- **Visual Feedback**: Hovering displays `cursor: grab`, and dragging displays `cursor: grabbing`.
+- **Three Ways to Scroll**:
+  1. Click and drag with mouse
+  2. Hover chevron buttons (left / right)
+  3. Mouse scroll wheel / trackpad gesture
+
+---
+
+### 3. Full Watchlist & Watched Connection Across the Entire Project
+
+Unified the data architecture and event communication for Watchlist and Watched items:
+
+#### Unified Storage Keys:
+- `watchlist` — Array of saved titles (compatible with both local shows and TMDB movies).
+- `movieverse_watched` — Array of watched titles with both ISO date and formatted date strings (with legacy `watched` sync).
+
+#### Event-Driven Real-Time Synchronization:
+- Dispatches `watchlistUpdated` whenever a title is added or removed.
+- Dispatches `watchedUpdated` whenever a title is marked as watched or moved back.
+- All components subscribe to these events and update their state immediately without page refreshes.
+
+#### Components & Pages Connected:
+
+| Component / Page | Integration Details |
+|------------------|---------------------|
+| **`MovieCard.jsx`** | Added Watchlist toggle (`+` / `✓`), Watched toggle (Eye button), and a stylish `✓ Watched` ribbon badge on card corner. |
+| **`AnimeCard.jsx`** | Added Watchlist toggle, Watched toggle, and live Watched ribbon badge. |
+| **`TopNavbar.jsx`** | Live numeric pill badges on **Watchlist** and **Watched** navigation items + item counters in the Profile dropdown menu. |
+| **`HomePage.jsx`** | Hero banner has an instant "Watchlist" / "In Watchlist" toggle button; `/watchlist` and `/watched` routes preserve all saved TMDB items. |
+| **`MovieInfoModal.jsx`** | Hero "More Info" modal features interactive "In Watchlist" and "Mark Watched" buttons with live state feedback. |
+| **`MovieDetailsPage.jsx`** | Fixed async TMDB title initialization and added live listeners for real-time Watchlist and Watched status. |
+| **`WatchlistPage2.jsx`** | Clicking "Mark as Watched" moves the item directly into the Watched list and broadcasts real-time sync. |
+| **`WatchedPage2.jsx`** | Clicking "Move back to Watchlist" returns the item to Watchlist; enriched with user star ratings. |
+| **`ProfilePage.jsx`** | Subscribes to real-time events for live stats; renders full TMDB poster images for recently watched items with clickable navigation. |
+
+---
+
+### ✅ Test Results (Day 5)
+
+| Test | Result |
+|------|--------|
+| Production build (`vite build`) | ✅ Exit 0, 89 modules, 951ms |
+| Home page TMDB Hero + 4 Live Carousels | ✅ |
+| Carousels drag-to-scroll (grab / grabbing) | ✅ |
+| Home page Discover Movies infinite scroll | ✅ |
+| Card Watchlist toggle (+ / ✓) on all pages | ✅ |
+| Card Watched toggle (Eye button + ✓ Watched ribbon) | ✅ |
+| TopNavbar live count badges (Watchlist & Watched) | ✅ |
+| TopNavbar Profile dropdown live counters | ✅ |
+| Hero banner Watchlist toggle | ✅ |
+| MovieInfoModal Watchlist & Watched buttons | ✅ |
+| WatchlistPage2 mark watched move to WatchedPage2 | ✅ |
+| WatchedPage2 move back to WatchlistPage2 | ✅ |
+| ProfilePage live counters & TMDB poster rendering | ✅ |
+| MovieDetailsPage live Watchlist & Watched sync | ✅ |
+| Full offline fallback when network is disconnected | ✅ |
+
+---
+
+### 📁 Complete Files Summary — Day 1 to Day 5
 
 | File | Type | Day |
 |------|------|-----|
@@ -782,16 +874,30 @@ Supabase was removed as an external dependency. Authentication is now handled en
 | `src/pages/TvSeries/TvSeriesPage.module.css` | ✅ New | Day 4 |
 | `src/member2/components/MovieSkeletonCard.jsx` | ✅ New | Day 4 |
 | `src/member2/components/MovieSkeletonCard.module.css` | ✅ New | Day 4 |
-| `src/member2/pages/ProfilePage.jsx` | ✏️ Modified | Day 2, 4 |
+| `src/utils/watchlist.js` | ✏️ Standardized & Unified | Day 5 |
+| `src/utils/watched.js` | ✏️ Standardized & Unified | Day 5 |
+| `src/components/MovieCarousel/MovieCarousel.jsx` | ✏️ Drag Scroll Added | Day 5 |
+| `src/components/MovieCarousel/MovieCarousel.module.css` | ✏️ Grab Cursor Styles | Day 5 |
+| `src/components/MovieCard/MovieCard.jsx` | ✏️ Watched Button & Ribbon Added | Day 4, 5 |
+| `src/components/MovieCard/MovieCard.module.css` | ✏️ Watched Styling Added | Day 5 |
+| `src/member2/components/AnimeCard.jsx` | ✏️ Watched Button & Ribbon Added | Day 5 |
+| `src/member2/components/AnimeCard.module.css` | ✏️ Watched Styling Added | Day 5 |
+| `src/components/MovieInfoModal/MovieInfoModal.jsx` | ✏️ Watchlist & Watched Added | Day 5 |
+| `src/components/MovieInfoModal/MovieInfoModal.module.css` | ✏️ Button Styles Added | Day 5 |
+| `src/components/layout/TopNavbar.jsx` | ✏️ Badges & Dropdown Counters | Day 2, 4, 5 |
+| `src/components/layout/TopNavbar.module.css` | ✏️ Badge Styling Added | Day 5 |
+| `src/pages/Home/HomePage.jsx` | ✏️ TMDB Hero, Carousels & Infinite Feed | Day 5 |
+| `src/pages/Home/HomePage.module.css` | ✏️ Discover Feed Styles | Day 5 |
+| `src/member2/pages/WatchlistPage2.jsx` | ✏️ Real-time Sync & Move to Watched | Day 5 |
+| `src/member2/pages/WatchedPage2.jsx` | ✏️ Real-time Sync & Move to Watchlist | Day 5 |
+| `src/member2/components/WatchlistCard2.jsx` | ✏️ TMDB Poster Support & TV Route | Day 4, 5 |
+| `src/member2/pages/ProfilePage.jsx` | ✏️ Real-time Sync & TMDB Posters | Day 2, 4, 5 |
+| `src/pages/MovieDetails/MovieDetailsPage.jsx` | ✏️ Async TMDB Sync Added | Day 5 |
 | `src/pages/Movies/MoviesPage.jsx` | ✏️ Rewritten → Refined | Day 3, 4 |
 | `src/pages/TvSeries/TvSeriesPage.jsx` | ✏️ Rewritten | Day 4 |
 | `src/App.jsx` | ✏️ Modified | Day 2, 4 |
 | `src/main.jsx` | ✏️ Modified | Day 2, 4 |
-| `src/components/layout/TopNavbar.jsx` | ✏️ Modified | Day 2, 4 |
-| `src/components/MovieCard/MovieCard.jsx` | ✏️ Modified | Day 4 |
-| `src/member2/components/WatchlistCard2.jsx` | ✏️ Modified | Day 4 |
 | `package.json` / `package-lock.json` | ✏️ Modified | Day 4 |
 | `.env.example` | ✏️ Modified | Day 1, 2, 4 |
 | `.env` | ✅ New (local only, not committed) | Day 1 |
 
-**No teammate files were touched across all four days.**
