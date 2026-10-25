@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../../context/index.js'
 import styles from './LoginPage.module.css'
 
 /* Poster data */
@@ -95,7 +96,12 @@ function simulateAuth(identifier, password) {
 
 /* Main Component */
 export default function LoginPage() {
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
+  const location  = useLocation()
+  const { login, savedIdentifier } = useAuth()
+
+  // After login, send user back to the page they tried to reach (or /home)
+  const redirectDestination = location.state?.from?.pathname || '/home'
 
   const [identifier, setIdentifier]     = useState('')
   const [password, setPassword]         = useState('')
@@ -105,23 +111,13 @@ export default function LoginPage() {
   const [message, setMessage]           = useState(null) // { text, type }
   const [invalidFields, setInvalidFields] = useState({})
 
-  /* Load remembered identifier */
+  /* Load remembered identifier from AuthContext */
   useEffect(() => {
-    const saved = localStorage.getItem('movieverse_saved_identifier')
-    if (saved) {
-      setIdentifier(saved)
+    if (savedIdentifier) {
+      setIdentifier(savedIdentifier)
       setRememberMe(true)
     }
-  }, [])
-
-  /* Sync remember-me to localStorage */
-  useEffect(() => {
-    if (rememberMe && identifier.trim()) {
-      localStorage.setItem('movieverse_saved_identifier', identifier.trim())
-    } else if (!rememberMe) {
-      localStorage.removeItem('movieverse_saved_identifier')
-    }
-  }, [rememberMe, identifier])
+  }, [savedIdentifier])
 
   const clearMessage = () => setMessage(null)
 
@@ -145,9 +141,10 @@ export default function LoginPage() {
 
     setLoading(true)
     try {
-      await simulateAuth(identifier, password)
+      const res = await simulateAuth(identifier, password)
+      login(res.user, rememberMe)
       setMessage({ text: 'Welcome back! Redirecting…', type: 'success' })
-      setTimeout(() => navigate('/home'), 1200)
+      setTimeout(() => navigate(redirectDestination, { replace: true }), 1200)
     } catch (err) {
       setMessage({ text: err.message || 'Something went wrong.', type: 'error' })
       setLoading(false)

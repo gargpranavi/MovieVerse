@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
-import { isWatched, addToWatched, removeFromWatched, getWatchedDate } from '../../utils/watched.js'
+import { useWatchlist } from '../../context/index.js'
 import { getUserRating, getUserReview, saveUserRating, saveUserReview } from '../../utils/reviews.js'
 import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
 import MovieCard from '../../components/MovieCard/MovieCard.jsx'
@@ -94,9 +93,12 @@ export default function MovieDetailsPage() {
     }))
 
   // ── User interaction state ────────────────────────────────────────────────
-  const [inWatchlist,  setInWatchlist]  = useState(false)
-  const [watchedState, setWatchedState] = useState(false)
-  const [watchedDate,  setWatchedDate]  = useState(null)
+  const { isInWatchlist, toggleWatchlist, isWatched, addToWatched, removeFromWatched, getWatchedDate } = useWatchlist()
+
+  const inWatchlist  = movie ? isInWatchlist(movie.id) : false
+  const watchedState = movie ? isWatched(movie.id) : false
+  const watchedDate  = movie ? getWatchedDate(movie.id) : null
+
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
 
   // Rating & Review State
@@ -113,9 +115,6 @@ export default function MovieDetailsPage() {
   // Initialise user-state from localStorage when movie id changes
   useEffect(() => {
     if (!movie) return
-    setInWatchlist(isInWatchlist(movie.id))
-    setWatchedState(isWatched(movie.id))
-    setWatchedDate(getWatchedDate(movie.id))
     setUserRating(getUserRating(movie.id))
 
     const review = getUserReview(movie.id)
@@ -127,14 +126,6 @@ export default function MovieDetailsPage() {
       setReviewText('')
     }
   }, [id])
-
-  // Sync watchlist badge in real time
-  useEffect(() => {
-    if (!movie) return
-    const handleUpdate = () => setInWatchlist(isInWatchlist(movie.id))
-    window.addEventListener('watchlistUpdated', handleUpdate)
-    return () => window.removeEventListener('watchlistUpdated', handleUpdate)
-  }, [movie])
 
   // ── Not found ─────────────────────────────────────────────────────────────
   if (!movie) {
@@ -154,14 +145,10 @@ export default function MovieDetailsPage() {
   const handleWatchedToggle = () => {
     if (watchedState) {
       removeFromWatched(movie.id)
-      setWatchedState(false)
-      setWatchedDate(null)
     } else {
       const today   = new Date()
       const dateStr = today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
       addToWatched(movie, dateStr)
-      setWatchedState(true)
-      setWatchedDate(dateStr)
     }
   }
 

@@ -19,39 +19,9 @@ import DashboardLayout   from '../../components/layout/DashboardLayout.jsx'
 import WatchlistCard2    from '../components/WatchlistCard2.jsx'
 import StatusBadge2      from '../components/StatusBadge2.jsx'
 import EmptyState2       from '../components/EmptyState2.jsx'
+import { useWatchlist }  from '../../context/index.js'
+import { useToast }      from '../../components/common/Toast/index.js'
 import styles            from './WatchedPage2.module.css'
-
-/* localStorage keys */
-const LS_WATCHED   = 'movieverse_watched'
-const LS_WATCHLIST = 'watchlist'
-
-/* localStorage helpers
-   ══════════════════════════════════════════════ */
-function loadWatched() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_WATCHED) || '[]')
-  } catch {
-    return []
-  }
-}
-
-function saveWatched(list) {
-  try {
-    localStorage.setItem(LS_WATCHED, JSON.stringify(list))
-  } catch { /* ignore quota errors */ }
-}
-
-function loadWatchlist() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_WATCHLIST) || '[]')
-  } catch { return [] }
-}
-
-function saveWatchlist(list) {
-  try {
-    localStorage.setItem(LS_WATCHLIST, JSON.stringify(list))
-  } catch { /* ignore */ }
-}
 
 function loadRatings() {
   try {
@@ -93,68 +63,36 @@ function UndoIcon() {
   )
 }
 
-/* Toast Component */
-function Toast({ message, visible }) {
-  return (
-    <div className={`${styles.toast} ${visible ? styles.toastVisible : ''}`}
-         role="status" aria-live="polite">
-      {message}
-    </div>
-  )
-}
+
 
 /* Main WatchedPage2 Component */
 export default function WatchedPage2() {
+  const { watchedHistory, removeFromWatched, moveBackToWatchlist } = useWatchlist()
+  const { success, info, warning } = useToast()
 
-  /* State*/
-  const [watched,    setWatched]    = useState([])
-  const [search,     setSearch]     = useState('')
-  const [sortBy,     setSortBy]     = useState('date')   // date | rating | title
-  const [toast,      setToast]      = useState({ message: '', visible: false })
-
-  /* On mount: load watched list from localStorage*/
-  useEffect(() => {
-    // Enrich each watched item with its stored user rating
-    const ratings = loadRatings()
-    const list = loadWatched().map(show => {
-      const entry = ratings.find(r => r.movieId === String(show.id))
-      return entry ? { ...show, userRating: entry.rating } : show
-    })
-    setWatched(list)
-  }, [])
-
-  /* Toast helper*/
-  function showToast(msg) {
-    setToast({ message: msg, visible: true })
-    setTimeout(() => setToast(t => ({ ...t, visible: false })), 2800)
-  }
+  /* Local UI State */
+  const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState('date')   // date | rating | title
 
   /* Remove from watched list*/
   function handleRemove(id) {
-    setWatched(prev => {
-      const updated = prev.filter(s => s.id !== id)
-      saveWatched(updated)
-      return updated
-    })
-    showToast('Removed from Watched')
+    const show = watchedHistory.find(s => String(s.id) === String(id))
+    removeFromWatched(id)
+    warning(`Removed '${show?.name || show?.title || 'show'}' from Watched`, { duration: 2800 })
   }
 
   /* Move back to Watchlist */
   function handleMoveBack(show) {
-    // Remove from watched
-    setWatched(prev => {
-      const updated = prev.filter(s => s.id !== show.id)
-      saveWatched(updated)
-      return updated
-    })
-    // Add back to watchlist (deduplicated)
-    const wl = loadWatchlist()
-    if (!wl.some(s => s.id === show.id)) {
-      const { watchedDate: _wd, userRating: _ur, ...cleanShow } = show
-      saveWatchlist([...wl, cleanShow])
-    }
-    showToast('↩ Moved back to Watchlist')
+    moveBackToWatchlist(show)
+    success(`↩ Moved '${show?.name || show?.title}' back to Watchlist`, { duration: 3200 })
   }
+
+  // Enrich each watched item with stored user rating
+  const ratings = loadRatings()
+  const watched = watchedHistory.map(show => {
+    const entry = ratings.find(r => r.movieId === String(show.id))
+    return entry ? { ...show, userRating: entry.rating } : show
+  })
 
   /* Filtered + sorted watched list */
   const displayed = watched
@@ -306,8 +244,6 @@ export default function WatchedPage2() {
           )}
         </main>
 
-        {/* Toast */}
-        <Toast message={toast.message} visible={toast.visible} />
       </div>
     </DashboardLayout>
   )

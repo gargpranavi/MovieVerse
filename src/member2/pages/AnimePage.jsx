@@ -20,7 +20,7 @@ import {
   fallbackFantasy,
   fallbackComedy,
 } from '../data/animeData.js'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
+import { useWatchlist } from '../../context/index.js'
 import styles from './AnimePage.module.css'
 
 /*Icons*/
@@ -84,17 +84,10 @@ const comedyList  = fallbackComedy.slice(0, 10)
 */
 export default function AnimePage() {
   const navigate = useNavigate()
+  const { isInWatchlist, toggleWatchlist } = useWatchlist()
 
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
-  const [inWatchlist,  setInWatchlist]  = useState(false)
-
-  // Sync watchlist button state
-  useEffect(() => {
-    setInWatchlist(isInWatchlist(featured.id))
-    const handle = () => setInWatchlist(isInWatchlist(featured.id))
-    window.addEventListener('watchlistUpdated', handle)
-    return () => window.removeEventListener('watchlistUpdated', handle)
-  }, [])
+  const inWatchlist = isInWatchlist(featured.id)
 
   const handleWatchlistToggle = () => toggleWatchlist(featured)
   const handleMoreInfo        = () => navigate(`/anime/${featured.id}`)

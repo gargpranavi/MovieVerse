@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
+import { useWatchlist } from '../../context/index.js'
+import { useToast } from '../common/Toast/index.js'
 import { isLiked, toggleLike } from '../../utils/likes.js'
 import styles from './MovieCard.module.css'
 
@@ -50,21 +51,19 @@ function ChevronDownIcon() {
 
 export default function MovieCard({ movie, rank }) {
   const navigate = useNavigate()
-  const [inWatchlist, setInWatchlist] = useState(false)
+  const { isInWatchlist, toggleWatchlist } = useWatchlist()
+  const { success, info } = useToast()
   const [liked, setLiked] = useState(false)
   const [likeAnimate, setLikeAnimate] = useState(false)
 
+  const inWatchlist = isInWatchlist(movie.id)
+
   useEffect(() => {
-    setInWatchlist(isInWatchlist(movie.id))
     setLiked(isLiked(movie.id))
 
-    const handleWatchlistUpdate = () => setInWatchlist(isInWatchlist(movie.id))
     const handleLikesUpdate = () => setLiked(isLiked(movie.id))
-
-    window.addEventListener('watchlistUpdated', handleWatchlistUpdate)
     window.addEventListener('likesUpdated', handleLikesUpdate)
     return () => {
-      window.removeEventListener('watchlistUpdated', handleWatchlistUpdate)
       window.removeEventListener('likesUpdated', handleLikesUpdate)
     }
   }, [movie.id])
@@ -78,15 +77,26 @@ export default function MovieCard({ movie, rank }) {
 
   const handleWatchlistToggle = (e) => {
     e.stopPropagation()
+    const wasInWatchlist = isInWatchlist(movie.id)
     toggleWatchlist(movie)
+    if (wasInWatchlist) {
+      info(`Removed '${movie.title}' from your Watchlist`, { duration: 2800 })
+    } else {
+      success(`Added '${movie.title}' to your Watchlist ✨`, { duration: 3000 })
+    }
   }
 
   const handleLikeToggle = (e) => {
     e.stopPropagation()
+    const wasLiked = liked
     toggleLike(movie)
-    // trigger pop animation
     setLikeAnimate(true)
     setTimeout(() => setLikeAnimate(false), 400)
+    if (wasLiked) {
+      info(`Unliked '${movie.title}'`, { duration: 2200 })
+    } else {
+      success(`❤️ Liked '${movie.title}'!`, { duration: 2500 })
+    }
   }
 
   return (

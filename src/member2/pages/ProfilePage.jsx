@@ -21,6 +21,7 @@ import { Link }                from 'react-router-dom'
 import DashboardLayout         from '../../components/layout/DashboardLayout.jsx'
 import ProfileCard             from '../components/ProfileCard.jsx'
 import { mockUsers }           from '../data/users2.js'
+import { useWatchlist, useAuth } from '../../context/index.js'
 import styles                  from './ProfilePage.module.css'
 
 /* localStorage keys */
@@ -144,24 +145,22 @@ function ReviewRow({ review, title }) {
 
 /* Main ProfilePage Component */
 export default function ProfilePage() {
+  const { watchlist, watchedHistory: watched } = useWatchlist()
+  const { user: authUser } = useAuth()
 
   /* State */
-  const [watchlist,    setWatchlist]    = useState([])
-  const [watched,      setWatched]      = useState([])
   const [reviews,      setReviews]      = useState([])
   const [ratings,      setRatings]      = useState([])
 
-  /* Load all data from localStorage */
+  /* Load reviews & ratings data */
   useEffect(() => {
     function refresh() {
-      setWatchlist(loadLS(LS_WATCHLIST))
-      setWatched  (loadLS(LS_WATCHED))
       setReviews  (loadLS(LS_REVIEWS))
       setRatings  (loadLS(LS_RATINGS))
     }
     refresh()
 
-    /* Re-sync if other pages update data */
+    /* Re-sync if other pages update reviews/ratings */
     window.addEventListener('reviewsUpdated', refresh)
     window.addEventListener('ratingsUpdated', refresh)
     window.addEventListener('storage',        refresh)
@@ -174,7 +173,7 @@ export default function ProfilePage() {
   }, [])
 
   /* Derived values */
-  const user       = mockUsers[0]
+  const user       = authUser || mockUsers[0]
   const avgRating  = computeAvgRating(ratings)
 
   /* Most recent 6 watched shows */

@@ -314,8 +314,32 @@
 }
 
 .searchResultMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.searchResultBadge {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.badgeMovie {
+  background: rgba(212, 160, 23, 0.2);
+  color: #D4A017;
+  border: 1px solid rgba(212, 160, 23, 0.4);
+}
+
+.badgeAnime {
+  background: rgba(147, 51, 234, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(147, 51, 234, 0.4);
 }
 
 .searchNoResults {

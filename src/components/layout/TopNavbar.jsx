@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { shows } from '../../data/index.js'
 import { fallbackAnime } from '../../member2/data/animeData.js'
+import { searchAnime } from '../../member2/services/animeApi.js'
+import { useAuth } from '../../context/index.js'
+import { useDebounce } from '../../hooks/useDebounce.js'
 import styles from './TopNavbar.module.css'
 
 const NAV_ITEMS = [
@@ -66,6 +69,9 @@ function FilmReelIcon() {
 }
 
 export default function TopNavbar() {
+  const navigate = useNavigate()
+  const { user: authUser, logout } = useAuth()
+
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -74,6 +80,13 @@ export default function TopNavbar() {
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+
+  // Debounce the user's search input with a 300ms window
+  const debouncedSearchTerm = useDebounce(searchQuery, 300)
+
+  const currentUserName = authUser?.displayName || authUser?.username || 'Piyush'
+  const currentUserEmail = authUser?.email || 'piyush@movieverse.com'
+  const currentUserAvatar = authUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'
 
   const inputRef = useRef(null)
 
@@ -94,52 +107,99 @@ export default function TopNavbar() {
     }
   }, [searchOpen])
 
+  /* Debounced Multi-Database Search (TMDB / Local Shows & Anime) */
   useEffect(() => {
-    const q = searchQuery.trim().toLowerCase()
+    const q = debouncedSearchTerm.trim().toLowerCase()
     if (!q) {
       setSearchResults([])
       setIsSearching(false)
       return
     }
+
+    let isCancelled = false
     setIsSearching(true)
-    // Local instant search — no network needed
-    const matchedShows = shows
-      .filter(s =>
-        s.title.toLowerCase().includes(q) ||
-        s.genres.some(g => g.toLowerCase().includes(q)) ||
-        s.year.includes(q) ||
-        (s.language || '').toLowerCase().includes(q)
-      )
-      .map(s => ({
-        id:     s.id,
-        title:  s.title,
-        year:   s.year,
-        rating: s.rating || null,
-        image:  s.image || null,
-        type:   'movie'
-      }))
 
-    const matchedAnime = fallbackAnime
-      .filter(a => 
-        a.title.toLowerCase().includes(q) ||
-        (a.titleJP && a.titleJP.toLowerCase().includes(q)) ||
-        (a.genres && a.genres.some(g => g.toLowerCase().includes(q))) ||
-        (a.year && a.year.toString().includes(q))
-      )
-      .map(a => ({
-        id:     a.id,
-        title:  a.title,
-        year:   a.year,
-        rating: a.rating || null,
-        image:  a.image || null,
-        type:   'anime'
-      }))
+    async function executeSearch() {
+      try {
+        // 1. Query Local TMDB / Shows Database (Zero latency)
+        const matchedShows = shows
+          .filter(s =>
+            (s.title || '').toLowerCase().includes(q) ||
+            (s.genres && s.genres.some(g => g.toLowerCase().includes(q))) ||
+            (s.year && String(s.year).includes(q)) ||
+            (s.language || '').toLowerCase().includes(q)
+          )
+          .map(s => ({
+            id:     s.id,
+            title:  s.title,
+            year:   s.year,
+            rating: s.rating || null,
+            image:  s.image || null,
+            type:   'movie'
+          }))
 
-    const combined = [...matchedShows, ...matchedAnime].slice(0, 8)
-    
-    setSearchResults(combined)
-    setIsSearching(false)
-  }, [searchQuery])
+        // 2. Query Local Anime Dataset first
+        const matchedLocalAnime = fallbackAnime
+          .filter(a =>
+            (a.title || '').toLowerCase().includes(q) ||
+            (a.titleJP && a.titleJP.toLowerCase().includes(q)) ||
+            (a.genres && a.genres.some(g => g.toLowerCase().includes(q))) ||
+            (a.year && String(a.year).includes(q))
+          )
+          .map(a => ({
+            id:     a.id,
+            title:  a.title,
+            year:   a.year,
+            rating: a.rating || null,
+            image:  a.image || null,
+            type:   'anime'
+          }))
+
+        // Combined immediate local results
+        let combined = [...matchedShows, ...matchedLocalAnime]
+
+        // 3. If local anime results are sparse, query Jikan Anime API seamlessly
+        if (matchedLocalAnime.length < 3) {
+          try {
+            const remoteAnime = await searchAnime(q, 4)
+            if (!isCancelled && remoteAnime?.length > 0) {
+              const existingIds = new Set(combined.map(item => String(item.id)))
+              remoteAnime.forEach(item => {
+                if (!existingIds.has(String(item.id))) {
+                  combined.push({
+                    id: item.id,
+                    title: item.title,
+                    year: item.year,
+                    rating: item.rating || null,
+                    image: item.image || null,
+                    type: 'anime',
+                  })
+                }
+              })
+            }
+          } catch {
+            // Gracefully ignore API errors and keep local results
+          }
+        }
+
+        if (!isCancelled) {
+          setSearchResults(combined.slice(0, 10))
+          setIsSearching(false)
+        }
+      } catch (err) {
+        console.error('Search error:', err)
+        if (!isCancelled) {
+          setIsSearching(false)
+        }
+      }
+    }
+
+    executeSearch()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [debouncedSearchTerm])
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -275,7 +335,11 @@ export default function TopNavbar() {
                     <div className={styles.searchResultInfo}>
                       <span className={styles.searchResultTitle}>{show.title}</span>
                       <span className={styles.searchResultMeta}>
-                        {show.year} {show.rating ? `• ★ ${show.rating}` : ''}
+                        <span className={`${styles.searchResultBadge} ${show.type === 'anime' ? styles.badgeAnime : styles.badgeMovie}`}>
+                          {show.type === 'anime' ? 'Anime' : 'Title'}
+                        </span>
+                        {show.year && <span>{show.year}</span>}
+                        {show.rating ? <span>• ★ {show.rating}</span> : null}
                       </span>
                     </div>
                   </NavLink>
@@ -464,11 +528,11 @@ export default function TopNavbar() {
             type="button"
           >
             <img
-              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"
-              alt="Piyush's avatar"
+              src={currentUserAvatar}
+              alt={`${currentUserName}'s avatar`}
               className={styles.avatar}
             />
-            <span className={styles.profileName}>Piyush</span>
+            <span className={styles.profileName}>{currentUserName}</span>
             <svg
               width="16" height="16" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2.5"
@@ -486,14 +550,14 @@ export default function TopNavbar() {
               {/* Header */}
               <div className={styles.profileDropdownHeader}>
                 <img
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"
-                  alt="Piyush"
+                  src={currentUserAvatar}
+                  alt={currentUserName}
                   className={styles.profileDropdownAvatar}
                 />
                 <div className={styles.profileDropdownInfo}>
-                  <span className={styles.profileDropdownName}>Piyush</span>
-                  <span className={styles.profileDropdownRole}>Movie Explorer</span>
-                  <span className={styles.profileDropdownEmail}>piyush@movieverse.com</span>
+                  <span className={styles.profileDropdownName}>{currentUserName}</span>
+                  <span className={styles.profileDropdownRole}>{authUser?.role || 'Movie Explorer'}</span>
+                  <span className={styles.profileDropdownEmail}>{currentUserEmail}</span>
                 </div>
               </div>
 
@@ -547,6 +611,28 @@ export default function TopNavbar() {
                   </span>
                   Watched Movies
                 </Link>
+
+                <button
+                  type="button"
+                  className={styles.profileMenuItem}
+                  onClick={() => {
+                    logout()
+                    setIsProfileOpen(false)
+                    navigate('/login')
+                  }}
+                  role="menuitem"
+                  id="navbar-logout-btn"
+                  style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', font: 'inherit' }}
+                >
+                  <span className={styles.profileMenuIcon}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                  </span>
+                  Sign Out
+                </button>
               </nav>
 
               <div className={styles.profileDropdownDivider} />
