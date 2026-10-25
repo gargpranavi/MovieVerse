@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
+import { isWatched, toggleWatched } from '../../utils/watched.js'
 import { isLiked, toggleLike } from '../../utils/likes.js'
 import styles from './MovieCard.module.css'
 
@@ -29,6 +30,15 @@ function CheckIcon() {
   )
 }
 
+function EyeIcon({ width = 16, height = 16, filled = false }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
 function HeartIcon({ filled }) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24"
@@ -51,35 +61,37 @@ function ChevronDownIcon() {
 export default function MovieCard({ movie, rank }) {
   const navigate = useNavigate()
   const [inWatchlist, setInWatchlist] = useState(false)
+  const [isWatchedMovie, setIsWatchedMovie] = useState(false)
   const [liked, setLiked] = useState(false)
   const [likeAnimate, setLikeAnimate] = useState(false)
   const [imgError, setImgError] = useState(false)
 
   useEffect(() => {
     setInWatchlist(isInWatchlist(movie.id))
+    setIsWatchedMovie(isWatched(movie.id))
     setLiked(isLiked(movie.id))
 
     const handleWatchlistUpdate = () => setInWatchlist(isInWatchlist(movie.id))
-    const handleLikesUpdate = () => setLiked(isLiked(movie.id))
+    const handleWatchedUpdate   = () => setIsWatchedMovie(isWatched(movie.id))
+    const handleLikesUpdate     = () => setLiked(isLiked(movie.id))
 
     window.addEventListener('watchlistUpdated', handleWatchlistUpdate)
-    window.addEventListener('likesUpdated', handleLikesUpdate)
+    window.addEventListener('watchedUpdated',   handleWatchedUpdate)
+    window.addEventListener('likesUpdated',     handleLikesUpdate)
     return () => {
       window.removeEventListener('watchlistUpdated', handleWatchlistUpdate)
-      window.removeEventListener('likesUpdated', handleLikesUpdate)
+      window.removeEventListener('watchedUpdated',   handleWatchedUpdate)
+      window.removeEventListener('likesUpdated',     handleLikesUpdate)
     }
   }, [movie.id])
 
   // Poster image: prefer the movie's own image; fall back to a neutral placeholder.
-  // imgError flag prevents an infinite onError loop when the fallback itself fails.
   const FALLBACK_IMG = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&q=70&auto=format&fit=crop'
   const imageUrl = (!imgError && movie.image) ? movie.image : FALLBACK_IMG
 
   const handleImgError = () => setImgError(true)
   
   const handleCardClick = () => {
-    // For TMDB items, pass the mediaType so MovieDetailsPage knows which
-    // TMDB endpoint to call (/movie vs /tv).
     if (movie.source === 'tmdb' && movie.mediaType === 'tv') {
       navigate(`/movie/${movie.id}?type=tv`)
     } else {
@@ -92,10 +104,14 @@ export default function MovieCard({ movie, rank }) {
     toggleWatchlist(movie)
   }
 
+  const handleWatchedToggle = (e) => {
+    e.stopPropagation()
+    toggleWatched(movie)
+  }
+
   const handleLikeToggle = (e) => {
     e.stopPropagation()
     toggleLike(movie)
-    // trigger pop animation
     setLikeAnimate(true)
     setTimeout(() => setLikeAnimate(false), 400)
   }
@@ -104,6 +120,15 @@ export default function MovieCard({ movie, rank }) {
     <div className={styles.cardContainer} onClick={handleCardClick}>
       <div className={styles.cardImageWrapper}>
         {rank && <span className={styles.rank}>{rank}</span>}
+
+        {/* Live Watched indicator */}
+        {isWatchedMovie && (
+          <div className={styles.watchedCardBadge} title="Watched">
+            <EyeIcon width={12} height={12} filled={true} />
+            <span>Watched</span>
+          </div>
+        )}
+
         <img
           src={imageUrl}
           alt={movie.title}
@@ -135,7 +160,9 @@ export default function MovieCard({ movie, rank }) {
           </div>
 
           <div className={styles.controls}>
-            <button className={styles.playBtn} onClick={(e) => { e.stopPropagation(); handleCardClick(); }}><PlayIcon /></button>
+            <button className={styles.playBtn} onClick={(e) => { e.stopPropagation(); handleCardClick(); }} aria-label="Play">
+              <PlayIcon />
+            </button>
             <button 
               className={styles.circleBtn} 
               onClick={handleWatchlistToggle}
@@ -143,6 +170,14 @@ export default function MovieCard({ movie, rank }) {
               aria-label={inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
             >
               {inWatchlist ? <CheckIcon /> : <PlusIcon />}
+            </button>
+            <button 
+              className={`${styles.circleBtn} ${isWatchedMovie ? styles.circleBtnWatched : ''}`}
+              onClick={handleWatchedToggle}
+              title={isWatchedMovie ? "Marked as Watched (Click to remove)" : "Mark as Watched"}
+              aria-label={isWatchedMovie ? "Marked as Watched" : "Mark as Watched"}
+            >
+              <EyeIcon width={16} height={16} filled={isWatchedMovie} />
             </button>
             <button
               className={`${styles.circleBtn} ${liked ? styles.circleBtnLiked : ''} ${likeAnimate ? styles.likeAnimate : ''}`}
@@ -152,7 +187,9 @@ export default function MovieCard({ movie, rank }) {
             >
               <HeartIcon filled={liked} />
             </button>
-            <button className={styles.circleBtn} style={{ marginLeft: 'auto' }} onClick={(e) => { e.stopPropagation(); handleCardClick(); }}><ChevronDownIcon /></button>
+            <button className={styles.circleBtn} style={{ marginLeft: 'auto' }} onClick={(e) => { e.stopPropagation(); handleCardClick(); }} aria-label="More info">
+              <ChevronDownIcon />
+            </button>
           </div>
         </div>
       </div>

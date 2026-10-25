@@ -176,7 +176,7 @@ export default function MovieDetailsPage() {
   const [actorDetailsLoading,  setActorDetailsLoading]  = useState(false)
   const [showAllCast,          setShowAllCast]          = useState(false)
 
-  // Initialise user-state from localStorage when movie id changes
+  // Initialise user-state from localStorage when movie loads or changes
   useEffect(() => {
     if (!movie) return
     setInWatchlist(isInWatchlist(movie.id))
@@ -192,14 +192,22 @@ export default function MovieDetailsPage() {
       setSavedReview(null)
       setReviewText('')
     }
-  }, [id])
+  }, [movie, id])
 
-  // Sync watchlist badge in real time
+  // Sync watchlist & watched badges in real time
   useEffect(() => {
     if (!movie) return
-    const handleUpdate = () => setInWatchlist(isInWatchlist(movie.id))
-    window.addEventListener('watchlistUpdated', handleUpdate)
-    return () => window.removeEventListener('watchlistUpdated', handleUpdate)
+    const handleWl = () => setInWatchlist(isInWatchlist(movie.id))
+    const handleWd = () => {
+      setWatchedState(isWatched(movie.id))
+      setWatchedDate(getWatchedDate(movie.id))
+    }
+    window.addEventListener('watchlistUpdated', handleWl)
+    window.addEventListener('watchedUpdated',   handleWd)
+    return () => {
+      window.removeEventListener('watchlistUpdated', handleWl)
+      window.removeEventListener('watchedUpdated',   handleWd)
+    }
   }, [movie])
 
   // ── Loading state (TMDB fetch in progress) ────────────────────────────────

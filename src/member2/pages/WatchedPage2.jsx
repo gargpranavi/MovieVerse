@@ -19,38 +19,8 @@ import DashboardLayout   from '../../components/layout/DashboardLayout.jsx'
 import WatchlistCard2    from '../components/WatchlistCard2.jsx'
 import StatusBadge2      from '../components/StatusBadge2.jsx'
 import styles            from './WatchedPage2.module.css'
-
-/* localStorage keys */
-const LS_WATCHED   = 'movieverse_watched'
-const LS_WATCHLIST = 'watchlist'
-
-/* localStorage helpers
-   ══════════════════════════════════════════════ */
-function loadWatched() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_WATCHED) || '[]')
-  } catch {
-    return []
-  }
-}
-
-function saveWatched(list) {
-  try {
-    localStorage.setItem(LS_WATCHED, JSON.stringify(list))
-  } catch { /* ignore quota errors */ }
-}
-
-function loadWatchlist() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_WATCHLIST) || '[]')
-  } catch { return [] }
-}
-
-function saveWatchlist(list) {
-  try {
-    localStorage.setItem(LS_WATCHLIST, JSON.stringify(list))
-  } catch { /* ignore */ }
-}
+import { getWatched, removeFromWatched } from '../../utils/watched.js'
+import { addToWatchlist } from '../../utils/watchlist.js'
 
 function loadRatings() {
   try {
@@ -100,15 +70,20 @@ export default function WatchedPage2() {
   const [sortBy,     setSortBy]     = useState('date')   // date | rating | title
   const [toast,      setToast]      = useState({ message: '', visible: false })
 
-  /* On mount: load watched list from localStorage*/
+  /* Load and sync watched list */
   useEffect(() => {
-    // Enrich each watched item with its stored user rating
-    const ratings = loadRatings()
-    const list = loadWatched().map(show => {
-      const entry = ratings.find(r => r.movieId === String(show.id))
-      return entry ? { ...show, userRating: entry.rating } : show
-    })
-    setWatched(list)
+    const syncWatched = () => {
+      const ratings = loadRatings()
+      const list = getWatched().map(show => {
+        const entry = ratings.find(r => r.movieId === String(show.id))
+        return entry ? { ...show, userRating: entry.rating } : show
+      })
+      setWatched(list)
+    }
+
+    syncWatched()
+    window.addEventListener('watchedUpdated', syncWatched)
+    return () => window.removeEventListener('watchedUpdated', syncWatched)
   }, [])
 
   /* Toast helper*/
@@ -119,28 +94,15 @@ export default function WatchedPage2() {
 
   /* Remove from watched list*/
   function handleRemove(id) {
-    setWatched(prev => {
-      const updated = prev.filter(s => s.id !== id)
-      saveWatched(updated)
-      return updated
-    })
+    removeFromWatched(id)
     showToast('Removed from Watched')
   }
 
   /* Move back to Watchlist */
   function handleMoveBack(show) {
-    // Remove from watched
-    setWatched(prev => {
-      const updated = prev.filter(s => s.id !== show.id)
-      saveWatched(updated)
-      return updated
-    })
-    // Add back to watchlist (deduplicated)
-    const wl = loadWatchlist()
-    if (!wl.some(s => s.id === show.id)) {
-      const { watchedDate: _wd, userRating: _ur, ...cleanShow } = show
-      saveWatchlist([...wl, cleanShow])
-    }
+    removeFromWatched(show.id)
+    const { watchedDate: _wd, watchedAt: _wa, userRating: _ur, ...cleanShow } = show
+    addToWatchlist(cleanShow)
     showToast('↩ Moved back to Watchlist')
   }
 

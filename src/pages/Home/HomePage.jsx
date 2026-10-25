@@ -14,7 +14,7 @@ import VideoPlayerModal   from '../../components/VideoPlayerModal/VideoPlayerMod
 import MovieInfoModal     from '../../components/MovieInfoModal/MovieInfoModal.jsx'
 import MovieCard          from '../../components/MovieCard/MovieCard.jsx'
 import MovieSkeletonCard  from '../../member2/components/MovieSkeletonCard.jsx'
-import { getWatchlist }   from '../../utils/watchlist.js'
+import { getWatchlist, isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
 import { getWatched }     from '../../utils/watched.js'
 import { shows }          from '../../data/index.js'
 import { useTmdb }        from '../../member2/hooks/useTmdb.js'
@@ -113,6 +113,7 @@ export default function HomePage() {
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
   const [isInfoOpen,   setIsInfoOpen]   = useState(false)
   const [isMuted,      setIsMuted]      = useState(true)
+  const [heroInWatchlist, setHeroInWatchlist] = useState(false)
   const heroVideoRef = useRef(null)
 
   // Dynamic filter state (watchlist / watched / genre / network / language / status)
@@ -155,6 +156,14 @@ export default function HomePage() {
   // Hero uses first trending movie; falls back to local shows[0] while loading
   const featured   = trending[0] ?? shows[0]
   const anyFallback = trendingFallback || topRatedFallback || nowPlayingFallback || popularTVFallback
+
+  useEffect(() => {
+    if (!featured) return
+    setHeroInWatchlist(isInWatchlist(featured.id))
+    const handleWl = () => setHeroInWatchlist(isInWatchlist(featured.id))
+    window.addEventListener('watchlistUpdated', handleWl)
+    return () => window.removeEventListener('watchlistUpdated', handleWl)
+  }, [featured])
 
   // ── Discover Movies infinite scroll ─────────────────────────────────────────
   const {
@@ -207,19 +216,10 @@ export default function HomePage() {
   useEffect(() => {
     if (path === '/watchlist') {
       setListTitle('My Watchlist')
-      const watchlistIds = getWatchlist().map(item => item.id)
-      setFilteredList(shows.filter(show => watchlistIds.includes(show.id)))
+      setFilteredList(getWatchlist())
     } else if (path === '/watched') {
       setListTitle('Watched History')
-      const watchedItems = getWatched()
-      const watchedIds   = watchedItems.map(item => item.id)
-      const mappedWatched = shows
-        .filter(show => watchedIds.includes(show.id))
-        .map(show => {
-          const match = watchedItems.find(item => item.id === show.id)
-          return { ...show, watchedAt: match ? match.watchedAt : null }
-        })
-      setFilteredList(mappedWatched)
+      setFilteredList(getWatched())
     } else if (filterGenre) {
       setListTitle(`Genre: ${filterGenre}`)
       setFilteredList(shows.filter(show => show.genres.includes(filterGenre)))
@@ -360,6 +360,19 @@ export default function HomePage() {
               <button type="button" className={styles.btnPlay} onClick={() => setIsPlayerOpen(true)}>
                 <PlayIcon />
                 <span className={styles.btnText}>Play</span>
+              </button>
+              <button
+                type="button"
+                className={styles.btnMoreInfo}
+                onClick={() => featured && toggleWatchlist(featured)}
+                aria-label={heroInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+              >
+                {heroInWatchlist ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                )}
+                <span className={styles.btnText}>{heroInWatchlist ? 'In Watchlist' : 'Watchlist'}</span>
               </button>
               <button type="button" className={styles.btnMoreInfo} onClick={() => setIsInfoOpen(true)}>
                 <InfoIcon />
