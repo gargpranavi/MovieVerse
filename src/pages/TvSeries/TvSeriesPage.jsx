@@ -104,7 +104,7 @@ export default function TvSeriesPage() {
       },
       {
         root:       null,
-        rootMargin: '300px',
+        rootMargin: '400px', // generous margin — fire well before sentinel reaches fold
         threshold:  0,
       }
     )
@@ -113,6 +113,21 @@ export default function TvSeriesPage() {
     return () => observer.disconnect()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category])
+
+  // ── After initial load, sentinel may already be intersecting ────────────
+  // IntersectionObserver only fires on *changes*: if page 1 cards don't push
+  // the sentinel offscreen, we manually trigger loadMore so page 2 starts.
+  useEffect(() => {
+    if (!initialLoad && hasMore && !loading) {
+      const sentinel = sentinelRef.current
+      if (!sentinel) return
+      const rect = sentinel.getBoundingClientRect()
+      if (rect.top < window.innerHeight + 400) {
+        loadMore()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLoad])
 
   // ── Category change handler ─────────────────────────────────────────────
   const handleCategoryChange = useCallback((key) => {

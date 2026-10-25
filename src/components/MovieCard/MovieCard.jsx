@@ -78,7 +78,13 @@ export default function MovieCard({ movie, rank }) {
   const handleImgError = () => setImgError(true)
   
   const handleCardClick = () => {
-    navigate(`/movie/${movie.id}`)
+    // For TMDB items, pass the mediaType so MovieDetailsPage knows which
+    // TMDB endpoint to call (/movie vs /tv).
+    if (movie.source === 'tmdb' && movie.mediaType === 'tv') {
+      navigate(`/movie/${movie.id}?type=tv`)
+    } else {
+      navigate(`/movie/${movie.id}`)
+    }
   }
 
   const handleWatchlistToggle = (e) => {

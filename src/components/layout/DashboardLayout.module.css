@@ -12,3 +12,37 @@
   min-height: calc(100vh - 90px);
   overflow-x: hidden;
 }
+
+/* ── TMDB Attribution Footer ── */
+.tmdbAttribution {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px 24px;
+  background: rgba(0, 0, 0, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.tmdbLogo {
+  height: 18px;
+  width: auto;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.tmdbLogo:hover { opacity: 1; }
+
+.tmdbText {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.38);
+  line-height: 1.5;
+}
+
+.tmdbLink {
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.tmdbLink:hover { color: rgba(255, 255, 255, 0.85); }
+

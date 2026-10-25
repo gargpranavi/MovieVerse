@@ -180,11 +180,14 @@ export function useInfiniteScroll(fetchFnMap, category, fallbackFetchFn) {
 
   // ── Public loadMore ──────────────────────────────────────────────────────────
   const loadMore = useCallback(() => {
-    if (loadingRef.current || !hasMore || initialLoad) return
+    // loadingRef is the single-flight guard — don't also block on initialLoad
+    // because after page-1 finishes, initialLoad=false and the sentinel may
+    // already be intersecting (never scrolled away), so we'd never get page 2.
+    if (loadingRef.current || !hasMore) return
     const next = currentPage + 1
     if (totalPages !== null && next > totalPages) return
     fetchPage(next, categoryRef.current)
-  }, [hasMore, initialLoad, currentPage, totalPages, fetchPage])
+  }, [hasMore, currentPage, totalPages, fetchPage])
 
   // ── Public retry ─────────────────────────────────────────────────────────────
   const retry = useCallback(() => {

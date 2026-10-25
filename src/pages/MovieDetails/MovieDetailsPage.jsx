@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
 import { isWatched, addToWatched, removeFromWatched, getWatchedDate } from '../../utils/watched.js'
 import { getUserRating, getUserReview, saveUserRating, saveUserReview } from '../../utils/reviews.js'
 import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
 import { shows, castByShowId, people } from '../../data/index.js'
+import {
+  fetchMovieDetails,
+  fetchTvDetails,
+  fetchMovieCredits,
+} from '../../member2/services/tmdbApi.js'
 import styles from './MovieDetailsPage.module.css'
 
 function PlayIcon() {
@@ -74,23 +79,85 @@ const FALLBACK_PERSON  = 'https://images.unsplash.com/photo-1534528741775-53994a
 export default function MovieDetailsPage() {
   const { id }     = useParams()
   const navigate   = useNavigate()
+  const location   = useLocation()
 
-  // ── Local data lookup (replaces all fetch calls) ──────────────────────────
-  const movie           = shows.find(s => s.id === id) || null
-  const cast            = castByShowId[id] || []
-  const recommendations = shows
-    .filter(s => s.id !== id)
-    .filter(s => s.genres.some(g => movie?.genres?.includes(g)) ||
-                 Math.abs((s.rating || 8) - (movie?.rating || 8)) < 1.5)
-    .slice(0, 4)
-    .map(s => ({
-      id:     s.id,
-      title:  s.title,
-      year:   s.year,
-      genres: s.genres,
-      image:  s.image || FALLBACK_POSTER,
-      rating: s.rating,
-    }))
+  // ── Determine if this is a TMDB ID ────────────────────────────────────────
+  const isTmdbId       = id?.startsWith('tmdb-')
+  const tmdbNumericId  = isTmdbId ? id.replace('tmdb-', '') : null
+
+  // Read mediaType from ?type=tv query param (set by MovieCard for TV shows)
+  const searchParams   = new URLSearchParams(location.search)
+  const mediaTypeParam = searchParams.get('type') || 'movie'   // default: movie
+
+  // ── Local data (for non-TMDB IDs) ─────────────────────────────────────────
+  const localMovie = !isTmdbId ? (shows.find(s => s.id === id) || null) : null
+  const localCast  = !isTmdbId ? (castByShowId[id] || []) : []
+  const localRecs  = !isTmdbId && localMovie
+    ? shows
+        .filter(s => s.id !== id)
+        .filter(s =>
+          s.genres.some(g => localMovie.genres?.includes(g)) ||
+          Math.abs((s.rating || 8) - (localMovie.rating || 8)) < 1.5
+        )
+        .slice(0, 4)
+        .map(s => ({
+          id:     s.id,
+          title:  s.title,
+          year:   s.year,
+          genres: s.genres,
+          image:  s.image || FALLBACK_POSTER,
+          rating: s.rating,
+        }))
+    : []
+
+  // ── TMDB async state ───────────────────────────────────────────────────────
+  const [tmdbMovie,   setTmdbMovie]   = useState(null)
+  const [tmdbCast,    setTmdbCast]    = useState([])
+  const [tmdbLoading, setTmdbLoading] = useState(isTmdbId)
+  const [tmdbError,   setTmdbError]   = useState(null)
+
+  useEffect(() => {
+    if (!isTmdbId || !tmdbNumericId) return
+
+    let cancelled = false
+    setTmdbLoading(true)
+    setTmdbMovie(null)
+    setTmdbCast([])
+    setTmdbError(null)
+
+    async function loadTmdb() {
+      // Choose endpoint from ?type= param
+      const detailFn = mediaTypeParam === 'tv' ? fetchTvDetails : fetchMovieDetails
+      const result   = await detailFn(tmdbNumericId)
+
+      if (cancelled) return
+
+      if (result.success && result.data.length > 0) {
+        setTmdbMovie(result.data[0])
+
+        // Fetch credits for movies (TV credits require a different endpoint — skip for now)
+        if (mediaTypeParam !== 'tv') {
+          const credits = await fetchMovieCredits(tmdbNumericId)
+          if (!cancelled && credits.success) {
+            setTmdbCast(credits.data)
+          }
+        }
+      } else {
+        setTmdbError(result.error || 'Could not load details for this title.')
+      }
+
+      if (!cancelled) setTmdbLoading(false)
+    }
+
+    loadTmdb()
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
+
+  // ── Unified movie + cast (local or TMDB) ───────────────────────────────────
+  const movie = isTmdbId ? tmdbMovie  : localMovie
+  const cast  = isTmdbId ? tmdbCast   : localCast
+  const recommendations = isTmdbId ? [] : localRecs   // TMDB recs would need extra API call
 
   // ── User interaction state ────────────────────────────────────────────────
   const [inWatchlist,  setInWatchlist]  = useState(false)
@@ -99,15 +166,15 @@ export default function MovieDetailsPage() {
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
 
   // Rating & Review State
-  const [userRating,      setUserRating]      = useState(0)
-  const [reviewText,      setReviewText]      = useState('')
-  const [savedReview,     setSavedReview]     = useState(null)
-  const [isReviewFormOpen, setIsReviewFormOpen] = useState(false)
+  const [userRating,       setUserRating]       = useState(0)
+  const [reviewText,       setReviewText]        = useState('')
+  const [savedReview,      setSavedReview]       = useState(null)
+  const [isReviewFormOpen, setIsReviewFormOpen]  = useState(false)
 
   // Actor Modal State
-  const [selectedActor,       setSelectedActor]       = useState(null)
-  const [actorDetailsLoading, setActorDetailsLoading] = useState(false)
-  const [showAllCast,         setShowAllCast]         = useState(false)
+  const [selectedActor,        setSelectedActor]        = useState(null)
+  const [actorDetailsLoading,  setActorDetailsLoading]  = useState(false)
+  const [showAllCast,          setShowAllCast]          = useState(false)
 
   // Initialise user-state from localStorage when movie id changes
   useEffect(() => {
@@ -135,7 +202,52 @@ export default function MovieDetailsPage() {
     return () => window.removeEventListener('watchlistUpdated', handleUpdate)
   }, [movie])
 
-  // ── Not found ─────────────────────────────────────────────────────────────
+  // ── Loading state (TMDB fetch in progress) ────────────────────────────────
+  if (tmdbLoading) {
+    return (
+      <DashboardLayout>
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', height: '80vh', gap: '20px', color: 'white',
+        }}>
+          <div style={{
+            width: '48px', height: '48px',
+            border: '4px solid rgba(255,255,255,0.15)',
+            borderTop: '4px solid #D4A017',
+            borderRadius: '50%',
+            animation: 'spin 0.9s linear infinite',
+          }} />
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem' }}>
+            Loading details…
+          </p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </DashboardLayout>
+    )
+  }
+
+  // ── TMDB error state ──────────────────────────────────────────────────────
+  if (isTmdbId && tmdbError && !movie) {
+    return (
+      <DashboardLayout>
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', height: '80vh', color: 'white', gap: '16px',
+        }}>
+          <span style={{ fontSize: '2.5rem' }}>⚠️</span>
+          <h2>Could not load details</h2>
+          <p style={{ color: 'rgba(255,255,255,0.6)', maxWidth: '400px', textAlign: 'center' }}>
+            {tmdbError}
+          </p>
+          <button className={styles.backBtn} onClick={() => navigate(-1)}>
+            <ArrowLeftIcon /> Go Back
+          </button>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  // ── Not found (local ID) ──────────────────────────────────────────────────
   if (!movie) {
     return (
       <DashboardLayout>

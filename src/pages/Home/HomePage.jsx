@@ -1,14 +1,38 @@
-import { useState, useEffect, useRef } from 'react'
+/*
+   MovieVerse – HomePage.jsx
+   Updated Day 5: Hero + carousels now use live TMDB data via useTmdb.
+   Falls back to local shows.js automatically if TMDB is unreachable.
+   All filter-page behaviour (watchlist / watched / genre / network) is preserved
+   and still uses local data (those items are stored locally by ID).
+*/
+
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
-import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
-import MovieCarousel from '../../components/MovieCarousel/MovieCarousel.jsx'
-import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
-import MovieInfoModal from '../../components/MovieInfoModal/MovieInfoModal.jsx'
-import MovieCard from '../../components/MovieCard/MovieCard.jsx'
-import { getWatchlist } from '../../utils/watchlist.js'
-import { getWatched } from '../../utils/watched.js'
-import { shows } from '../../data/index.js'
+import DashboardLayout    from '../../components/layout/DashboardLayout.jsx'
+import MovieCarousel      from '../../components/MovieCarousel/MovieCarousel.jsx'
+import VideoPlayerModal   from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
+import MovieInfoModal     from '../../components/MovieInfoModal/MovieInfoModal.jsx'
+import MovieCard          from '../../components/MovieCard/MovieCard.jsx'
+import MovieSkeletonCard  from '../../member2/components/MovieSkeletonCard.jsx'
+import { getWatchlist }   from '../../utils/watchlist.js'
+import { getWatched }     from '../../utils/watched.js'
+import { shows }          from '../../data/index.js'
+import { useTmdb }        from '../../member2/hooks/useTmdb.js'
+import { useInfiniteScroll } from '../../member2/hooks/useInfiniteScroll.js'
+import {
+  fetchTrending,
+  fetchTopRatedMovies,
+  fetchNowPlayingMovies,
+  fetchPopularTvShows,
+} from '../../member2/services/tmdbApi.js'
 import styles from './HomePage.module.css'
+
+// Stable fetch map for the Discover section — defined outside to avoid re-renders
+const DISCOVER_FETCH_MAP = {
+  trending: (page) => fetchTrending('movie', 'week', page),
+}
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
 
 function PlayIcon() {
   return (
@@ -50,27 +74,136 @@ function VolumeMuteIcon() {
   )
 }
 
+// ── Skeleton row while a carousel is loading ──────────────────────────────────
+
+function CarouselSkeleton({ title }) {
+  return (
+    <div className={styles.carouselSkeletonSection}>
+      {title && <h2 className={styles.carouselSkeletonTitle}>{title}</h2>}
+      <div className={styles.carouselSkeletonRow}>
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div key={i} className={styles.carouselSkeletonItem}>
+            <MovieSkeletonCard />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Fallback Banner ───────────────────────────────────────────────────────────
+
+function FallbackBanner() {
+  return (
+    <div className={styles.fallbackBanner} role="alert">
+      <span className={styles.fallbackIcon}>📡</span>
+      <span>
+        TMDB is unreachable — showing local data. Connect to the internet and
+        refresh to load live movies.
+      </span>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function HomePage() {
-  const location  = useLocation()
-  const navigate  = useNavigate()
+  const location     = useLocation()
+  const navigate     = useNavigate()
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
   const [isInfoOpen,   setIsInfoOpen]   = useState(false)
   const [isMuted,      setIsMuted]      = useState(true)
   const heroVideoRef = useRef(null)
 
-  // Dynamic filter state
+  // Dynamic filter state (watchlist / watched / genre / network / language / status)
   const [listTitle,    setListTitle]    = useState('')
   const [filteredList, setFilteredList] = useState([])
 
-  // Parse location and filters
-  const path          = location.pathname
-  const searchParams  = new URLSearchParams(location.search)
+  // Route / query param parsing
+  const path           = location.pathname
+  const searchParams   = new URLSearchParams(location.search)
   const filterGenre    = searchParams.get('genre')
   const filterNetwork  = searchParams.get('network')
   const filterLanguage = searchParams.get('language')
   const filterStatus   = searchParams.get('status')
 
-  // Filter shows dynamically based on the current page route or query params
+  // ── TMDB Live Data ──────────────────────────────────────────────────────────
+  const {
+    data: trending,
+    loading: trendingLoading,
+    isFallback: trendingFallback,
+  } = useTmdb(fetchTrending, ['movie', 'week', 1])
+
+  const {
+    data: topRated,
+    loading: topRatedLoading,
+    isFallback: topRatedFallback,
+  } = useTmdb(fetchTopRatedMovies, [1])
+
+  const {
+    data: nowPlaying,
+    loading: nowPlayingLoading,
+    isFallback: nowPlayingFallback,
+  } = useTmdb(fetchNowPlayingMovies, [1])
+
+  const {
+    data: popularTV,
+    loading: popularTVLoading,
+    isFallback: popularTVFallback,
+  } = useTmdb(fetchPopularTvShows, [1])
+
+  // Hero uses first trending movie; falls back to local shows[0] while loading
+  const featured   = trending[0] ?? shows[0]
+  const anyFallback = trendingFallback || topRatedFallback || nowPlayingFallback || popularTVFallback
+
+  // ── Discover Movies infinite scroll ─────────────────────────────────────────
+  const {
+    items:       discoverItems,
+    loading:     discoverLoading,
+    initialLoad: discoverInitialLoad,
+    hasMore:     discoverHasMore,
+    loadMore:    discoverLoadMore,
+    isFallback:  discoverFallback,
+  } = useInfiniteScroll(DISCOVER_FETCH_MAP, 'trending')
+
+  // Sentinel + stable refs so the observer never captures stale closures
+  const discoverSentinelRef  = useRef(null)
+  const discoverLoadMoreRef  = useRef(discoverLoadMore)
+  const discoverLoadingRef   = useRef(discoverLoading)
+  const discoverHasMoreRef   = useRef(discoverHasMore)
+
+  useEffect(() => { discoverLoadMoreRef.current = discoverLoadMore }, [discoverLoadMore])
+  useEffect(() => { discoverLoadingRef.current  = discoverLoading  }, [discoverLoading])
+  useEffect(() => { discoverHasMoreRef.current  = discoverHasMore  }, [discoverHasMore])
+
+  // IntersectionObserver — watches the sentinel at the bottom of the discover grid
+  useEffect(() => {
+    const sentinel = discoverSentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !discoverLoadingRef.current && discoverHasMoreRef.current) {
+          discoverLoadMoreRef.current()
+        }
+      },
+      { root: null, rootMargin: '400px', threshold: 0 }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, []) // mount once — sentinel never moves
+
+  // After page 1 loads, sentinel may still be in-viewport → trigger page 2 manually
+  useEffect(() => {
+    if (!discoverInitialLoad && discoverHasMore && !discoverLoading) {
+      const sentinel = discoverSentinelRef.current
+      if (!sentinel) return
+      const rect = sentinel.getBoundingClientRect()
+      if (rect.top < window.innerHeight + 400) discoverLoadMore()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discoverInitialLoad])
+
+  // ── Filter / watchlist pages (still use local shows for stored IDs) ─────────
   useEffect(() => {
     if (path === '/watchlist') {
       setListTitle('My Watchlist')
@@ -105,13 +238,6 @@ export default function HomePage() {
     }
   }, [path, filterGenre, filterNetwork, filterLanguage, filterStatus])
 
-  const featured   = shows[0]
-  const trending   = shows.slice(1, 10)
-  const topRated   = shows.slice(10, 20).sort((a, b) => b.rating - a.rating)
-  const actionMovies = shows.slice(20, 30)
-  const sciFi      = shows.slice(30, 40)
-
-  // Derive a display-friendly subtitle and icon for the filter type
   const getFilterMeta = () => {
     if (path === '/watchlist') return { icon: '🔖', sub: 'Your saved titles' }
     if (path === '/watched')   return { icon: '✅', sub: 'Your watch history' }
@@ -122,7 +248,7 @@ export default function HomePage() {
     return { icon: '🎬', sub: '' }
   }
 
-  // If a filter is active, render the premium filter page
+  // ── Filter page render ────────────────────────────────────────────────────
   if (listTitle) {
     const { icon, sub } = getFilterMeta()
     const backdropImg = filteredList[0]?.image || featured?.image ||
@@ -178,13 +304,21 @@ export default function HomePage() {
     )
   }
 
+  // ── Main Home Page ────────────────────────────────────────────────────────
   return (
     <DashboardLayout>
       <div className={styles.page}>
+
+        {/* ── Hero Banner ── */}
         <section className={styles.hero}>
           <div
             className={styles.heroBg}
-            style={{ backgroundImage: `url(${featured.image})` }}
+            style={{
+              backgroundImage: `url(${
+                featured?.backdrop || featured?.image ||
+                'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80'
+              })`,
+            }}
           />
           <video
             ref={heroVideoRef}
@@ -196,23 +330,32 @@ export default function HomePage() {
             playsInline
           />
           <div className={styles.heroGradient} />
-          
+
           <div className={styles.heroContent}>
             <div className={styles.netflixLogoWrap}>
-              <span className={styles.nSeries}>M</span> 
+              <span className={styles.nSeries}>M</span>{' '}
               <span className={styles.seriesText}>M O V I E V E R S E   O R I G I N A L</span>
             </div>
-            
-            <h1 className={styles.heroTitle}>{featured.title.toUpperCase()}</h1>
-            
+
+            <h1 className={styles.heroTitle}>
+              {featured ? featured.title.toUpperCase() : 'DISCOVER MOVIES'}
+            </h1>
+
             <div className={styles.heroMeta}>
-              <span>Series</span> &bull; 
-              <span>{featured.genres[0]}</span> &bull; 
-              <span>{featured.year}</span> &bull; 
-              <span>{featured.duration}</span> &bull; 
-              <span className={styles.ageBadge}>{featured.ageRating}</span>
+              {featured?.genres?.[0] && (
+                <><span>{featured.genres[0]}</span> &bull; </>
+              )}
+              {featured?.year && <><span>{featured.year}</span> &bull; </>}
+              {featured?.duration && <><span>{featured.duration}</span> &bull; </>}
+              {featured?.ageRating && (
+                <span className={styles.ageBadge}>{featured.ageRating}</span>
+              )}
             </div>
-            <p className={styles.heroDesc}>{featured.description}</p>
+
+            {featured?.description && (
+              <p className={styles.heroDesc}>{featured.description.slice(0, 200)}{featured.description.length > 200 ? '…' : ''}</p>
+            )}
+
             <div className={styles.heroActions}>
               <button type="button" className={styles.btnPlay} onClick={() => setIsPlayerOpen(true)}>
                 <PlayIcon />
@@ -224,7 +367,7 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-          
+
           <div className={styles.heroBottomRight}>
             <button
               className={styles.btnVolume}
@@ -241,18 +384,106 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── Carousels ── */}
         <div className={styles.content}>
-          <MovieCarousel title="Trending Now"        movies={trending}    />
-          <MovieCarousel title="Top 10 Today"        movies={topRated}    />
-          <MovieCarousel title="Binge-Worthy Series" movies={actionMovies} />
-          <MovieCarousel title="Sci-Fi & Fantasy"    movies={sciFi}       />
+
+          {/* Fallback notice when offline */}
+          {anyFallback && <FallbackBanner />}
+
+          {/* Trending This Week */}
+          {trendingLoading
+            ? <CarouselSkeleton title="Trending This Week" />
+            : <MovieCarousel title="Trending This Week" movies={trending} />
+          }
+
+          {/* Top Rated Movies */}
+          {topRatedLoading
+            ? <CarouselSkeleton title="Top Rated Movies" />
+            : <MovieCarousel title="Top Rated Movies" movies={topRated} />
+          }
+
+          {/* Now Playing in Theatres */}
+          {nowPlayingLoading
+            ? <CarouselSkeleton title="Now Playing" />
+            : <MovieCarousel title="Now Playing in Theatres" movies={nowPlaying} />
+          }
+
+          {/* Popular TV Series */}
+          {popularTVLoading
+            ? <CarouselSkeleton title="Popular TV Series" />
+            : <MovieCarousel title="Popular TV Series" movies={popularTV} />
+          }
+
         </div>
+
+        {/* ── Discover More — infinite scroll grid ── */}
+        <section className={styles.discoverSection}>
+          <div className={styles.discoverHeader}>
+            <h2 className={styles.discoverTitle}>Discover Movies</h2>
+            <span className={styles.discoverCount}>
+              {discoverItems.length > 0 ? `${discoverItems.length} loaded` : ''}
+            </span>
+          </div>
+
+          {/* Fallback notice (offline) */}
+          {discoverFallback && (
+            <div className={styles.fallbackBanner} role="alert">
+              <span className={styles.fallbackIcon}>📡</span>
+              <span>Showing local data — connect to the internet for live results.</span>
+            </div>
+          )}
+
+          {/* Skeleton on first load */}
+          {discoverInitialLoad ? (
+            <div className={styles.discoverGrid}>
+              {Array.from({ length: 15 }).map((_, i) => (
+                <MovieSkeletonCard key={i} />
+              ))}
+            </div>
+          ) : (
+            <div className={styles.discoverGrid}>
+              {discoverItems.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))}
+              {/* Inline skeletons while fetching next page */}
+              {discoverLoading && !discoverInitialLoad &&
+                Array.from({ length: 5 }).map((_, i) => (
+                  <MovieSkeletonCard key={`sk-${i}`} />
+                ))
+              }
+            </div>
+          )}
+
+          {/* Sentinel — IntersectionObserver target */}
+          <div
+            ref={discoverSentinelRef}
+            className={styles.discoverSentinel}
+            aria-hidden="true"
+          />
+
+          {/* Loading more indicator */}
+          {discoverLoading && !discoverInitialLoad && (
+            <div className={styles.discoverLoadingMore}>
+              <div className={styles.discoverSpinner} />
+              <span>Loading more…</span>
+            </div>
+          )}
+
+          {/* End of results */}
+          {!discoverHasMore && !discoverLoading && discoverItems.length > 0 && (
+            <div className={styles.discoverEnd}>
+              <div className={styles.discoverEndLine} />
+              <span>You&apos;ve seen it all — {discoverItems.length} movies loaded</span>
+              <div className={styles.discoverEndLine} />
+            </div>
+          )}
+        </section>
       </div>
 
-      <VideoPlayerModal 
-        isOpen={isPlayerOpen} 
-        onClose={() => setIsPlayerOpen(false)} 
-        movieTitle={featured.title} 
+      <VideoPlayerModal
+        isOpen={isPlayerOpen}
+        onClose={() => setIsPlayerOpen(false)}
+        movieTitle={featured?.title || 'MovieVerse'}
       />
 
       <MovieInfoModal

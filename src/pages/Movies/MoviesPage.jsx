@@ -93,8 +93,8 @@ export default function MoviesPage() {
         }
       },
       {
-        root:       null,    // viewport
-        rootMargin: '300px', // trigger 300 px before the sentinel reaches the fold
+        root:       null,
+        rootMargin: '400px', // generous margin — fire well before sentinel reaches fold
         threshold:  0,
       }
     )
@@ -104,6 +104,23 @@ export default function MoviesPage() {
     // Re-create observer only when category changes (sentinel DOM node is stable)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category])
+
+  // ── After initial load completes, sentinel may already be intersecting ───────
+  // IntersectionObserver only fires on *changes*, so if the sentinel is still
+  // in-viewport after page 1 (grid doesn't fill the screen), we must trigger
+  // manually to load page 2.
+  useEffect(() => {
+    if (!initialLoad && hasMore && !loading) {
+      const sentinel = sentinelRef.current
+      if (!sentinel) return
+      const rect = sentinel.getBoundingClientRect()
+      // Sentinel is visible (with 400px margin)
+      if (rect.top < window.innerHeight + 400) {
+        loadMore()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLoad])
 
   // ── Category change handler ───────────────────────────────────────────────
   const handleCategoryChange = useCallback((key) => {

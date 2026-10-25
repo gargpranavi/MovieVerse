@@ -6,12 +6,12 @@ import { signOut as localSignOut } from '../../member2/services/localAuth.js'
 import styles from './TopNavbar.module.css'
 
 const NAV_ITEMS = [
-  { to: '/home', label: 'Home', external: false },
-  { to: '/pages/movies3.html', label: 'Movies', external: true },
-  { to: '/pages/drama3.html', label: 'TV Series', external: true },
-  { to: '/anime', label: 'Anime', external: false },
-  { to: '/watchlist', label: 'Watchlist', external: false },
-  { to: '/watched', label: 'Watched', external: false },
+  { to: '/home',       label: 'Home',      external: false },
+  { to: '/movies',     label: 'Movies',    external: false },
+  { to: '/tv-series',  label: 'TV Series', external: false },
+  { to: '/anime',      label: 'Anime',     external: false },
+  { to: '/watchlist',  label: 'Watchlist', external: false },
+  { to: '/watched',    label: 'Watched',   external: false },
 ]
 
 const MOCK_NOTIFICATIONS = [
