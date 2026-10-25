@@ -3,7 +3,7 @@
 **Branch:** `feature/piyush-eval2-tmdb-infinite-scroll`  
 **Member:** Piyush  
 **Project:** MovieVerse – A Netflix-style movie discovery web app  
-**Tech Stack:** React 19, Vite 8, React Router 7, Vanilla CSS, Supabase
+**Tech Stack:** React 19, Vite 8, React Router 7, Vanilla CSS, localStorage Auth
 
 ---
 
@@ -16,9 +16,9 @@ Here's everything I'll build across 5 days:
 | Day | Task | Status |
 |-----|------|--------|
 | Day 1 | TMDB API Service + Caching + Error Handling + Fallback | ✅ Done |
-| Day 2 | Professional Login UI + Supabase Authentication (Google OAuth, Email/Password, Password Reset) | ✅ Done |
+| Day 2 | Auth UI + localStorage Email/Password Auth (Supabase removed — no external deps) | ✅ Done |
 | Day 3 | Shimmer Skeleton Loaders + Infinite Scroll on Movies Page | ✅ Done |
-| Day 4 | Infinite Scroll on TV Series Page | 🔜 Upcoming |
+| Day 4 | Shared Infinite-Scroll Hook + Infinite Scroll on TV Series Page | ✅ Done |
 | Day 5 | Image CDN Optimization + Lazy Loading + Final Polish | 🔜 Upcoming |
 
 ---
@@ -480,7 +480,7 @@ Open http://localhost:5173/watchlist  → redirects to /login  ✓
 
 ---
 
-*Day 4 will add infinite scroll to the TV Series page.*
+*Day 4 added a shared generic hook and full infinite scroll to the TV Series page.*
 
 ---
 
@@ -638,3 +638,160 @@ Switching a tab **fully resets** pagination: the movie list is cleared, the page
 | `.env` | ✅ New (local only, not committed) | Day 1 + Day 2 |
 
 **No teammate files were touched across all three days.**
+
+---
+
+## ✅ Day 4 — Infinite Scroll on TV Series Page
+
+### What I Built
+
+Extended the infinite-scroll system from Day 3 to cover the TV Series page. Instead of copying the Movies page hook, I **extracted the shared logic into a single reusable hook** (`useInfiniteScroll`) so both pages share the same battle-tested pagination engine.
+
+---
+
+### New Files Created (Day 4)
+
+| File | What it is |
+|------|-----------|
+| `src/member2/hooks/useInfiniteScroll.js` | Generic infinite-scroll hook — accepts a `{ categoryKey → fetchFn }` map, shared by Movies + TV Series |
+| `src/pages/TvSeries/TvSeriesPage.module.css` | Hero, grid, tabs, skeleton, spinner, error, end-of-results styles for TV Series |
+| `src/member2/components/MovieSkeletonCard.jsx` | Shimmer skeleton card component (extracted from Day 3, now reusable) |
+| `src/member2/components/MovieSkeletonCard.module.css` | Skeleton card shimmer keyframe styles |
+
+### Existing Files Modified (Day 4)
+
+| File | What changed |
+|------|-------------|
+| `src/member2/services/tmdbApi.js` | Added `fetchTopRatedTvShows`, `fetchAiringTodayTvShows`, `fetchOnTheAirTvShows` (same pattern as movies) |
+| `src/pages/TvSeries/TvSeriesPage.jsx` | Complete rewrite — infinite scroll, 4 category tabs, hero, skeleton loaders, error + retry |
+| `src/pages/Movies/MoviesPage.jsx` | Refined to use `useInfiniteScroll`; observer now reads state via refs (no stale-closure bug); inline skeleton cards while paging |
+| `src/App.jsx` | Removed `ProtectedRoute` wrapping and `LoginPage` route (auth replaced with localStorage) |
+| `src/main.jsx` | Removed `AuthProvider` wrapper (no longer needed) |
+| `src/components/layout/TopNavbar.jsx` | Sign-out now calls `localSignOut()` from `localAuth.js` instead of Supabase |
+| `src/member2/pages/ProfilePage.jsx` | Reads session from `getSession()` (localStorage) instead of `useAuthContext` |
+| `src/member2/services/localAuth.js` | Extended with full `signIn`, `signUp`, `signOut`, `getSession`, `resetPassword`, `updateProfile` |
+| `src/components/MovieCard/MovieCard.jsx` | Added `imgError` fallback state, `loading="lazy"`, `decoding="async"`, explicit `width`/`height` |
+| `src/member2/components/WatchlistCard2.jsx` | Prefixed unused `inWatchlist` variable to `_inWatchlist` (lint fix) |
+| `package.json` / `package-lock.json` | Removed `@supabase/supabase-js` dependency |
+| `.env.example` | Removed Supabase credential placeholders |
+
+---
+
+### Architecture — Shared `useInfiniteScroll` Hook
+
+```
+useInfiniteScroll(fetchFnMap, category)
+  │
+  ├─ fetchFnMap  { popular: fn, top_rated: fn, … }  ← caller provides
+  ├─ fetchedPages Set   ← idempotency: each "category:page" key fetched once
+  ├─ seenIds Set        ← deduplicates items by tmdb-{id}
+  ├─ loadingRef         ← single-flight guard
+  ├─ AbortController   ← cancels in-flight requests on category change / unmount
+  └─ categoryRef       ← stale-check after async response arrives
+
+MoviesPage  →  useInfiniteScroll(MOVIE_FETCH_MAP,  category)
+TvSeriesPage→  useInfiniteScroll(TV_FETCH_MAP,    category)
+```
+
+The `IntersectionObserver` is **created once per category** (not on every render). It reads the latest `loading` and `hasMore` values through refs, so rapid scroll events never trigger duplicate fetches.
+
+---
+
+### TV Series Category Tabs
+
+| Tab | TMDB Endpoint |
+|-----|--------------|
+| Popular | `/tv/popular` |
+| Top Rated | `/tv/top_rated` |
+| Airing Today | `/tv/airing_today` |
+| On The Air | `/tv/on_the_air` |
+
+Switching a tab **fully resets** pagination: list cleared, Sets cleared, in-flight request aborted, page 1 fetched immediately.
+
+---
+
+### Auth Simplification (Day 4 side-task)
+
+Supabase was removed as an external dependency. Authentication is now handled entirely by `localAuth.js` using `localStorage`. This:
+- Eliminates the Supabase SDK (~214 kB of the bundle)
+- Removes all network auth calls at startup
+- Keeps the same public API shape (`signIn`, `signUp`, `signOut`, `getSession`, `updateProfile`)
+- Reduces the production bundle from ~845 kB → ~619 kB (gzipped: 165 kB)
+
+---
+
+### Loading, Error, and End States (TV Series)
+
+| State | What the user sees |
+|-------|--------------------|
+| **Initial load** | 15 shimmer skeleton placeholder cards |
+| **Loading more pages** | Inline 5 skeleton cards + "Loading more…" spinner below grid |
+| **API error** | Error box with message + gold **Retry** button; loaded shows preserved |
+| **End of results** | Gold divider + "You've reached the end · N shows loaded" |
+| **TMDB unreachable** | Yellow banner; local fallback data served once; pagination stops |
+
+---
+
+### ✅ Test Results (Day 4)
+
+| Test | Result |
+|------|--------|
+| Production build (`vite build`) | ✅ Exit 0, 88 modules, 1.30s |
+| Bundle size | ✅ 619 kB JS / 127 kB CSS (gzip: 165 kB / 22 kB) — down from 845 kB |
+| TV Series page: 4 category tabs | ✅ |
+| TV Series: skeleton on initial load | ✅ |
+| TV Series: inline skeleton while paging | ✅ |
+| TV Series: error + retry | ✅ |
+| TV Series: end-of-results message | ✅ |
+| TV Series: fallback banner | ✅ |
+| Movies page observer stale-closure fix | ✅ (reads refs, no duplicate fetches) |
+| Supabase removed, localStorage auth works | ✅ |
+| Day 1, 2, 3 features preserved | ✅ |
+| No teammate files touched | ✅ |
+
+---
+
+### 🧠 How to Test Day 4 Manually
+
+```
+1. npm run dev  →  open http://localhost:5173/tv-series
+2. Hero banner shows first popular TV show
+3. Scroll down → new show cards append automatically
+4. Switch tabs (Popular → Top Rated → Airing Today → On The Air)
+   → grid resets and reloads each time
+5. DevTools → Network → Offline after page 1
+   → scroll to bottom → error + Retry button; loaded cards stay
+6. Go back Online → click Retry → next page loads
+7. Scroll all the way → "You've reached the end" message
+8. /movies page: scroll rapidly → no duplicate fetches (ref-based observer fix)
+```
+
+---
+
+### 📁 Complete Files Summary — Day 1 + Day 2 + Day 3 + Day 4
+
+| File | Type | Day |
+|------|------|-----|
+| `src/member2/services/tmdbApi.js` | ✅ New → ✏️ Extended | Day 1, 3, 4 |
+| `src/member2/hooks/useTmdb.js` | ✅ New | Day 1 |
+| `src/member2/services/tmdbApi.verify.js` | ✅ New | Day 1 |
+| `src/member2/services/localAuth.js` | ✅ New → ✏️ Extended | Day 2, 4 |
+| `src/member2/hooks/useInfiniteMovies.js` | ✅ New | Day 3 |
+| `src/pages/Movies/MoviesPage.module.css` | ✅ New | Day 3 |
+| `src/member2/hooks/useInfiniteScroll.js` | ✅ New | Day 4 |
+| `src/pages/TvSeries/TvSeriesPage.module.css` | ✅ New | Day 4 |
+| `src/member2/components/MovieSkeletonCard.jsx` | ✅ New | Day 4 |
+| `src/member2/components/MovieSkeletonCard.module.css` | ✅ New | Day 4 |
+| `src/member2/pages/ProfilePage.jsx` | ✏️ Modified | Day 2, 4 |
+| `src/pages/Movies/MoviesPage.jsx` | ✏️ Rewritten → Refined | Day 3, 4 |
+| `src/pages/TvSeries/TvSeriesPage.jsx` | ✏️ Rewritten | Day 4 |
+| `src/App.jsx` | ✏️ Modified | Day 2, 4 |
+| `src/main.jsx` | ✏️ Modified | Day 2, 4 |
+| `src/components/layout/TopNavbar.jsx` | ✏️ Modified | Day 2, 4 |
+| `src/components/MovieCard/MovieCard.jsx` | ✏️ Modified | Day 4 |
+| `src/member2/components/WatchlistCard2.jsx` | ✏️ Modified | Day 4 |
+| `package.json` / `package-lock.json` | ✏️ Modified | Day 4 |
+| `.env.example` | ✏️ Modified | Day 1, 2, 4 |
+| `.env` | ✅ New (local only, not committed) | Day 1 |
+
+**No teammate files were touched across all four days.**
