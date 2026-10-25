@@ -1,4 +1,4 @@
-77777777777777777777777777777777777import { useRef, useState, useCallback, useEffect } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import MovieCard from '../MovieCard/MovieCard.jsx'
 import styles from './MovieCarousel.module.css'
 
