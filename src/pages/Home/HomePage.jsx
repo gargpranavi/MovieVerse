@@ -5,8 +5,7 @@ import MovieCarousel from '../../components/MovieCarousel/MovieCarousel.jsx'
 import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
 import MovieInfoModal from '../../components/MovieInfoModal/MovieInfoModal.jsx'
 import MovieCard from '../../components/MovieCard/MovieCard.jsx'
-import { getWatchlist } from '../../utils/watchlist.js'
-import { getWatched } from '../../utils/watched.js'
+import { useWatchlist } from '../../context/index.js'
 import { shows } from '../../data/index.js'
 import styles from './HomePage.module.css'
 
@@ -53,6 +52,7 @@ function VolumeMuteIcon() {
 export default function HomePage() {
   const location  = useLocation()
   const navigate  = useNavigate()
+  const { watchlist, watchedHistory } = useWatchlist()
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
   const [isInfoOpen,   setIsInfoOpen]   = useState(false)
   const [isMuted,      setIsMuted]      = useState(true)
@@ -74,17 +74,16 @@ export default function HomePage() {
   useEffect(() => {
     if (path === '/watchlist') {
       setListTitle('My Watchlist')
-      const watchlistIds = getWatchlist().map(item => item.id)
-      setFilteredList(shows.filter(show => watchlistIds.includes(show.id)))
+      const watchlistIds = watchlist.map(item => String(item.id))
+      setFilteredList(shows.filter(show => watchlistIds.includes(String(show.id))))
     } else if (path === '/watched') {
       setListTitle('Watched History')
-      const watchedItems = getWatched()
-      const watchedIds   = watchedItems.map(item => item.id)
+      const watchedIds   = watchedHistory.map(item => String(item.id))
       const mappedWatched = shows
-        .filter(show => watchedIds.includes(show.id))
+        .filter(show => watchedIds.includes(String(show.id)))
         .map(show => {
-          const match = watchedItems.find(item => item.id === show.id)
-          return { ...show, watchedAt: match ? match.watchedAt : null }
+          const match = watchedHistory.find(item => String(item.id) === String(show.id))
+          return { ...show, watchedAt: match ? (match.watchedAt || match.watchedDate) : null }
         })
       setFilteredList(mappedWatched)
     } else if (filterGenre) {
@@ -103,7 +102,7 @@ export default function HomePage() {
       setListTitle('')
       setFilteredList([])
     }
-  }, [path, filterGenre, filterNetwork, filterLanguage, filterStatus])
+  }, [path, filterGenre, filterNetwork, filterLanguage, filterStatus, watchlist, watchedHistory])
 
   const featured   = shows[0]
   const trending   = shows.slice(1, 10)

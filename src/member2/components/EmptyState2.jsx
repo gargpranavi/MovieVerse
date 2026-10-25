@@ -1,8 +1,8 @@
-/* =============================================
+/*
    MovieVerse – EmptyState2.jsx
    Member 2 | Empty Watchlist State Component
    Day 2 – Watchlist + localStorage
-   ============================================= */
+   */
 
 import styles from './EmptyState2.module.css'
 

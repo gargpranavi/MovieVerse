@@ -1,6 +1,6 @@
 /*
 MovieVerse – ReviewCard.jsx
-Member 2 | Day 4 — Review System
+Member 2 | Day 4 -Review System
 
 localStorage key: "movieverse_reviews"
 Entry shape: { movieId, rating, review, date, id }
@@ -12,6 +12,7 @@ Props:
 
 import { useState, useEffect, useRef } from 'react'
 import Rating, { getMovieRating } from './Rating.jsx'
+import { useToast } from '../../components/common/Toast/index.js'
 import styles from './ReviewCard.module.css'
 
 /*localStorage helpers*/
@@ -124,6 +125,7 @@ export default function ReviewCard({ movieId, movieTitle }) {
   const [editText,     setEditText]     = useState('')
   const [currentRating, setCurrentRating] = useState(null)
   const textareaRef = useRef(null)
+  const { success, info } = useToast()
 
   /* Load reviews */
   useEffect(() => {
@@ -156,12 +158,14 @@ export default function ReviewCard({ movieId, movieTitle }) {
     addReview(movieId, inputText, freshRating)
     setInputText('')
     setReviews(getMovieReviews(movieId))
+    success(`✓ Review submitted for "${movieTitle}"!`, { duration: 3200 })
   }
 
   function handleDelete(e, id) {
     e.stopPropagation()
     deleteReview(id)
     setReviews(getMovieReviews(movieId))
+    info('Review deleted', { duration: 2500 })
   }
 
   function handleEditSave(e, id) {
@@ -171,6 +175,7 @@ export default function ReviewCard({ movieId, movieTitle }) {
     setEditingId(null)
     setEditText('')
     setReviews(getMovieReviews(movieId))
+    success('✏️ Review updated!', { duration: 2500 })
   }
 
   function startEdit(e, rev) {

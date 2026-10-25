@@ -11,7 +11,8 @@ plus an optional `rank` prop.
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
+import { useWatchlist } from '../../context/index.js'
+import { useToast } from '../../components/common/Toast/index.js'
 import { isLiked, toggleLike } from '../../utils/likes.js'
 import styles from './AnimeCard.module.css'
 
@@ -70,23 +71,21 @@ export default function AnimeCard({ movie, rank }) {
   //Use movie.id for storage — this is the normalised ID (e.g. 'fb-5114' or '5114')
   const itemId = movie?.id
 
-  const [inWatchlist,  setInWatchlist]  = useState(false)
+  const { isInWatchlist, toggleWatchlist } = useWatchlist()
+  const { success, info } = useToast()
+  const inWatchlist = isInWatchlist(itemId)
+
   const [liked,        setLiked]        = useState(false)
   const [likeAnimate,  setLikeAnimate]  = useState(false)
 
   useEffect(() => {
     if (!itemId) return
-    setInWatchlist(isInWatchlist(itemId))
     setLiked(isLiked(itemId))
 
-    const handleWatchlistUpdate = () => setInWatchlist(isInWatchlist(itemId))
-    const handleLikesUpdate     = () => setLiked(isLiked(itemId))
-
-    window.addEventListener('watchlistUpdated', handleWatchlistUpdate)
-    window.addEventListener('likesUpdated',     handleLikesUpdate)
+    const handleLikesUpdate = () => setLiked(isLiked(itemId))
+    window.addEventListener('likesUpdated', handleLikesUpdate)
     return () => {
-      window.removeEventListener('watchlistUpdated', handleWatchlistUpdate)
-      window.removeEventListener('likesUpdated',     handleLikesUpdate)
+      window.removeEventListener('likesUpdated', handleLikesUpdate)
     }
   }, [itemId])
 
@@ -114,14 +113,26 @@ export default function AnimeCard({ movie, rank }) {
 
   const handleWatchlistToggle = (e) => {
     e.stopPropagation()
+    const wasInWatchlist = isInWatchlist(itemId)
     toggleWatchlist(movie)
+    if (wasInWatchlist) {
+      info(`Removed '${movie.title}' from your Watchlist`, { duration: 2800 })
+    } else {
+      success(`Added '${movie.title}' to your Watchlist ✨`, { duration: 3000 })
+    }
   }
 
   const handleLikeToggle = (e) => {
     e.stopPropagation()
+    const wasLiked = liked
     toggleLike(movie)
     setLikeAnimate(true)
     setTimeout(() => setLikeAnimate(false), 400)
+    if (wasLiked) {
+      info(`Unliked '${movie.title}'`, { duration: 2200 })
+    } else {
+      success(`❤️ Liked '${movie.title}'!`, { duration: 2500 })
+    }
   }
 
   if (!movie) return null

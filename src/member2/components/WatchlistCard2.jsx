@@ -11,7 +11,7 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isInWatchlist } from '../../utils/watchlist.js'
+import { useWatchlist } from '../../context/index.js'
 import Rating from './Rating.jsx'
 import ReviewCard from './ReviewCard.jsx'
 import styles from './WatchlistCard2.module.css'
@@ -86,6 +86,7 @@ export default function WatchlistCard2({
   removeLabel = 'Remove from Watchlist',
 }) {
   const navigate = useNavigate()
+  const { isInWatchlist } = useWatchlist()
 
   const id          = show?.id
   const title       = show?.name || show?.title || 'Unknown'
@@ -98,15 +99,7 @@ export default function WatchlistCard2({
   const duration    = runtime ? (String(runtime).includes('min') || String(runtime).includes('h') ? runtime : `${runtime} min`) : null
   const watchedDate = show?.watchedDate       ?? null
 
-  const [inWatchlist, setInWatchlist] = useState(false)
-
-  useEffect(() => {
-    setInWatchlist(isInWatchlist(id?.toString()))
-
-    const handleUpdate = () => setInWatchlist(isInWatchlist(id?.toString()))
-    window.addEventListener('watchlistUpdated', handleUpdate)
-    return () => window.removeEventListener('watchlistUpdated', handleUpdate)
-  }, [id])
+  const inWatchlist = isInWatchlist(id)
 
   const imageUrl = poster || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80'
 

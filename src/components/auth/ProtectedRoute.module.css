@@ -1,0 +1,55 @@
+/* ─── ProtectedRoute — Auth Gate Loading Screen ─── */
+
+.loadingScreen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: #0a0a12;
+}
+
+/* Outer glowing ring */
+.spinnerRing {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #7c3aed 0%,
+    #a855f7 40%,
+    transparent 60%
+  );
+  animation: spinRing 0.9s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 24px rgba(124, 58, 237, 0.5);
+}
+
+@keyframes spinRing {
+  to { transform: rotate(360deg); }
+}
+
+/* Inner dark circle — cuts out the gradient to make a ring */
+.spinnerInner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #0a0a12;
+}
+
+.loadingText {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.90; }
+}
