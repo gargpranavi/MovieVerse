@@ -11,9 +11,9 @@ plus an optional `rank` prop.
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
-import { isWatched, toggleWatched } from '../../utils/watched.js'
-import { isLiked, toggleLike } from '../../utils/likes.js'
+import { isInWatchlist, toggleWatchlist } from '../../../utils/watchlist.js'
+import { isWatched, toggleWatched } from '../../../utils/watched.js'
+import { isLiked, toggleLike } from '../../../utils/likes.js'
 import styles from './AnimeCard.module.css'
 
 /*Icons(identical to MovieCard)*/

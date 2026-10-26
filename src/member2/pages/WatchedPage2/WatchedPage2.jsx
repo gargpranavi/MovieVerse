@@ -15,12 +15,12 @@
 
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import DashboardLayout   from '../../components/layout/DashboardLayout.jsx'
-import WatchlistCard2    from '../components/WatchlistCard2.jsx'
-import StatusBadge2      from '../components/StatusBadge2.jsx'
+import DashboardLayout   from '../../../components/layout/DashboardLayout.jsx'
+import WatchlistCard2    from '../../components/WatchlistCard2/WatchlistCard2.jsx'
+import StatusBadge2      from '../../components/StatusBadge2/StatusBadge2.jsx'
 import styles            from './WatchedPage2.module.css'
-import { getWatched, removeFromWatched } from '../../utils/watched.js'
-import { addToWatchlist } from '../../utils/watchlist.js'
+import { getWatched, removeFromWatched } from '../../../utils/watched.js'
+import { addToWatchlist } from '../../../utils/watchlist.js'
 
 function loadRatings() {
   try {

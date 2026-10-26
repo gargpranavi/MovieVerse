@@ -67,11 +67,13 @@ export function getSession() {
 /** Persists a session object (called internally after sign-in / sign-up). */
 function saveSession(session) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('authUpdated'))
 }
 
 /** Removes the session (sign-out). */
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY)
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('authUpdated'))
 }
 
 /**

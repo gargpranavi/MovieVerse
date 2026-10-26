@@ -9,14 +9,14 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
-import AnimeCarousel from '../components/AnimeCarousel.jsx'
-import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
-import { isWatched, addToWatched, removeFromWatched, getWatchedDate } from '../../utils/watched.js'
-import { getUserRating, saveUserRating, getUserReview, saveUserReview } from '../../utils/reviews.js'
-import { isLiked, toggleLike } from '../../utils/likes.js'
-import { fallbackAnime, findFallbackById } from '../data/animeData.js'
+import DashboardLayout from '../../../components/layout/DashboardLayout.jsx'
+import AnimeCarousel from '../../components/AnimeCarousel/AnimeCarousel.jsx'
+import VideoPlayerModal from '../../../components/VideoPlayerModal/VideoPlayerModal.jsx'
+import { isInWatchlist, toggleWatchlist } from '../../../utils/watchlist.js'
+import { isWatched, addToWatched, removeFromWatched, getWatchedDate } from '../../../utils/watched.js'
+import { getUserRating, saveUserRating, getUserReview, saveUserReview } from '../../../utils/reviews.js'
+import { isLiked, toggleLike } from '../../../utils/likes.js'
+import { fallbackAnime, findFallbackById } from '../../data/animeData.js'
 import styles from './AnimeDetailsPage.module.css'
 
 /*Icons*/

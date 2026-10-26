@@ -11,9 +11,9 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isInWatchlist } from '../../utils/watchlist.js'
-import Rating from './Rating.jsx'
-import ReviewCard from './ReviewCard.jsx'
+import { isInWatchlist } from '../../../utils/watchlist.js'
+import Rating from '../Rating/Rating.jsx'
+import ReviewCard from '../ReviewCard/ReviewCard.jsx'
 import styles from './WatchlistCard2.module.css'
 
 /*Icons*/

@@ -23,7 +23,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import MovieCard from '../../components/MovieCard/MovieCard.jsx'
-import MovieSkeletonCard from '../../member2/components/MovieSkeletonCard.jsx'
+import MovieSkeletonCard from '../../member2/components/MovieSkeletonCard/MovieSkeletonCard.jsx'
 import { useInfiniteMovies } from '../../member2/hooks/useInfiniteMovies.js'
 import styles from './MoviesPage.module.css'
 

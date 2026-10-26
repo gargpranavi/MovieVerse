@@ -2,6 +2,6 @@
 MovieVerse – watchlist2.css
 Member 2 | Day 2 Watchlist Styles Entry*/
 
-@import '../pages/WatchlistPage2.module.css';
-@import '../components/WatchlistCard2.module.css';
-@import '../components/EmptyState2.module.css';
+@import '../pages/WatchlistPage2/WatchlistPage2.module.css';
+@import '../components/WatchlistCard2/WatchlistCard2.module.css';
+@import '../components/EmptyState2/EmptyState2.module.css';

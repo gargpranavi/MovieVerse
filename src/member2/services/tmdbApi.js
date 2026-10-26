@@ -46,7 +46,18 @@ import { shows as localShows } from '../../data/index.js'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const TMDB_BASE      = 'https://api.themoviedb.org/3'
+const TMDB_BASE = (
+  import.meta.env.VITE_TMDB_BASE_URL && import.meta.env.VITE_TMDB_BASE_URL !== 'https://api.themoviedb.org/3'
+    ? import.meta.env.VITE_TMDB_BASE_URL
+    : (import.meta.env.DEV ? '/tmdb-proxy/3' : 'https://api.themoviedb.org/3')
+)
+
+function getBaseOrigin() {
+  return typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : 'http://localhost:5173'
+}
+
 const IMAGE_BASE_W92  = 'https://image.tmdb.org/t/p/w92'
 const IMAGE_BASE_W185 = 'https://image.tmdb.org/t/p/w185'
 const IMAGE_BASE_W500 = 'https://image.tmdb.org/t/p/w500'
@@ -360,13 +371,16 @@ async function tmdbFetch({
   }
 
   //  3. Build URL 
-  const url = new URL(`${TMDB_BASE}${endpoint}`)
+  const url = new URL(`${TMDB_BASE}${endpoint}`, getBaseOrigin())
   // Defaults that all endpoints benefit from
   url.searchParams.set('language', 'en-US')
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)))
 
-  //  4–6. Fetch + error handling 
+  //  4–6. Fetch + error handling with 6s timeout guard
   let json
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 12000)
+
   try {
     const res = await fetch(url.toString(), {
       headers: {
@@ -374,7 +388,9 @@ async function tmdbFetch({
         'Content-Type': 'application/json',
         Accept:         'application/json',
       },
+      signal: controller.signal,
     })
+    clearTimeout(timeoutId)
 
     if (!res.ok) {
       // Attempt to read TMDB's own error message
@@ -397,7 +413,8 @@ async function tmdbFetch({
 
     json = await res.json()
   } catch (networkErr) {
-    // Network failure (offline, CORS, DNS)
+    clearTimeout(timeoutId)
+    const isTimeout = networkErr?.name === 'AbortError'
     return {
       success:    false,
       data:       [],
@@ -405,7 +422,9 @@ async function tmdbFetch({
       isFallback: false,
       page:       null,
       totalPages: null,
-      error:      `Network error: ${networkErr?.message || 'Failed to reach TMDB'}`,
+      error:      isTimeout
+        ? 'Request timed out — TMDB is unreachable.'
+        : `Network error: ${networkErr?.message || 'Failed to reach TMDB'}`,
     }
   }
 
@@ -809,13 +828,16 @@ export async function searchMovies(query, page = 1) {
     }
   }
 
-  const url = new URL(`${TMDB_BASE}/search/multi`)
+  const url = new URL(`${TMDB_BASE}/search/multi`, getBaseOrigin())
   url.searchParams.set('query',    query.trim())
   url.searchParams.set('page',     String(page))
   url.searchParams.set('language', 'en-US')
   url.searchParams.set('include_adult', 'false')
 
   let json
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 6000)
+
   try {
     const res = await fetch(url.toString(), {
       headers: {
@@ -823,12 +845,15 @@ export async function searchMovies(query, page = 1) {
         'Content-Type': 'application/json',
         Accept:         'application/json',
       },
+      signal: controller.signal,
     })
+    clearTimeout(timeoutId)
     if (!res.ok) {
       throw new Error(`TMDB HTTP ${res.status}: ${res.statusText}`)
     }
     json = await res.json()
   } catch (err) {
+    clearTimeout(timeoutId)
     // Fallback: filter local shows by title
     const q = query.toLowerCase()
     const localMatches = localShows.filter(s => s.title.toLowerCase().includes(q))

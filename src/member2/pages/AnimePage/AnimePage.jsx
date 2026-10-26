@@ -9,9 +9,9 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
-import AnimeCarousel from '../components/AnimeCarousel.jsx'
-import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
+import DashboardLayout from '../../../components/layout/DashboardLayout.jsx'
+import AnimeCarousel from '../../components/AnimeCarousel/AnimeCarousel.jsx'
+import VideoPlayerModal from '../../../components/VideoPlayerModal/VideoPlayerModal.jsx'
 import {
   fallbackAnime,
   fallbackMovies,
@@ -19,8 +19,8 @@ import {
   fallbackRomance,
   fallbackFantasy,
   fallbackComedy,
-} from '../data/animeData.js'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
+} from '../../data/animeData.js'
+import { isInWatchlist, toggleWatchlist } from '../../../utils/watchlist.js'
 import styles from './AnimePage.module.css'
 
 /*Icons*/

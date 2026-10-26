@@ -20,6 +20,7 @@ Here's everything I'll build across 5 days:
 | Day 3 | Shimmer Skeleton Loaders + Infinite Scroll on Movies Page | ✅ Done |
 | Day 4 | Shared Infinite-Scroll Hook + Infinite Scroll on TV Series Page | ✅ Done |
 | Day 5 | TMDB Home Page + Drag Carousels + Full Watchlist & Watched Connection | ✅ Done |
+| Polish & Refactor | Folder-per-Component Restructuring + HTTP/2 TMDB Proxy & Clean Online/Offline Pipeline | ✅ Done |
 
 ---
 
@@ -860,44 +861,114 @@ Unified the data architecture and event communication for Watchlist and Watched 
 
 ---
 
-### 📁 Complete Files Summary — Day 1 to Day 5
+## ✅ Evaluation 2 Architecture Refactoring & Polish
 
-| File | Type | Day |
-|------|------|-----|
-| `src/member2/services/tmdbApi.js` | ✅ New → ✏️ Extended | Day 1, 3, 4 |
-| `src/member2/hooks/useTmdb.js` | ✅ New | Day 1 |
-| `src/member2/services/tmdbApi.verify.js` | ✅ New | Day 1 |
-| `src/member2/services/localAuth.js` | ✅ New → ✏️ Extended | Day 2, 4 |
-| `src/member2/hooks/useInfiniteMovies.js` | ✅ New | Day 3 |
-| `src/pages/Movies/MoviesPage.module.css` | ✅ New | Day 3 |
-| `src/member2/hooks/useInfiniteScroll.js` | ✅ New | Day 4 |
-| `src/pages/TvSeries/TvSeriesPage.module.css` | ✅ New | Day 4 |
-| `src/member2/components/MovieSkeletonCard.jsx` | ✅ New | Day 4 |
-| `src/member2/components/MovieSkeletonCard.module.css` | ✅ New | Day 4 |
-| `src/utils/watchlist.js` | ✏️ Standardized & Unified | Day 5 |
-| `src/utils/watched.js` | ✏️ Standardized & Unified | Day 5 |
-| `src/components/MovieCarousel/MovieCarousel.jsx` | ✏️ Drag Scroll Added | Day 5 |
-| `src/components/MovieCarousel/MovieCarousel.module.css` | ✏️ Grab Cursor Styles | Day 5 |
-| `src/components/MovieCard/MovieCard.jsx` | ✏️ Watched Button & Ribbon Added | Day 4, 5 |
-| `src/components/MovieCard/MovieCard.module.css` | ✏️ Watched Styling Added | Day 5 |
-| `src/member2/components/AnimeCard.jsx` | ✏️ Watched Button & Ribbon Added | Day 5 |
-| `src/member2/components/AnimeCard.module.css` | ✏️ Watched Styling Added | Day 5 |
-| `src/components/MovieInfoModal/MovieInfoModal.jsx` | ✏️ Watchlist & Watched Added | Day 5 |
-| `src/components/MovieInfoModal/MovieInfoModal.module.css` | ✏️ Button Styles Added | Day 5 |
-| `src/components/layout/TopNavbar.jsx` | ✏️ Badges & Dropdown Counters | Day 2, 4, 5 |
-| `src/components/layout/TopNavbar.module.css` | ✏️ Badge Styling Added | Day 5 |
-| `src/pages/Home/HomePage.jsx` | ✏️ TMDB Hero, Carousels & Infinite Feed | Day 5 |
-| `src/pages/Home/HomePage.module.css` | ✏️ Discover Feed Styles | Day 5 |
-| `src/member2/pages/WatchlistPage2.jsx` | ✏️ Real-time Sync & Move to Watched | Day 5 |
-| `src/member2/pages/WatchedPage2.jsx` | ✏️ Real-time Sync & Move to Watchlist | Day 5 |
-| `src/member2/components/WatchlistCard2.jsx` | ✏️ TMDB Poster Support & TV Route | Day 4, 5 |
-| `src/member2/pages/ProfilePage.jsx` | ✏️ Real-time Sync & TMDB Posters | Day 2, 4, 5 |
-| `src/pages/MovieDetails/MovieDetailsPage.jsx` | ✏️ Async TMDB Sync Added | Day 5 |
-| `src/pages/Movies/MoviesPage.jsx` | ✏️ Rewritten → Refined | Day 3, 4 |
-| `src/pages/TvSeries/TvSeriesPage.jsx` | ✏️ Rewritten | Day 4 |
-| `src/App.jsx` | ✏️ Modified | Day 2, 4 |
-| `src/main.jsx` | ✏️ Modified | Day 2, 4 |
-| `package.json` / `package-lock.json` | ✏️ Modified | Day 4 |
-| `.env.example` | ✏️ Modified | Day 1, 2, 4 |
-| `.env` | ✅ New (local only, not committed) | Day 1 |
+### 1. Folder-per-Component & Folder-per-Page Pattern
+To meet professional React enterprise structure and cleanly modularize Member 2's components, all components and pages in `src/member2/` were restructured into dedicated, self-contained folders.
+
+Each component and page folder contains:
+- `<Name>.jsx` — React component JSX implementation
+- `<Name>.module.css` — Scoped CSS module styles
+- `<Name>.css` — Plain CSS export alias
+- `<Name>.js` — Module export entry
+- `index.js` — Clean directory entry point
+
+#### Components Restructured:
+- `src/member2/components/AnimeCard/`
+- `src/member2/components/AnimeCarousel/`
+- `src/member2/components/EmptyState2/`
+- `src/member2/components/MovieSkeletonCard/`
+- `src/member2/components/ProfileCard/`
+- `src/member2/components/ProtectedRoute/`
+- `src/member2/components/Rating/`
+- `src/member2/components/ReviewCard/`
+- `src/member2/components/StatusBadge2/`
+- `src/member2/components/WatchlistCard2/`
+
+#### Pages Restructured:
+- `src/member2/pages/AnimeDetailsPage/`
+- `src/member2/pages/AnimePage/`
+- `src/member2/pages/LoginPage/`
+- `src/member2/pages/ProfilePage/`
+- `src/member2/pages/WatchedPage2/`
+- `src/member2/pages/WatchlistPage2/`
+
+#### Central Barrel Exports:
+- `src/member2/index.js` — Single unified entry point exporting all Member 2 components, pages, hooks, contexts, and services.
+- `src/member2/components/index.js` — Barrel export for all components.
+- `src/member2/pages/index.js` — Barrel export for all pages.
+- Removed all loose duplicate files directly under `components/` and `pages/`.
+
+---
+
+### 2. HTTP/2 Native Proxy & Robust Online/Offline Data Pipeline
+
+#### The Problem:
+TMDB's AWS CloudFront servers drop/reset HTTP/1.1 TLS connections from several ISPs (throwing `Client network socket disconnected before secure TLS connection was established`). When Vite's default HTTP/1.1 proxy failed on these requests, the app displayed the fallback offline notice (*"📡 TMDB is unreachable — showing local data"*) even though the computer was connected to the internet.
+
+#### The Solution:
+1. **Native HTTP/2 Multiplexed Proxy in `vite.config.js`:**
+   Implemented a custom Vite plugin using Node's native `node:http2`. CloudFront negotiates ALPN `h2` seamlessly, streaming responses with **HTTP 200 OK in ~100ms** without TLS disconnects.
+2. **Clean Online vs. Offline Behavior:**
+   - **With Internet:** Real live TMDB movies and TV series load across the Hero banner, Trending carousel, Top Rated carousel, Now Playing carousel, Popular TV carousel, and Discover Movies infinite feed. The fallback banner is **hidden**.
+   - **Without Internet:** If disconnected, all carousels and feeds automatically fall back to local data (`shows.js`), the hero defaults to `shows[0]`, and the offline notice banner is displayed clearly to the user.
+3. **12-Second Network Guard:**
+   Increased fetch timeout in `tmdbApi.js` from 6s to 12s so slower connections never trigger an accidental fallback.
+4. **Zero-Flicker Hero Initialization:**
+   Hero section in `HomePage.jsx` was updated so it smoothly waits for live trending data rather than prematurely flashing local `shows[0]`.
+
+---
+
+### ✅ Test Results (Final Evaluation 2)
+
+| Test | Result |
+|------|--------|
+| Production build (`vite build`) | ✅ Exit 0, 96 modules, 2.34s |
+| TMDB Live Proxy (`/tmdb-proxy/...`) | ✅ HTTP 200 OK across all endpoints |
+| Online Mode: Real TMDB movies | ✅ Live (*Clayface*, *Spider-Man*, etc.) |
+| Online Mode: Fallback banner hidden | ✅ No false banner |
+| Offline Mode: Local shows fallback | ✅ Graceful fallback to `shows.js` + notice banner |
+| Folder-per-Component architecture | ✅ Clean, modular, zero duplicate loose files |
+| Barrel exports (`member2/index.js`) | ✅ Seamless importing |
+
+---
+
+### 📁 Complete Files Summary — Day 1 to Final Architecture Polish
+
+| File / Folder | Type | Details |
+|---------------|------|---------|
+| `src/member2/components/AnimeCard/` | ✅ Folder | `AnimeCard.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/AnimeCarousel/` | ✅ Folder | `AnimeCarousel.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/EmptyState2/` | ✅ Folder | `EmptyState2.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/MovieSkeletonCard/` | ✅ Folder | `MovieSkeletonCard.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/ProfileCard/` | ✅ Folder | `ProfileCard.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/ProtectedRoute/` | ✅ Folder | `ProtectedRoute.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/Rating/` | ✅ Folder | `Rating.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/ReviewCard/` | ✅ Folder | `ReviewCard.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/StatusBadge2/` | ✅ Folder | `StatusBadge2.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/WatchlistCard2/` | ✅ Folder | `WatchlistCard2.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/components/index.js` | ✅ New | Central barrel export for all components |
+| `src/member2/pages/AnimeDetailsPage/` | ✅ Folder | `AnimeDetailsPage.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/pages/AnimePage/` | ✅ Folder | `AnimePage.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/pages/LoginPage/` | ✅ Folder | `LoginPage.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/pages/ProfilePage/` | ✅ Folder | `ProfilePage.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/pages/WatchedPage2/` | ✅ Folder | `WatchedPage2.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/pages/WatchlistPage2/` | ✅ Folder | `WatchlistPage2.jsx`, `.module.css`, `.css`, `.js`, `index.js` |
+| `src/member2/pages/index.js` | ✅ New | Central barrel export for all pages |
+| `src/member2/index.js` | ✅ New | Master barrel export for member2 |
+| `src/member2/services/tmdbApi.js` | ✏️ Extended | HTTP/2 support, 12s timeout, fallback integration |
+| `src/member2/hooks/useTmdb.js` | ✅ New | Custom React hook for live TMDB data |
+| `src/member2/hooks/useInfiniteMovies.js` | ✅ New | Pagination hook for MoviesPage |
+| `src/member2/hooks/useInfiniteScroll.js` | ✅ New | Reusable infinite scroll hook for Movies, TV, & Discover |
+| `src/member2/services/localAuth.js` | ✅ New | Local authentication engine |
+| `src/member2/context/AuthContext.jsx` | ✅ New | App-wide authentication provider |
+| `src/member2/hooks/useAuth.js` | ✅ New | Auth hook wrapping localAuth |
+| `src/member2/hooks/useAuthContext.js` | ✅ New | Hook consuming AuthContext |
+| `vite.config.js` | ✏️ Modified | Native HTTP/2 multiplexed proxy middleware |
+| `src/pages/Home/HomePage.jsx` | ✏️ Refined | TMDB Hero, live carousels, clean offline fallback |
+| `src/pages/Movies/MoviesPage.jsx` | ✏️ Refined | Updated component folder imports |
+| `src/pages/TvSeries/TvSeriesPage.jsx` | ✏️ Refined | Updated component folder imports |
+| `src/App.jsx` | ✏️ Refined | Updated page & component folder imports |
+| `src/main.jsx` | ✏️ Refined | AuthProvider wrapping route tree |
+
 

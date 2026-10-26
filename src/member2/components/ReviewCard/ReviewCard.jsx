@@ -11,7 +11,7 @@ Props:
 */
 
 import { useState, useEffect, useRef } from 'react'
-import Rating, { getMovieRating } from './Rating.jsx'
+import Rating, { getMovieRating } from '../Rating/Rating.jsx'
 import styles from './ReviewCard.module.css'
 
 /*localStorage helpers*/

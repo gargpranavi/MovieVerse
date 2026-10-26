@@ -23,14 +23,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
-import WatchlistCard2 from '../components/WatchlistCard2.jsx'
-import EmptyState2     from '../components/EmptyState2.jsx'
+import DashboardLayout from '../../../components/layout/DashboardLayout.jsx'
+import WatchlistCard2 from '../../components/WatchlistCard2/WatchlistCard2.jsx'
+import EmptyState2     from '../../components/EmptyState2/EmptyState2.jsx'
 import styles          from './WatchlistPage2.module.css'
 
-import { shows } from '../../data/index.js'
-import { getWatchlist, saveWatchlist, removeFromWatchlist } from '../../utils/watchlist.js'
-import { addToWatched } from '../../utils/watched.js'
+import { shows } from '../../../data/index.js'
+import { getWatchlist, saveWatchlist, removeFromWatchlist } from '../../../utils/watchlist.js'
+import { addToWatched } from '../../../utils/watched.js'
 
 /* Default show IDs 
    These 6 popular shows are seeded into watchlist if user has not removed them.

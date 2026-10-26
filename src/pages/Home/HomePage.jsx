@@ -13,7 +13,7 @@ import MovieCarousel      from '../../components/MovieCarousel/MovieCarousel.jsx
 import VideoPlayerModal   from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
 import MovieInfoModal     from '../../components/MovieInfoModal/MovieInfoModal.jsx'
 import MovieCard          from '../../components/MovieCard/MovieCard.jsx'
-import MovieSkeletonCard  from '../../member2/components/MovieSkeletonCard.jsx'
+import MovieSkeletonCard  from '../../member2/components/MovieSkeletonCard/MovieSkeletonCard.jsx'
 import { getWatchlist, isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
 import { getWatched }     from '../../utils/watched.js'
 import { shows }          from '../../data/index.js'
@@ -153,9 +153,9 @@ export default function HomePage() {
     isFallback: popularTVFallback,
   } = useTmdb(fetchPopularTvShows, [1])
 
-  // Hero uses first trending movie; falls back to local shows[0] while loading
-  const featured   = trending[0] ?? shows[0]
-  const anyFallback = trendingFallback || topRatedFallback || nowPlayingFallback || popularTVFallback
+  // Hero uses first trending movie when available; only falls back to local shows[0] if offline
+  const featured = trending[0] ?? (trendingFallback ? shows[0] : null)
+  const isOffline = trendingFallback && topRatedFallback
 
   useEffect(() => {
     if (!featured) return
@@ -401,7 +401,7 @@ export default function HomePage() {
         <div className={styles.content}>
 
           {/* Fallback notice when offline */}
-          {anyFallback && <FallbackBanner />}
+          {isOffline && <FallbackBanner />}
 
           {/* Trending This Week */}
           {trendingLoading

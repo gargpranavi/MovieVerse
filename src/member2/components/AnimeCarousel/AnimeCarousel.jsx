@@ -7,7 +7,7 @@ renders AnimeCard instead of MovieCard.
 */
 
 import { useRef, useState } from 'react'
-import AnimeCard from './AnimeCard.jsx'
+import AnimeCard from '../AnimeCard/AnimeCard.jsx'
 import styles from './AnimeCarousel.module.css'
 
 function ChevronLeftIcon() {

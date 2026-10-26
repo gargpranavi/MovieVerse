@@ -21,7 +21,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import MovieCard from '../../components/MovieCard/MovieCard.jsx'
-import MovieSkeletonCard from '../../member2/components/MovieSkeletonCard.jsx'
+import MovieSkeletonCard from '../../member2/components/MovieSkeletonCard/MovieSkeletonCard.jsx'
 import { useInfiniteScroll } from '../../member2/hooks/useInfiniteScroll.js'
 import {
   fetchPopularTvShows,

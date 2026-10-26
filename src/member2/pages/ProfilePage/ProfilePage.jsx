@@ -18,10 +18,10 @@
 
 import { useState, useEffect } from 'react'
 import { Link }                from 'react-router-dom'
-import DashboardLayout         from '../../components/layout/DashboardLayout.jsx'
-import ProfileCard             from '../components/ProfileCard.jsx'
-import { mockUsers }           from '../data/users2.js'
-import { getSession }          from '../services/localAuth.js'
+import DashboardLayout         from '../../../components/layout/DashboardLayout.jsx'
+import ProfileCard             from '../../components/ProfileCard/ProfileCard.jsx'
+import { mockUsers }           from '../../data/users2.js'
+import { getSession }          from '../../services/localAuth.js'
 import styles                  from './ProfilePage.module.css'
 
 /* localStorage keys */
