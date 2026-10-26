@@ -1,41 +1,6 @@
-/*
-   MovieVerse – useInfiniteScroll.js
-   Member 2 | Day 4 — Generic infinite-scroll pagination hook.
-
-   This hook is the shared core used by both the Movies page and the
-   TV Series page. It accepts a map of { categoryKey → fetchFn } so
-   each page can define its own categories without duplicating any logic.
-
-   Design goals (same as Day 3 useInfiniteMovies):
-   ─────────────────────────────────────────────────
-   • Single active request guard (loadingRef) — prevents concurrent fetches
-     from rapid IntersectionObserver callbacks or React StrictMode double-invokes.
-   • AbortController cancels in-flight requests when the category changes
-     or the component unmounts, preventing stale state updates.
-   • fetchedPages Set tracks already-requested pages to ensure idempotency.
-   • seenIds Set deduplicates items across pages.
-   • Category change → full state reset (page counter, accumulated list, flags).
-   • Fallback data: if the API is unavailable the local fallback is served once;
-     hasMore is immediately set false so no further requests are attempted.
-   • Never throws — all errors are surfaced as { error } state.
-   • retry() re-attempts the last failed page without resetting loaded items.
-
-   Returns
-   ───────
-   {
-     items       : NormalisedShow[]  – accumulated list across all pages
-     loading     : boolean
-     initialLoad : boolean           – true until the very first page resolves
-     error       : string|null
-     hasMore     : boolean
-     isFallback  : boolean
-     loadMore    : () => void
-     retry       : () => void
-     totalPages  : number|null
-     currentPage : number
-   }
-*/
-
+// I used useRef in infinite scrolling to track request 
+// status and prevent duplicate
+// requests without causing unnecessary re-renders.
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 /**
@@ -120,7 +85,7 @@ export function useInfiniteScroll(fetchFnMap, category, fallbackFetchFn) {
         page, totalPages: null,
       }
     }
-
+    
     // Stale-check: category changed while this request was in-flight
     if (categoryRef.current !== cat || controller.signal.aborted) {
       loadingRef.current = false
