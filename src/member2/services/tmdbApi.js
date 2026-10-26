@@ -798,15 +798,12 @@ export async function searchMovies(query, page = 1) {
 
   const apiKey = getApiKey()
   if (!apiKey) {
-    return {
-      success:    false,
-      data:       [],
-      source:     'error',
-      isFallback: false,
-      page:       null,
-      totalPages: null,
-      error:      'TMDB API key not configured. Add VITE_TMDB_API_KEY to .env',
-    }
+    const q = query.toLowerCase()
+    const localMatches = localShows.filter(s =>
+      s.title.toLowerCase().includes(q) ||
+      (s.genres && s.genres.some(g => g.toLowerCase().includes(q)))
+    )
+    return buildFallbackResult('TMDB API key not configured', localMatches)
   }
 
   const url = new URL(`${TMDB_BASE}/search/multi`)
@@ -850,3 +847,6 @@ export async function searchMovies(query, page = 1) {
     error:      null,
   }
 }
+
+export const searchMulti = searchMovies
+

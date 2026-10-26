@@ -12,8 +12,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import AnimeCarousel from '../components/AnimeCarousel.jsx'
 import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
-import { isWatched, addToWatched, removeFromWatched, getWatchedDate } from '../../utils/watched.js'
+import { useWatchlist } from '../../context/index.js'
+import { useToast } from '../../components/common/Toast/index.js'
+
 import { getUserRating, saveUserRating, getUserReview, saveUserReview } from '../../utils/reviews.js'
 import { isLiked, toggleLike } from '../../utils/likes.js'
 import { fallbackAnime, findFallbackById } from '../data/animeData.js'
@@ -58,11 +59,24 @@ export default function AnimeDetailsPage() {
     .slice(0, 8)
 
   // User interaction state
-  const [inWatchlist,  setInWatchlist]  = useState(false)
-  const [watchedState, setWatchedState] = useState(false)
-  const [watchedDate,  setWatchedDate]  = useState(null)
   const [liked,        setLiked]        = useState(false)
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
+
+  // ── Context ──────────────────────────────────────────────────────────────
+  const {
+    isInWatchlist,
+    toggleWatchlist,
+    isWatched,
+    addToWatched,
+    removeFromWatched,
+    getWatchedDate,
+  } = useWatchlist()
+  const { toast } = useToast()
+
+  // Derive watchlist/watched state reactively from context
+  const inWatchlist  = anime ? isInWatchlist(anime.id) : false
+  const watchedState = anime ? isWatched(anime.id)     : false
+  const watchedDate  = anime ? getWatchedDate(anime.id): null
 
   // Rating & Review
   const [userRating,       setUserRating]      = useState(0)
@@ -71,12 +85,9 @@ export default function AnimeDetailsPage() {
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false)
   const [hoverStar,        setHoverStar]        = useState(0)
 
-  // Initialise from localStorage when anime id changes (same as MovieDetailsPage)
+  // Initialise rating/review from localStorage when anime id changes
   useEffect(() => {
     if (!anime) return
-    setInWatchlist(isInWatchlist(anime.id))
-    setWatchedState(isWatched(anime.id))
-    setWatchedDate(getWatchedDate(anime.id))
     setLiked(isLiked(anime.id))
     setUserRating(getUserRating(anime.id) || 0)
 
@@ -85,28 +96,27 @@ export default function AnimeDetailsPage() {
     else { setSavedReview(null); setReviewText('') }
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Real-time watchlist sync
-  useEffect(() => {
-    if (!anime) return
-    const handle = () => setInWatchlist(isInWatchlist(anime.id))
-    window.addEventListener('watchlistUpdated', handle)
-    return () => window.removeEventListener('watchlistUpdated', handle)
-  }, [anime])
-
   // Handlers
-  const handleWatchlistToggle = () => { if (anime) toggleWatchlist(anime) }
+  const handleWatchlistToggle = () => {
+    if (!anime) return
+    const willAdd = !inWatchlist
+    toggleWatchlist(anime)
+    if (willAdd) {
+      toast.addedToWatchlist(anime.title)
+    } else {
+      toast.info(`Removed '${anime.title}' from Watchlist`)
+    }
+  }
 
   const handleWatchedToggle = () => {
     if (!anime) return
     if (watchedState) {
       removeFromWatched(anime.id)
-      setWatchedState(false)
-      setWatchedDate(null)
+      toast.info(`Removed '${anime.title}' from Watched`)
     } else {
       const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
       addToWatched(anime, dateStr)
-      setWatchedState(true)
-      setWatchedDate(dateStr)
+      toast.markedAsWatched(anime.title)
     }
   }
 
@@ -132,6 +142,7 @@ export default function AnimeDetailsPage() {
       movieTitle: anime.title,
     })
     setIsReviewFormOpen(false)
+    toast.reviewSubmitted()
   }
 
   //Not found (mirrors MovieDetailsPage) */

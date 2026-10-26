@@ -7,7 +7,7 @@
    No API calls. No loading states. Instant render.
 */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import AnimeCarousel from '../components/AnimeCarousel.jsx'
@@ -20,7 +20,8 @@ import {
   fallbackFantasy,
   fallbackComedy,
 } from '../data/animeData.js'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
+import { useWatchlist } from '../../context/index.js'
+import { useToast } from '../../components/common/Toast/index.js'
 import styles from './AnimePage.module.css'
 
 /*Icons*/
@@ -84,19 +85,24 @@ const comedyList  = fallbackComedy.slice(0, 10)
 */
 export default function AnimePage() {
   const navigate = useNavigate()
+  const { isInWatchlist, toggleWatchlist } = useWatchlist()
+  const { toast } = useToast()
 
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
-  const [inWatchlist,  setInWatchlist]  = useState(false)
 
-  // Sync watchlist button state
-  useEffect(() => {
-    setInWatchlist(isInWatchlist(featured.id))
-    const handle = () => setInWatchlist(isInWatchlist(featured.id))
-    window.addEventListener('watchlistUpdated', handle)
-    return () => window.removeEventListener('watchlistUpdated', handle)
-  }, [])
+  // Derive watchlist state reactively from context — no useEffect needed
+  const inWatchlist = isInWatchlist(featured.id)
 
-  const handleWatchlistToggle = () => toggleWatchlist(featured)
+  const handleWatchlistToggle = () => {
+    const willAdd = !inWatchlist
+    toggleWatchlist(featured)
+    const title = featured.title || 'Anime'
+    if (willAdd) {
+      toast.addedToWatchlist(title)
+    } else {
+      toast.info(`Removed '${title}' from Watchlist`)
+    }
+  }
   const handleMoreInfo        = () => navigate(`/anime/${featured.id}`)
 
   /*Hero image / fallback */

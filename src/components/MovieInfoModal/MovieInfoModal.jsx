@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
-import { isWatched, toggleWatched } from '../../utils/watched.js'
+import { useWatchlist } from '../../context/index.js'
+import { useToast } from '../common/Toast/index.js'
 import styles from './MovieInfoModal.module.css'
 
 function CloseIcon() {
@@ -61,24 +61,11 @@ function EyeIcon({ width = 18, height = 18, filled = false }) {
 }
 
 export default function MovieInfoModal({ isOpen, onClose, movie, onPlay }) {
-  const [inWatchlist, setInWatchlist] = useState(false)
-  const [watchedState, setWatchedState] = useState(false)
+  const { isInWatchlist, isWatched, toggleWatchlist, toggleWatched } = useWatchlist()
+  const { toast } = useToast()
 
-  useEffect(() => {
-    if (!movie) return
-    setInWatchlist(isInWatchlist(movie.id))
-    setWatchedState(isWatched(movie.id))
-
-    const handleWl = () => setInWatchlist(isInWatchlist(movie.id))
-    const handleWd = () => setWatchedState(isWatched(movie.id))
-
-    window.addEventListener('watchlistUpdated', handleWl)
-    window.addEventListener('watchedUpdated',   handleWd)
-    return () => {
-      window.removeEventListener('watchlistUpdated', handleWl)
-      window.removeEventListener('watchedUpdated',   handleWd)
-    }
-  }, [movie])
+  const inWatchlist = isInWatchlist(movie?.id)
+  const watchedState = isWatched(movie?.id)
 
   useEffect(() => {
     if (isOpen) {
@@ -100,11 +87,25 @@ export default function MovieInfoModal({ isOpen, onClose, movie, onPlay }) {
   const rating = movie.rating ? Number(movie.rating).toFixed(1) : null
 
   const handleWatchlistClick = () => {
+    const willAdd = !inWatchlist
     toggleWatchlist(movie)
+    const title = movie.title || 'Movie'
+    if (willAdd) {
+      toast.addedToWatchlist(title)
+    } else {
+      toast.info(`Removed '${title}' from Watchlist`)
+    }
   }
 
   const handleWatchedClick = () => {
+    const willMark = !watchedState
     toggleWatched(movie)
+    const title = movie.title || 'Movie'
+    if (willMark) {
+      toast.markedAsWatched(title)
+    } else {
+      toast.info(`Removed '${title}' from Watched`)
+    }
   }
 
   return (

@@ -1,16 +1,8 @@
 /*
    MovieVerse – WatchedPage2.jsx
    Member 2 | Watched Movies Page
-   Day 3 – Watched Movies System
-
-   localStorage keys
-   "movieverse_watched"  → Array of watched show objects (each has .watchedDate)
-
-   Flow
-   /watchlist → Mark as Watched → moves show to "movieverse_watched" in localStorage
-   /watched   → shows everything in "movieverse_watched"
-   Refresh    → watched list auto-loaded from localStorage 
-   Remove     → removed from "movieverse_watched" localStorage 
+   Refactored to use centralized WatchlistContext (useWatchlist hook)
+   instead of direct localStorage calls.
 */
 
 import { useState, useEffect } from 'react'
@@ -19,8 +11,8 @@ import DashboardLayout   from '../../components/layout/DashboardLayout.jsx'
 import WatchlistCard2    from '../components/WatchlistCard2.jsx'
 import StatusBadge2      from '../components/StatusBadge2.jsx'
 import styles            from './WatchedPage2.module.css'
-import { getWatched, removeFromWatched } from '../../utils/watched.js'
-import { addToWatchlist } from '../../utils/watchlist.js'
+import { useWatchlist }  from '../../context/index.js'
+import { useToast }      from '../../components/common/Toast/index.js'
 
 function loadRatings() {
   try {
@@ -63,51 +55,48 @@ function Toast({ message, visible }) {
 
 /* Main WatchedPage2 Component */
 export default function WatchedPage2() {
+  // ── Context ──────────────────────────────────────────────────────────────
+  const {
+    watchedHistory,
+    removeFromWatched,
+    addToWatchlist,
+  } = useWatchlist()
+  const { toast } = useToast()
 
-  /* State*/
-  const [watched,    setWatched]    = useState([])
-  const [search,     setSearch]     = useState('')
-  const [sortBy,     setSortBy]     = useState('date')   // date | rating | title
-  const [toast,      setToast]      = useState({ message: '', visible: false })
+  /* Local UI state */
+  const [search,  setSearch]  = useState('')
+  const [sortBy,  setSortBy]  = useState('date')   // date | rating | title
 
-  /* Load and sync watched list */
+  /* Merge ratings from localStorage into the context-driven watched list */
+  const [watchedWithRatings, setWatchedWithRatings] = useState([])
+
   useEffect(() => {
-    const syncWatched = () => {
-      const ratings = loadRatings()
-      const list = getWatched().map(show => {
-        const entry = ratings.find(r => r.movieId === String(show.id))
-        return entry ? { ...show, userRating: entry.rating } : show
-      })
-      setWatched(list)
-    }
+    const ratings = loadRatings()
+    const list = watchedHistory.map(show => {
+      const entry = ratings.find(r => r.movieId === String(show.id))
+      return entry ? { ...show, userRating: entry.rating } : show
+    })
+    setWatchedWithRatings(list)
+  }, [watchedHistory])
 
-    syncWatched()
-    window.addEventListener('watchedUpdated', syncWatched)
-    return () => window.removeEventListener('watchedUpdated', syncWatched)
-  }, [])
-
-  /* Toast helper*/
-  function showToast(msg) {
-    setToast({ message: msg, visible: true })
-    setTimeout(() => setToast(t => ({ ...t, visible: false })), 2800)
-  }
-
-  /* Remove from watched list*/
-  function handleRemove(id) {
+  /* Remove from watched list via context */
+  function handleRemove(id, title) {
     removeFromWatched(id)
-    showToast('Removed from Watched')
+    const showTitle = title || 'Show'
+    toast.info(`Removed '${showTitle}' from Watched`)
   }
 
-  /* Move back to Watchlist */
+  /* Move back to Watchlist via context */
   function handleMoveBack(show) {
     removeFromWatched(show.id)
     const { watchedDate: _wd, watchedAt: _wa, userRating: _ur, ...cleanShow } = show
     addToWatchlist(cleanShow)
-    showToast('↩ Moved back to Watchlist')
+    const showTitle = show.name || show.title || 'Show'
+    toast.addedToWatchlist(showTitle)
   }
 
   /* Filtered + sorted watched list */
-  const displayed = watched
+  const displayed = watchedWithRatings
     .filter(s =>
       ((s.name || s.title) ?? '').toLowerCase().includes(search.toLowerCase())
     )
@@ -118,6 +107,8 @@ export default function WatchedPage2() {
       if (sortBy === 'date')   return (b.watchedDate ?? '').localeCompare(a.watchedDate ?? '')
       return 0
     })
+
+  const watched = watchedWithRatings
 
   /* Render*/
   return (
@@ -245,9 +236,9 @@ export default function WatchedPage2() {
                 >
                   <WatchlistCard2
                     show={show}
-                    onRemove={handleRemove}
+                    onRemove={() => handleRemove(show.id, show.name || show.title)}
                     onMarkWatched={null}
-                    onMoveBack={handleMoveBack}
+                    onMoveBack={() => handleMoveBack(show)}
                     removeLabel="Remove from Watched"
                   />
                 </div>
@@ -255,9 +246,6 @@ export default function WatchedPage2() {
             </div>
           )}
         </main>
-
-        {/* Toast */}
-        <Toast message={toast.message} visible={toast.visible} />
       </div>
     </DashboardLayout>
   )

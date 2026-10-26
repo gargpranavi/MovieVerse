@@ -1,8 +1,10 @@
 .cardContainer {
   position: relative;
-  flex: 0 0 calc(20% - 12px); /* 5 columns with 15px gap (15*4=60 / 5 = 12) */
+  flex: 0 0 calc(20% - 12px);
+  /* 5 columns with 15px gap (15*4=60 / 5 = 12) */
   min-width: calc(20% - 12px);
-  aspect-ratio: 2 / 3; /* Vertical Posters */
+  aspect-ratio: 2 / 3;
+  /* Vertical Posters */
   height: auto;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -44,7 +46,7 @@
   left: 0;
   width: 100%;
   padding: 20px 15px;
-  background: linear-gradient(to top, rgba(5,5,7,0.95) 0%, rgba(5,5,7,0.7) 60%, transparent 100%);
+  background: linear-gradient(to top, rgba(5, 5, 7, 0.95) 0%, rgba(5, 5, 7, 0.7) 60%, transparent 100%);
   transform: translateY(100%);
   opacity: 0;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
@@ -178,11 +180,25 @@
 
 /* Pop / bounce animation on like */
 @keyframes heartPop {
-  0%   { transform: scale(1); }
-  30%  { transform: scale(1.45); }
-  55%  { transform: scale(0.88); }
-  80%  { transform: scale(1.18); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  30% {
+    transform: scale(1.45);
+  }
+
+  55% {
+    transform: scale(0.88);
+  }
+
+  80% {
+    transform: scale(1.18);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .likeAnimate {
@@ -225,8 +241,8 @@
   box-shadow: 0 4px 12px rgba(212, 160, 23, 0.4);
 }
 
-.match { 
-  color: var(--gold-light); 
+.match {
+  color: var(--gold-light);
 }
 
 .ageBadge {
