@@ -21,7 +21,7 @@
    Refresh    →  defaults re-merged + user additions preserved  
 */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import WatchlistCard2 from '../components/WatchlistCard2.jsx'
@@ -29,52 +29,14 @@ import EmptyState2     from '../components/EmptyState2.jsx'
 import styles          from './WatchlistPage2.module.css'
 
 import { shows } from '../../data/index.js'
-
-/* localStorage keys */
-const LS_WATCHLIST        = 'watchlist'           // shared key for all team members
-const LS_WATCHED          = 'movieverse_watched'
-const LS_REMOVED_DEFAULTS = 'movieverse_removed_defaults'  // tracks defaults user intentionally removed
+import { getWatchlist, saveWatchlist, removeFromWatchlist } from '../../utils/watchlist.js'
+import { addToWatched } from '../../utils/watched.js'
 
 /* Default show IDs 
-   These 6 popular shows are ALWAYS restored on refresh.
-   IDs: Person of Interest, True Detective, Grimm,
-        Supernatural, Vikings, Fargo
-   */
+   These 6 popular shows are seeded into watchlist if user has not removed them.
+*/
 const DEFAULT_SHOW_IDS = ["2", "5", "10", "19", "29", "32"]
-
-/* localStorage helpers */
-
-/** Load watchlist from localStorage (returns array of show objects) */
-function loadWatchlist() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_WATCHLIST) || '[]')
-  } catch {
-    return []
-  }
-}
-
-/** Save watchlist to localStorage */
-function saveWatchlist(list) {
-  try {
-    localStorage.setItem(LS_WATCHLIST, JSON.stringify(list))
-  } catch { /* ignore */ }
-}
-
-/** Load watched list */
-function loadWatched() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_WATCHED) || '[]')
-  } catch {
-    return []
-  }
-}
-
-/** Save watched list */
-function saveWatched(list) {
-  try {
-    localStorage.setItem(LS_WATCHED, JSON.stringify(list))
-  } catch { /* ignore */ }
-}
+const LS_REMOVED_DEFAULTS = 'movieverse_removed_defaults'
 
 /* Inline SVG icons */
 function BookmarkIcon() {
@@ -123,11 +85,14 @@ export default function WatchlistPage2() {
      If the user removes a default show, it won't come back.
      User-added shows are always preserved.
   */
+  /* On mount: seed default shows (if needed) & listen for updates */
   useEffect(() => {
-    const existing = loadWatchlist()
-    setWatchlist(existing)   // show saved items immediately
+    const syncWatchlist = () => {
+      setWatchlist(getWatchlist())
+    }
 
-    // Load set of defaults the user has intentionally removed
+    // Initial load
+    const existing = getWatchlist()
     let removedDefaults
     try {
       removedDefaults = new Set(JSON.parse(localStorage.getItem(LS_REMOVED_DEFAULTS) || '[]'))
@@ -135,26 +100,31 @@ export default function WatchlistPage2() {
       removedDefaults = new Set()
     }
 
-    // Only fetch defaults that haven't been removed by the user
     const idsToFetch = DEFAULT_SHOW_IDS.filter(id => !removedDefaults.has(id))
-    if (idsToFetch.length === 0) return
-
-    const defaults = shows.filter(show => idsToFetch.includes(show.id))
-    setWatchlist(prev => {
-      const map = new Map(prev.map(s => [s.id, s]))
-      // Only insert defaults not already in the list
+    if (idsToFetch.length > 0) {
+      const defaults = shows.filter(show => idsToFetch.includes(show.id))
+      const map = new Map(existing.map(s => [String(s.id), s]))
+      let hasNew = false
       defaults.forEach(show => {
-        if (show?.id && !map.has(show.id)) map.set(show.id, show)
+        if (show?.id && !map.has(String(show.id))) {
+          map.set(String(show.id), show)
+          hasNew = true
+        }
       })
-      const defaultIdSet = new Set(DEFAULT_SHOW_IDS)
-      const merged = [
-        // Defaults first (in original order), then user-added
-        ...defaults.filter(s => s?.id && map.has(s.id)),
-        ...[...map.values()].filter(s => !defaultIdSet.has(s.id)),
-      ]
-      saveWatchlist(merged)
-      return merged
-    })
+      if (hasNew) {
+        const merged = Array.from(map.values())
+        saveWatchlist(merged)
+        setWatchlist(merged)
+      } else {
+        setWatchlist(existing)
+      }
+    } else {
+      setWatchlist(existing)
+    }
+
+    // Listen for live updates from anywhere in the app
+    window.addEventListener('watchlistUpdated', syncWatchlist)
+    return () => window.removeEventListener('watchlistUpdated', syncWatchlist)
   }, [])
 
   /* Toast helper */
@@ -165,33 +135,20 @@ export default function WatchlistPage2() {
 
   /* Remove show from watchlist */
   function handleRemove(id) {
-    // If removing a default show, record it so it doesn't re-appear on refresh
-    if (DEFAULT_SHOW_IDS.includes(id)) {
+    if (DEFAULT_SHOW_IDS.includes(String(id))) {
       try {
         const removed = new Set(JSON.parse(localStorage.getItem(LS_REMOVED_DEFAULTS) || '[]'))
-        removed.add(id)
+        removed.add(String(id))
         localStorage.setItem(LS_REMOVED_DEFAULTS, JSON.stringify([...removed]))
       } catch { /* ignore */ }
     }
-    setWatchlist(prev => {
-      const updated = prev.filter(s => s.id !== id)
-      saveWatchlist(updated)
-      return updated
-    })
+    removeFromWatchlist(id)
     showToast('Removed from watchlist')
   }
 
   /* Mark as watched (moves to watched list) */
   function handleMarkWatched(show) {
-    // Save to watched list
-    const watched = loadWatched()
-    if (!watched.some(s => s.id === show.id)) {
-      saveWatched([
-        ...watched,
-        { ...show, watchedDate: new Date().toISOString().split('T')[0] }
-      ])
-    }
-    // Remove from watchlist
+    addToWatched(show)
     handleRemove(show.id)
     showToast('✓ Moved to Watched')
   }

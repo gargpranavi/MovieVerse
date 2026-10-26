@@ -1,0 +1,51 @@
+/* MovieDetailsTabs — tab bar styles */
+
+.tabsBar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 0;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 12px 20px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  white-space: nowrap;
+  margin-bottom: -1px; /* overlap the border-bottom of the bar */
+  border-radius: 6px 6px 0 0;
+}
+
+.tab:hover {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--gold-mid, #D4A017);
+  outline-offset: 2px;
+}
+
+/* Active tab — gold underline and bright text */
+.tabActive {
+  color: var(--gold-light, #f5c842);
+  font-weight: 700;
+  border-bottom-color: var(--gold-mid, #D4A017);
+}
+
+@media (max-width: 600px) {
+  .tab {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}

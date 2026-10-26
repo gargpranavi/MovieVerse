@@ -1,16 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { shows } from '../../data/index.js'
 import { fallbackAnime } from '../../member2/data/animeData.js'
+import { signOut as localSignOut } from '../../member2/services/localAuth.js'
+import { getWatchlist } from '../../utils/watchlist.js'
+import { getWatched } from '../../utils/watched.js'
 import styles from './TopNavbar.module.css'
 
 const NAV_ITEMS = [
-  { to: '/home', label: 'Home', external: false },
-  { to: '/pages/movies3.html', label: 'Movies', external: true },
-  { to: '/pages/drama3.html', label: 'TV Series', external: true },
-  { to: '/anime', label: 'Anime', external: false },
-  { to: '/watchlist', label: 'Watchlist', external: false },
-  { to: '/watched', label: 'Watched', external: false },
+  { to: '/home',       label: 'Home',      external: false },
+  { to: '/movies',     label: 'Movies',    external: false },
+  { to: '/tv-series',  label: 'TV Series', external: false },
+  { to: '/anime',      label: 'Anime',     external: false },
+  { to: '/watchlist',  label: 'Watchlist', external: false },
+  { to: '/watched',    label: 'Watched',   external: false },
 ]
 
 const MOCK_NOTIFICATIONS = [
@@ -74,6 +77,33 @@ export default function TopNavbar() {
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [watchlistCount, setWatchlistCount] = useState(0)
+  const [watchedCount,   setWatchedCount]   = useState(0)
+
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const updateCounts = () => {
+      setWatchlistCount(getWatchlist().length)
+      setWatchedCount(getWatched().length)
+    }
+    updateCounts()
+    window.addEventListener('watchlistUpdated', updateCounts)
+    window.addEventListener('watchedUpdated',   updateCounts)
+    return () => {
+      window.removeEventListener('watchlistUpdated', updateCounts)
+      window.removeEventListener('watchedUpdated',   updateCounts)
+    }
+  }, [])
+
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    setIsProfileOpen(false)
+    localSignOut()
+    navigate('/home', { replace: true })
+    setLoggingOut(false)
+  }
 
   const inputRef = useRef(null)
 
@@ -220,6 +250,12 @@ export default function TopNavbar() {
                 }
               >
                 {item.label}
+                {item.label === 'Watchlist' && watchlistCount > 0 && (
+                  <span className={styles.navCountBadge}>{watchlistCount}</span>
+                )}
+                {item.label === 'Watched' && watchedCount > 0 && (
+                  <span className={styles.navCountBadge}>{watchedCount}</span>
+                )}
               </NavLink>
             )
           )}
@@ -529,7 +565,8 @@ export default function TopNavbar() {
                       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                     </svg>
                   </span>
-                  My Watchlist
+                  <span>My Watchlist</span>
+                  {watchlistCount > 0 && <span className={styles.dropdownCountBadge}>{watchlistCount}</span>}
                 </Link>
 
                 <Link
@@ -545,9 +582,32 @@ export default function TopNavbar() {
                       <circle cx="12" cy="12" r="3" />
                     </svg>
                   </span>
-                  Watched Movies
+                  <span>Watched Movies</span>
+                  {watchedCount > 0 && <span className={styles.dropdownCountBadge}>{watchedCount}</span>}
                 </Link>
               </nav>
+
+              {/* Logout */}
+              <div className={styles.profileDropdownDivider} />
+              <div className={styles.profileMenuList}>
+                <button
+                  className={`${styles.profileMenuItem} ${styles.logoutBtn}`}
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  role="menuitem"
+                  id="navbar-logout-btn"
+                  type="button"
+                >
+                  <span className={`${styles.profileMenuIcon} ${styles.logoutIcon}`}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                  </span>
+                  {loggingOut ? 'Signing out…' : 'Sign Out'}
+                </button>
+              </div>
 
               <div className={styles.profileDropdownDivider} />
 

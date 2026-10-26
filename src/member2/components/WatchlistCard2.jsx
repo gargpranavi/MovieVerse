@@ -90,7 +90,7 @@ export default function WatchlistCard2({
   const id          = show?.id
   const title       = show?.name || show?.title || 'Unknown'
   const tvRating    = (show?.rating?.average !== undefined) ? show?.rating?.average : (show?.rating ?? null)
-  const poster      = show?.image?.original || show?.image?.medium || show?.image || show?.poster || null
+  const poster      = (typeof show?.image === 'string' ? show.image : (show?.image?.original || show?.image?.medium)) || show?.poster || null
   const genres      = show?.genres || show?.genre || []
   const status      = show?.status            ?? ''
   const ageRating   = show?.ageRating         ?? 'U/A 16+'
@@ -98,7 +98,7 @@ export default function WatchlistCard2({
   const duration    = runtime ? (String(runtime).includes('min') || String(runtime).includes('h') ? runtime : `${runtime} min`) : null
   const watchedDate = show?.watchedDate       ?? null
 
-  const [inWatchlist, setInWatchlist] = useState(false)
+  const [_inWatchlist, setInWatchlist] = useState(false)
 
   useEffect(() => {
     setInWatchlist(isInWatchlist(id?.toString()))
@@ -111,7 +111,11 @@ export default function WatchlistCard2({
   const imageUrl = poster || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80'
 
   const handleCardClick = () => {
-    navigate(`/movie/${id}`)
+    if (show?.mediaType === 'tv' || (show?.source === 'tmdb' && show?.mediaType === 'tv')) {
+      navigate(`/movie/${id}?type=tv`)
+    } else {
+      navigate(`/movie/${id}`)
+    }
   }
 
   const handleRemoveClick = (e) => {

@@ -1,4 +1,4 @@
-// Simple utility to manage watchlist in local storage to prevent git conflicts with friends working on pages
+// Shared utility to manage watchlist in localStorage across the entire project
 export function getWatchlist() {
   try {
     const list = localStorage.getItem('watchlist');
@@ -12,16 +12,34 @@ export function getWatchlist() {
 export function saveWatchlist(list) {
   try {
     localStorage.setItem('watchlist', JSON.stringify(list));
-    // Dispatch a custom event to notify other components of the change instantly
+    // Dispatch a custom event so all components update in real time
     window.dispatchEvent(new Event('watchlistUpdated'));
   } catch (e) {
     console.error('Error writing watchlist to localStorage:', e);
   }
 }
 
-export function toggleWatchlist(movie) {
+export function addToWatchlist(movie) {
+  if (!movie || movie.id === undefined || movie.id === null) return;
   const list = getWatchlist();
-  const index = list.findIndex(item => item.id === movie.id);
+  const exists = list.some(item => String(item.id) === String(movie.id));
+  if (!exists) {
+    list.push(movie);
+    saveWatchlist(list);
+  }
+}
+
+export function removeFromWatchlist(movieId) {
+  if (movieId === undefined || movieId === null) return;
+  const list = getWatchlist();
+  const filtered = list.filter(item => String(item.id) !== String(movieId));
+  saveWatchlist(filtered);
+}
+
+export function toggleWatchlist(movie) {
+  if (!movie || movie.id === undefined || movie.id === null) return false;
+  const list = getWatchlist();
+  const index = list.findIndex(item => String(item.id) === String(movie.id));
   if (index > -1) {
     list.splice(index, 1);
   } else {
@@ -32,6 +50,7 @@ export function toggleWatchlist(movie) {
 }
 
 export function isInWatchlist(movieId) {
+  if (movieId === undefined || movieId === null) return false;
   const list = getWatchlist();
-  return list.some(item => item.id === movieId);
+  return list.some(item => String(item.id) === String(movieId));
 }

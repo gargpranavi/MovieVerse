@@ -169,13 +169,14 @@ const GoldDivider3 = () => <div className="gold-divider" />;
 // Full-screen modal shown when a card is clicked.
 // Props: movie, onClose
 const MovieDetailsModal3 = ({ movie, onClose }) => {
-    if (!movie) return null;
-
     React.useEffect(() => {
+        if (!movie) return;
         const handler = (e) => { if (e.key === 'Escape') onClose(); };
         document.addEventListener('keydown', handler);
         return () => document.removeEventListener('keydown', handler);
-    }, [onClose]);
+    }, [movie, onClose]);
+
+    if (!movie) return null;
 
     return (
         <div className="modal-backdrop" onClick={onClose}>

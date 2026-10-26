@@ -47,6 +47,8 @@
    RESET
    ──────────────────────────────────────────────────────── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+*:focus { outline: none; }
+*:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 html { scroll-behavior: smooth; }
 body {
     background: var(--bg);
@@ -57,7 +59,8 @@ body {
 }
 img { display: block; }
 
-.page-container { width: 100%; padding-bottom: 80px; }
+main.page-container { width: 100%; padding-top: 90px; padding-bottom: 80px; }
+div.page-container { width: 100%; padding: 0; }
 
 /* ═══════════════════════════════════════════════════════
    ① HERO SECTION

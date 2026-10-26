@@ -1,3 +1,16 @@
+/*
+  VideoPlayerModal.jsx — improved with accessibility (Member 3)
+  
+  New accessibility features added:
+  1. Focus trap: keyboard focus stays inside the modal while it's open
+  2. Escape key closes the modal
+  3. Focus is restored to the previously focused element after closing
+  4. Background scroll prevention (body overflow hidden while open)
+  5. Proper ARIA dialog attributes
+  
+  All existing video player functionality (play, pause, mute, fullscreen, 
+  progress scrubber) is preserved unchanged.
+*/
 import { useEffect, useRef, useState } from 'react'
 import styles from './VideoPlayerModal.module.css'
 
@@ -46,20 +59,21 @@ function FullscreenIcon() {
 }
 
 export default function VideoPlayerModal({ isOpen, onClose, movieTitle }) {
-  const videoRef = useRef(null)
-  const wrapperRef = useRef(null)
+  const videoRef    = useRef(null)
+  const wrapperRef  = useRef(null)
+  const modalRef    = useRef(null)    // ref to the modal content div for focus trapping
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [duration, setDuration] = useState(0)
+  const [isMuted,   setIsMuted]   = useState(false)
+  const [progress,  setProgress]  = useState(0)
+  const [duration,  setDuration]  = useState(0)
 
-  // Lock body scroll when open
+  // ── Lock body scroll when modal opens ─────────────────────────────────────
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  // Reset player state when modal opens/closes
+  // ── Reset player state when modal closes ──────────────────────────────────
   useEffect(() => {
     if (!isOpen && videoRef.current) {
       videoRef.current.pause()
@@ -68,6 +82,69 @@ export default function VideoPlayerModal({ isOpen, onClose, movieTitle }) {
       setProgress(0)
     }
   }, [isOpen])
+
+  // ── Focus trap + Escape key + focus restoration (Member 3 addition) ───────
+  useEffect(() => {
+    if (!isOpen) return
+
+    // Remember which element had focus before the modal opened
+    const previouslyFocused = document.activeElement
+
+    // Move focus inside the modal when it opens
+    // Short delay ensures the DOM is rendered before focusing
+    const focusTimer = setTimeout(() => {
+      modalRef.current?.focus()
+    }, 50)
+
+    // Handle Escape to close and focus trapping within the modal
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+        return
+      }
+
+      // Focus trap: redirect Tab / Shift+Tab to stay within the modal
+      if (e.key !== 'Tab') return
+
+      const modal = modalRef.current
+      if (!modal) return
+
+      // Get all keyboard-focusable elements inside the modal
+      const focusable = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last  = focusable[focusable.length - 1]
+
+      if (e.shiftKey) {
+        // Shift+Tab: if focus is at the first element, wrap to last
+        if (document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else {
+        // Tab: if focus is at the last element, wrap to first
+        if (document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      clearTimeout(focusTimer)
+      document.removeEventListener('keydown', handleKeyDown)
+      // Restore focus to the element that opened the modal
+      if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+        previouslyFocused.focus()
+      }
+    }
+  }, [isOpen, onClose])
 
   if (!isOpen) return null
 
@@ -110,7 +187,7 @@ export default function VideoPlayerModal({ isOpen, onClose, movieTitle }) {
     e.stopPropagation()
     const video = videoRef.current
     if (!video || !duration) return
-    const rect = e.currentTarget.getBoundingClientRect()
+    const rect  = e.currentTarget.getBoundingClientRect()
     const ratio = (e.clientX - rect.left) / rect.width
     video.currentTime = ratio * duration
   }
@@ -123,8 +200,26 @@ export default function VideoPlayerModal({ isOpen, onClose, movieTitle }) {
   }
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+    // Overlay — clicking outside closes modal
+    <div
+      className={styles.overlay}
+      onClick={onClose}
+      role="presentation"
+    >
+      {/*
+        Modal content — ARIA dialog semantics added (Member 3):
+        role="dialog", aria-modal, aria-label
+        tabIndex="-1" allows programmatic focus on the div
+      */}
+      <div
+        className={styles.modalContent}
+        onClick={(e) => e.stopPropagation()}
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Video player: ${movieTitle}`}
+        tabIndex="-1"
+      >
 
         {/* Close Button */}
         <button className={styles.closeBtn} onClick={onClose} aria-label="Close Video Player">

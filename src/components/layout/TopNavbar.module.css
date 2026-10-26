@@ -122,6 +122,34 @@
   padding-bottom: 4px;
 }
 
+.navCountBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 160, 23, 0.25);
+  border: 1px solid rgba(212, 160, 23, 0.5);
+  color: #F5D061;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.dropdownCountBadge {
+  margin-left: auto;
+  background: rgba(212, 160, 23, 0.2);
+  border: 1px solid rgba(212, 160, 23, 0.4);
+  color: #F5D061;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
 .right {
   display: flex;
   align-items: center;
@@ -883,3 +911,28 @@
   box-shadow: 0 4px 16px rgba(212, 160, 23, 0.20);
 }
 
+
+/* ── Logout button ──────────────────────────── */
+.logoutBtn {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+}
+
+.logoutBtn:hover {
+  background: rgba(220, 60, 60, 0.10) !important;
+  color: #ff6b6b !important;
+  transform: translateX(3px);
+}
+
+.logoutBtn:hover .logoutIcon {
+  background: rgba(220, 60, 60, 0.14) !important;
+  border-color: rgba(220, 60, 60, 0.30) !important;
+  color: #ff6b6b !important;
+}
+
+.logoutBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

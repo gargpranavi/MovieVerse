@@ -21,6 +21,7 @@ import { Link }                from 'react-router-dom'
 import DashboardLayout         from '../../components/layout/DashboardLayout.jsx'
 import ProfileCard             from '../components/ProfileCard.jsx'
 import { mockUsers }           from '../data/users2.js'
+import { getSession }          from '../services/localAuth.js'
 import styles                  from './ProfilePage.module.css'
 
 /* localStorage keys */
@@ -94,14 +95,18 @@ function StarFilledIcon() {
 }
 
 /* Small movie poster card */
+/* Small movie poster card */
 function RecentMovieCard({ show }) {
   const name   = show?.name ?? show?.title ?? 'Unknown'
-  const poster = show?.image?.medium ?? null
-  const rating = show?.rating?.average ?? show?.userRating ?? null
-  const date   = show?.watchedDate ?? null
+  const poster = (typeof show?.image === 'string' ? show.image : (show?.image?.medium || show?.image?.original)) || show?.poster || null
+  const rating = show?.rating?.average ?? show?.userRating ?? show?.rating ?? null
+  const date   = show?.watchedDate ?? show?.watchedAt ?? null
+  const linkUrl = (show?.mediaType === 'tv' || (show?.source === 'tmdb' && show?.mediaType === 'tv'))
+    ? `/movie/${show?.id}?type=tv`
+    : `/movie/${show?.id}`
 
   return (
-    <div className={styles.recentCard}>
+    <Link to={linkUrl} className={styles.recentCard} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className={styles.recentPoster}>
         {poster ? (
           <img src={poster} alt={name} className={styles.recentImg} />
@@ -120,7 +125,7 @@ function RecentMovieCard({ show }) {
         )}
         {date && <span className={styles.recentDate}>{date}</span>}
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -162,19 +167,32 @@ export default function ProfilePage() {
     refresh()
 
     /* Re-sync if other pages update data */
-    window.addEventListener('reviewsUpdated', refresh)
-    window.addEventListener('ratingsUpdated', refresh)
-    window.addEventListener('storage',        refresh)
+    window.addEventListener('watchlistUpdated', refresh)
+    window.addEventListener('watchedUpdated',   refresh)
+    window.addEventListener('reviewsUpdated',   refresh)
+    window.addEventListener('ratingsUpdated',   refresh)
+    window.addEventListener('storage',          refresh)
 
     return () => {
-      window.removeEventListener('reviewsUpdated', refresh)
-      window.removeEventListener('ratingsUpdated', refresh)
-      window.removeEventListener('storage',        refresh)
+      window.removeEventListener('watchlistUpdated', refresh)
+      window.removeEventListener('watchedUpdated',   refresh)
+      window.removeEventListener('reviewsUpdated',   refresh)
+      window.removeEventListener('ratingsUpdated',   refresh)
+      window.removeEventListener('storage',          refresh)
     }
   }, [])
 
-  /* Derived values */
-  const user       = mockUsers[0]
+  /* Auth — read local session ({ name, email, avatar }) */
+  const authUser = getSession()
+  const base   = mockUsers[0]
+  const user   = {
+    ...base,
+    displayName: authUser?.name
+                  ?? authUser?.email?.split('@')[0]
+                  ?? base.displayName,
+    email:  authUser?.email  ?? base.email,
+    avatar: authUser?.avatar ?? base.avatar,
+  }
   const avgRating  = computeAvgRating(ratings)
 
   /* Most recent 6 watched shows */
