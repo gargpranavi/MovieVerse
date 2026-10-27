@@ -20,12 +20,15 @@
    • Observer is cleaned up correctly on unmount and category change.
 */
 
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import MovieCard from '../../components/MovieCard/MovieCard.jsx'
-import MovieSkeletonCard from '../../member2/components/MovieSkeletonCard/MovieSkeletonCard.jsx'
+import MovieSkeletonCard from '../../member2/components/MovieSkeletonCard.jsx'
 import { useInfiniteMovies } from '../../member2/hooks/useInfiniteMovies.js'
+// Member 3: Filter and sort bar component
+import FilterSortBar from '../../member3/components/FilterSortBar/FilterSortBar.jsx'
 import styles from './MoviesPage.module.css'
+
 
 // ── Category definitions ──────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -54,6 +57,12 @@ function RetryIcon() {
 export default function MoviesPage() {
   const [category, setCategory] = useState('popular')
 
+  // ── Member 3: Filter and sort state ─────────────────────────────────────
+  // sortBy controls how loaded movies are sorted
+  // genre filters the displayed list to a specific genre
+  const [sortBy, setSortBy] = useState('default')
+  const [genre,  setGenre]  = useState('all')
+
   const {
     movies,
     loading,
@@ -66,6 +75,7 @@ export default function MoviesPage() {
     currentPage,
     totalPages,
   } = useInfiniteMovies(category)
+
 
   // ── Stable refs so the observer callback always reads the latest state ──────
   const loadMoreRef  = useRef(loadMore)
@@ -126,61 +136,135 @@ export default function MoviesPage() {
   const handleCategoryChange = useCallback((key) => {
     if (key === category) return
     setCategory(key)
+    // Reset filters when category changes so user starts fresh
+    setSortBy('default')
+    setGenre('all')
   }, [category])
 
-  // ── Hero: first loaded movie ──────────────────────────────────────────────
-  const heroMovie = movies[0] ?? null
+  // ── Member 3: client-side filter + sort (applied to already-loaded movies) ──
+  // Never mutates the original movies array — creates a copy first.
+  const filteredMovies = useMemo(() => {
+    // Start with a shallow copy so the original is never mutated
+    let result = [...movies]
 
-  // ── Current category display label ───────────────────────────────────────
+    // 1. Filter by genre (skip if 'all')
+    if (genre !== 'all') {
+      result = result.filter((m) => {
+        // genres can be an array of strings; some() checks if any matches
+        return Array.isArray(m.genres) && m.genres.some((g) => {
+          if (genre === 'Animation') {
+            // Match Animation OR Anime genre labels
+            return g === 'Animation' || g.toLowerCase().includes('anim')
+          }
+          if (genre === 'Science-Fiction') {
+            return g === 'Science-Fiction' || g === 'Sci-Fi' || g === 'Science Fiction'
+          }
+          return g === genre
+        })
+      })
+    }
+
+    // 2. Sort (skip if 'default' — leave in API order which is already popularity)
+    if (sortBy === 'rating') {
+      // Sort by TMDB vote_average descending; treat null/undefined as 0
+      result = result.slice().sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    } else if (sortBy === 'release_date') {
+      // Sort by year descending; year is stored as a 4-digit string e.g. "2024"
+      result = result.slice().sort((a, b) => {
+        const ya = parseInt(a.year, 10) || 0
+        const yb = parseInt(b.year, 10) || 0
+        return yb - ya
+      })
+    }
+
+    return result
+  }, [movies, sortBy, genre])
+
+  // ── Clear all filters back to defaults ──────────────────────────────────
+  const handleClearFilters = () => {
+    setSortBy('default')
+    setGenre('all')
+  }
+
+  // ── Whether any filter/sort is active ────────────────────────────────────
+  const isFiltering = sortBy !== 'default' || genre !== 'all'
+
+  // ── Stable Hero State ─────────────────────────────────────────────────────
+  // Retains the previous valid hero across category switches so the hero
+  // NEVER disappears, flashes "DISCOVER MOVIES", or flashes pink placeholders.
+  const [hero, setHero] = useState(null)
+  const [heroCategoryLabel, setHeroCategoryLabel] = useState('Popular')
+
+  // Current category display label
   const currentCatLabel = CATEGORIES.find(c => c.key === category)?.label ?? 'Movies'
+
+  // Update hero only when valid movies for the category arrive
+  useEffect(() => {
+    if (!movies || movies.length === 0) return
+
+    const candidate = movies[0]
+    if (!candidate) return
+
+    // If candidate has an image, preload it before updating hero state
+    // so the visible background never flashes blank or changes prematurely.
+    const candidateBg = candidate.backdrop || candidate.image
+    if (candidateBg) {
+      const img = new Image()
+      img.src = candidateBg
+      const applyHero = () => {
+        setHero(candidate)
+        setHeroCategoryLabel(currentCatLabel)
+      }
+      img.onload = applyHero
+      img.onerror = applyHero
+    } else {
+      setHero(candidate)
+      setHeroCategoryLabel(currentCatLabel)
+    }
+  }, [movies, currentCatLabel])
 
   return (
     <DashboardLayout>
       <div className={styles.page}>
 
         {/* ── Hero Banner ── */}
-        <section className={styles.hero}>
-          {heroMovie ? (
+        <section className={styles.hero} aria-label="Featured hero">
+          {hero ? (
             <>
               <div
                 className={styles.heroBg}
                 style={{
-                  backgroundImage: `url(${
-                    heroMovie.backdrop || heroMovie.image ||
-                    'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80'
-                  })`,
+                  backgroundImage: `url(${hero.backdrop || hero.image})`,
                 }}
               />
               <div className={styles.heroGradient} />
               <div className={styles.heroContent}>
-                <p className={styles.heroLabel}>MovieVerse — {currentCatLabel}</p>
-                <h1 className={styles.heroTitle}>{heroMovie.title.toUpperCase()}</h1>
+                <p className={styles.heroLabel}>MovieVerse — {heroCategoryLabel}</p>
+                <h1 className={styles.heroTitle}>{hero.title.toUpperCase()}</h1>
                 <div className={styles.heroMeta}>
                   <span>Movie</span>
-                  {heroMovie.genres[0] && <><span>•</span><span>{heroMovie.genres[0]}</span></>}
-                  {heroMovie.year && <><span>•</span><span>{heroMovie.year}</span></>}
-                  {heroMovie.rating && <><span>•</span><span>⭐ {heroMovie.rating}</span></>}
+                  {hero.genres?.[0] && <><span>•</span><span>{hero.genres[0]}</span></>}
+                  {hero.year && <><span>•</span><span>{hero.year}</span></>}
+                  {hero.rating && <><span>•</span><span>⭐ {hero.rating}</span></>}
                 </div>
-                {heroMovie.description && (
-                  <p className={styles.heroDesc}>{heroMovie.description}</p>
+                {hero.description && (
+                  <p className={styles.heroDesc}>{hero.description}</p>
                 )}
               </div>
             </>
           ) : (
-            <>
-              <div
-                className={styles.heroBg}
-                style={{
-                  backgroundImage:
-                    'url(https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&q=80)',
-                }}
-              />
+            /* ── Initial Load Neutral Skeleton (Zero Layout Shift, No Flash) ── */
+            <div className={styles.heroSkeletonWrapper} aria-hidden="true">
+              <div className={styles.heroSkeletonBg} />
               <div className={styles.heroGradient} />
               <div className={styles.heroContent}>
-                <p className={styles.heroLabel}>MovieVerse — {currentCatLabel}</p>
-                <h1 className={styles.heroTitle}>DISCOVER MOVIES</h1>
+                <div className={styles.skeletonPill} />
+                <div className={styles.skeletonTitle} />
+                <div className={styles.skeletonMetaRow} />
+                <div className={styles.skeletonDescLine} />
+                <div className={styles.skeletonDescLineShort} />
               </div>
-            </>
+            </div>
           )}
         </section>
 
@@ -226,6 +310,21 @@ export default function MoviesPage() {
             )}
           </div>
 
+          {/* ── Member 3: Filter and Sort controls ─────────────────────── */}
+          {/* Only show when movies are loaded; does not replace infinite scroll */}
+          {!initialLoad && (
+            <FilterSortBar
+              sortBy={sortBy}
+              genre={genre}
+              onSortChange={setSortBy}
+              onGenreChange={setGenre}
+              onClear={handleClearFilters}
+              filteredCount={filteredMovies.length}
+              totalCount={movies.length}
+              isFiltering={isFiltering}
+            />
+          )}
+
           {/* ── Initial load: skeleton grid ── */}
           {initialLoad && (
             <div
@@ -241,7 +340,7 @@ export default function MoviesPage() {
             </div>
           )}
 
-          {/* ── Movie grid ── */}
+          {/* ── Movie grid — renders filteredMovies (client-side filtered/sorted) ── */}
           {!initialLoad && movies.length > 0 && (
             <div
               className={styles.grid}
@@ -249,7 +348,8 @@ export default function MoviesPage() {
               role="region"
               aria-label={`${currentCatLabel} movies`}
             >
-              {movies.map((movie) => (
+              {/* Render filteredMovies so genre/sort applies immediately */}
+              {filteredMovies.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
 
@@ -263,11 +363,27 @@ export default function MoviesPage() {
             </div>
           )}
 
-          {/* ── Empty state (after first load, no results) ── */}
+          {/* ── Empty state: no movies from API at all ── */}
           {!initialLoad && movies.length === 0 && !error && (
             <div className={styles.errorBox}>
               <span className={styles.errorIcon}>🎬</span>
               <p className={styles.errorMsg}>No movies found in this category right now.</p>
+            </div>
+          )}
+
+          {/* ── Member 3: Empty state when filters produce no results ── */}
+          {!initialLoad && movies.length > 0 && filteredMovies.length === 0 && (
+            <div className={styles.errorBox}>
+              <span className={styles.errorIcon}>🔍</span>
+              <p className={styles.errorMsg}>
+                No movies match the selected filters. Try a different genre or sort option, or{' '}
+                <button
+                  style={{ background: 'none', border: 'none', color: 'var(--gold-mid)', cursor: 'pointer', fontWeight: 700, fontSize: 'inherit', padding: 0 }}
+                  onClick={handleClearFilters}
+                >
+                  clear filters
+                </button>.
+              </p>
             </div>
           )}
 

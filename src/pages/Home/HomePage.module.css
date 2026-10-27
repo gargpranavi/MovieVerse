@@ -23,19 +23,68 @@
   inset: 0;
   background-size: cover;
   background-position: center 20%;
-  animation: heroFade 0.8s ease both;
+  transition: opacity 0.4s ease;
 }
 
-@keyframes heroFade {
-  from {
-    opacity: 0;
-    transform: scale(1.04);
-  }
+/* ── Hero Initial Skeleton Loading (Zero Layout Shift, No Flash) ── */
+.heroSkeletonWrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
 
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.heroSkeletonBg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #0d0d12 0%, #161620 50%, #0d0d12 100%);
+  background-size: 200% 200%;
+  animation: heroSkeletonShimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes heroSkeletonShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.skeletonPill {
+  width: 140px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  margin-bottom: 14px;
+}
+
+.skeletonTitle {
+  width: min(480px, 80%);
+  height: 48px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 16px;
+}
+
+.skeletonMetaRow {
+  width: 260px;
+  height: 18px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 14px;
+}
+
+.skeletonDescLine {
+  width: min(580px, 92%);
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 8px;
+}
+
+.skeletonDescLineShort {
+  width: min(380px, 65%);
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .heroGradient {

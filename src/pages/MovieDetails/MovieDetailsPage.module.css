@@ -764,3 +764,45 @@
   .actionRow { flex-direction: column; }
   .btnPlay, .btnWatchlist, .btnWatched { width: 100%; justify-content: center; }
 }
+
+/* Actor detail items (referenced in JSX) */
+.actorDetailItem {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  padding: 4px 0;
+}
+.actorDetailValue {
+  color: #fff;
+  font-weight: 500;
+}
+.actorModalDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Tab panel: hidden panels are removed from visual flow */
+[hidden] { display: none !important; }
+
+/* Tab panel animation for smooth transitions */
+[role="tabpanel"] {
+  animation: tabFadeIn 0.22s ease;
+}
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Ensure recInfo is visible over the image in recommendation cards */
+.recInfo {
+  padding: 12px 14px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.88) 0%, transparent 100%);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
+}

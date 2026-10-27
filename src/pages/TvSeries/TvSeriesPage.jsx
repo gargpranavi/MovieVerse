@@ -21,7 +21,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
 import MovieCard from '../../components/MovieCard/MovieCard.jsx'
-import MovieSkeletonCard from '../../member2/components/MovieSkeletonCard/MovieSkeletonCard.jsx'
+import MovieSkeletonCard from '../../member2/components/MovieSkeletonCard.jsx'
 import { useInfiniteScroll } from '../../member2/hooks/useInfiniteScroll.js'
 import {
   fetchPopularTvShows,
@@ -135,59 +135,82 @@ export default function TvSeriesPage() {
     setCategory(key)
   }, [category])
 
-  // ── Hero: first loaded show ─────────────────────────────────────────────
-  const heroShow = shows[0] ?? null
+  // ── Stable Hero State ─────────────────────────────────────────────────────
+  // Retains the previous valid hero across category switches so the hero
+  // NEVER disappears, flashes "DISCOVER TV SERIES", or flashes placeholders.
+  const [hero, setHero] = useState(null)
+  const [heroCategoryLabel, setHeroCategoryLabel] = useState('Popular')
 
-  // ── Current category label ──────────────────────────────────────────────
+  // Current category display label
   const currentCatLabel = CATEGORIES.find(c => c.key === category)?.label ?? 'TV Series'
+
+  // Update hero only when valid shows for the category arrive
+  useEffect(() => {
+    if (!shows || shows.length === 0) return
+
+    const candidate = shows[0]
+    if (!candidate) return
+
+    // If candidate has an image, preload it before updating hero state
+    // so the visible background never flashes blank or changes prematurely.
+    const candidateBg = candidate.backdrop || candidate.image
+    if (candidateBg) {
+      const img = new Image()
+      img.src = candidateBg
+      const applyHero = () => {
+        setHero(candidate)
+        setHeroCategoryLabel(currentCatLabel)
+      }
+      img.onload = applyHero
+      img.onerror = applyHero
+    } else {
+      setHero(candidate)
+      setHeroCategoryLabel(currentCatLabel)
+    }
+  }, [shows, currentCatLabel])
 
   return (
     <DashboardLayout>
       <div className={styles.page}>
 
         {/* ── Hero Banner ── */}
-        <section className={styles.hero}>
-          {heroShow ? (
+        <section className={styles.hero} aria-label="Featured TV hero">
+          {hero ? (
             <>
               <div
                 className={styles.heroBg}
                 style={{
-                  backgroundImage: `url(${
-                    heroShow.backdrop || heroShow.image ||
-                    'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=1600&q=80'
-                  })`,
+                  backgroundImage: `url(${hero.backdrop || hero.image})`,
                 }}
               />
               <div className={styles.heroGradient} />
               <div className={styles.heroContent}>
-                <p className={styles.heroLabel}>MovieVerse — {currentCatLabel}</p>
-                <h1 className={styles.heroTitle}>{heroShow.title.toUpperCase()}</h1>
+                <p className={styles.heroLabel}>MovieVerse — {heroCategoryLabel}</p>
+                <h1 className={styles.heroTitle}>{hero.title.toUpperCase()}</h1>
                 <div className={styles.heroMeta}>
                   <span>Series</span>
-                  {heroShow.genres[0] && <><span>•</span><span>{heroShow.genres[0]}</span></>}
-                  {heroShow.year && <><span>•</span><span>{heroShow.year}</span></>}
-                  {heroShow.rating && <><span>•</span><span>⭐ {heroShow.rating}</span></>}
+                  {hero.genres?.[0] && <><span>•</span><span>{hero.genres[0]}</span></>}
+                  {hero.year && <><span>•</span><span>{hero.year}</span></>}
+                  {hero.rating && <><span>•</span><span>⭐ {hero.rating}</span></>}
                 </div>
-                {heroShow.description && (
-                  <p className={styles.heroDesc}>{heroShow.description}</p>
+                {hero.description && (
+                  <p className={styles.heroDesc}>{hero.description}</p>
                 )}
               </div>
             </>
           ) : (
-            <>
-              <div
-                className={styles.heroBg}
-                style={{
-                  backgroundImage:
-                    'url(https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=1600&q=80)',
-                }}
-              />
+            /* ── Initial Load Neutral Skeleton (Zero Layout Shift, No Flash) ── */
+            <div className={styles.heroSkeletonWrapper} aria-hidden="true">
+              <div className={styles.heroSkeletonBg} />
               <div className={styles.heroGradient} />
               <div className={styles.heroContent}>
-                <p className={styles.heroLabel}>MovieVerse — {currentCatLabel}</p>
-                <h1 className={styles.heroTitle}>DISCOVER TV SERIES</h1>
+                <div className={styles.skeletonPill} />
+                <div className={styles.skeletonTitle} />
+                <div className={styles.skeletonMetaRow} />
+                <div className={styles.skeletonDescLine} />
+                <div className={styles.skeletonDescLineShort} />
               </div>
-            </>
+            </div>
           )}
         </section>
 

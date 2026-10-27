@@ -1,0 +1,116 @@
+/* CommunityReviewsList styles */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.count {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 4px;
+}
+
+/* Individual review card */
+.card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 3px solid var(--gold-muted, rgba(212, 160, 23, 0.55));
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-left-color 0.2s ease;
+}
+
+.card:hover {
+  border-left-color: var(--gold-mid, #D4A017);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Letter avatar circle */
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.3), rgba(212, 160, 23, 0.1));
+  border: 1px solid rgba(212, 160, 23, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-light, #f5c842);
+  flex-shrink: 0;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.date {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* Star display */
+.stars {
+  display: flex;
+  gap: 2px;
+  font-size: 18px;
+}
+
+.starFilled {
+  color: var(--gold-mid, #D4A017);
+}
+
+.starEmpty {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+/* Review body */
+.text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+  margin: 0;
+}
+
+/* Empty state */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+}
+
+.emptyIcon {
+  font-size: 36px;
+}
