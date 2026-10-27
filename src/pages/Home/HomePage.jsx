@@ -14,8 +14,8 @@ import VideoPlayerModal   from '../../components/VideoPlayerModal/VideoPlayerMod
 import MovieInfoModal     from '../../components/MovieInfoModal/MovieInfoModal.jsx'
 import MovieCard          from '../../components/MovieCard/MovieCard.jsx'
 import MovieSkeletonCard  from '../../member2/components/MovieSkeletonCard/MovieSkeletonCard.jsx'
-import { getWatchlist, isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
-import { getWatched }     from '../../utils/watched.js'
+import { useWatchlist }        from '../../context/index.js'
+import { useToast }            from '../../components/common/Toast/index.js'
 import { shows }          from '../../data/index.js'
 import { useTmdb }        from '../../member2/hooks/useTmdb.js'
 import { useInfiniteScroll } from '../../member2/hooks/useInfiniteScroll.js'
@@ -113,8 +113,16 @@ export default function HomePage() {
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
   const [isInfoOpen,   setIsInfoOpen]   = useState(false)
   const [isMuted,      setIsMuted]      = useState(true)
-  const [heroInWatchlist, setHeroInWatchlist] = useState(false)
   const heroVideoRef = useRef(null)
+
+  // ── Context ────────────────────────────────────────────────────────────────
+  const {
+    watchlist,
+    watchedHistory,
+    isInWatchlist,
+    toggleWatchlist,
+  } = useWatchlist()
+  const { toast } = useToast()
 
   // Dynamic filter state (watchlist / watched / genre / network / language / status)
   const [listTitle,    setListTitle]    = useState('')
@@ -153,17 +161,12 @@ export default function HomePage() {
     isFallback: popularTVFallback,
   } = useTmdb(fetchPopularTvShows, [1])
 
-  // Hero uses first trending movie when available; only falls back to local shows[0] if offline
-  const featured = trending[0] ?? (trendingFallback ? shows[0] : null)
-  const isOffline = trendingFallback && topRatedFallback
+  // Hero uses first trending movie; falls back to local shows[0] while loading
+  const featured   = trending[0] ?? shows[0]
+  const anyFallback = trendingFallback || topRatedFallback || nowPlayingFallback || popularTVFallback
 
-  useEffect(() => {
-    if (!featured) return
-    setHeroInWatchlist(isInWatchlist(featured.id))
-    const handleWl = () => setHeroInWatchlist(isInWatchlist(featured.id))
-    window.addEventListener('watchlistUpdated', handleWl)
-    return () => window.removeEventListener('watchlistUpdated', handleWl)
-  }, [featured])
+  // Hero watchlist state — reactive from context
+  const heroInWatchlist = featured ? isInWatchlist(featured.id) : false
 
   // ── Discover Movies infinite scroll ─────────────────────────────────────────
   const {
@@ -216,10 +219,10 @@ export default function HomePage() {
   useEffect(() => {
     if (path === '/watchlist') {
       setListTitle('My Watchlist')
-      setFilteredList(getWatchlist())
+      setFilteredList(watchlist)
     } else if (path === '/watched') {
       setListTitle('Watched History')
-      setFilteredList(getWatched())
+      setFilteredList(watchedHistory)
     } else if (filterGenre) {
       setListTitle(`Genre: ${filterGenre}`)
       setFilteredList(shows.filter(show => show.genres.includes(filterGenre)))
@@ -236,7 +239,7 @@ export default function HomePage() {
       setListTitle('')
       setFilteredList([])
     }
-  }, [path, filterGenre, filterNetwork, filterLanguage, filterStatus])
+  }, [path, filterGenre, filterNetwork, filterLanguage, filterStatus, watchlist, watchedHistory])
 
   const getFilterMeta = () => {
     if (path === '/watchlist') return { icon: '🔖', sub: 'Your saved titles' }
@@ -364,7 +367,18 @@ export default function HomePage() {
               <button
                 type="button"
                 className={styles.btnMoreInfo}
-                onClick={() => featured && toggleWatchlist(featured)}
+                onClick={() => {
+                  if (featured) {
+                    const willAdd = !heroInWatchlist
+                    toggleWatchlist(featured)
+                    const title = featured.title || featured.name || 'Title'
+                    if (willAdd) {
+                      toast.addedToWatchlist(title)
+                    } else {
+                      toast.info(`Removed '${title}' from Watchlist`)
+                    }
+                  }
+                }}
                 aria-label={heroInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
               >
                 {heroInWatchlist ? (
@@ -401,7 +415,7 @@ export default function HomePage() {
         <div className={styles.content}>
 
           {/* Fallback notice when offline */}
-          {isOffline && <FallbackBanner />}
+          {anyFallback && <FallbackBanner />}
 
           {/* Trending This Week */}
           {trendingLoading

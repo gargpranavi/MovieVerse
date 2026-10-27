@@ -1,0 +1,273 @@
+/* MovieVerse – Global Toast Notification Styles */
+
+.toastContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 12px;
+  pointer-events: none;
+  max-width: 420px;
+  width: calc(100vw - 32px);
+}
+
+/* Individual Toast Item */
+.toastItem {
+  pointer-events: auto;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(14, 14, 18, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55),
+              0 2px 8px rgba(0, 0, 0, 0.35),
+              inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f1f1f6;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
+  user-select: none;
+  transform-origin: bottom right;
+  animation: toastSlideIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1),
+              opacity 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.toastItem:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65),
+              0 4px 12px rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.toastDismissing {
+  animation: toastSlideOut 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Accent Borders & Glows by Type */
+.typeSuccess {
+  border-left: 3px solid #10b981;
+}
+.typeSuccess .iconWrapper {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+.typeSuccess .progressBar {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.typeWatchlist {
+  border-left: 3px solid #d4a017;
+}
+.typeWatchlist .iconWrapper {
+  color: #f5c842;
+  background: rgba(212, 160, 23, 0.14);
+  border-color: rgba(212, 160, 23, 0.3);
+}
+.typeWatchlist .progressBar {
+  background: linear-gradient(90deg, #d4a017, #f5c842);
+}
+
+.typeWatched {
+  border-left: 3px solid #6366f1;
+}
+.typeWatched .iconWrapper {
+  color: #818cf8;
+  background: rgba(99, 102, 241, 0.14);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+.typeWatched .progressBar {
+  background: linear-gradient(90deg, #6366f1, #a5b4fc);
+}
+
+.typeInfo {
+  border-left: 3px solid #0ea5e9;
+}
+.typeInfo .iconWrapper {
+  color: #38bdf8;
+  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(14, 165, 233, 0.25);
+}
+.typeInfo .progressBar {
+  background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+}
+
+.typeWarning {
+  border-left: 3px solid #f59e0b;
+}
+.typeWarning .iconWrapper {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+.typeWarning .progressBar {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.typeError {
+  border-left: 3px solid #f43f5e;
+}
+.typeError .iconWrapper {
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.25);
+}
+.typeError .progressBar {
+  background: linear-gradient(90deg, #f43f5e, #fb7185);
+}
+
+/* Icon Container */
+.iconWrapper {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  transition: transform 0.2s ease;
+}
+
+.toastItem:hover .iconWrapper {
+  transform: scale(1.06);
+}
+
+/* Content Area */
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.message {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.message b, .message strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Close Button */
+.closeBtn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.18s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Progress Countdown Bar */
+.progressBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: left center;
+  opacity: 0.8;
+}
+
+.progressBarActive {
+  animation: progressDrain linear forwards;
+}
+
+.progressBarPaused {
+  animation-play-state: paused;
+}
+
+/* Keyframes */
+@keyframes toastSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(110%) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-4px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toastSlideOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    max-height: 120px;
+    margin-bottom: 0;
+  }
+  50% {
+    opacity: 0.2;
+    transform: translateX(80%) scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%) scale(0.9);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: -12px;
+  }
+}
+
+@keyframes progressDrain {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .toastContainer {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+  .toastItem {
+    padding: 12px 14px;
+  }
+}

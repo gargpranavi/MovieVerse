@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout.jsx'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
-import { isWatched, addToWatched, removeFromWatched, getWatchedDate } from '../../utils/watched.js'
+import { useWatchlist } from '../../context/index.js'
+import { useToast } from '../../components/common/Toast/index.js'
 import { getUserRating, getUserReview, saveUserRating, saveUserReview } from '../../utils/reviews.js'
 import VideoPlayerModal from '../../components/VideoPlayerModal/VideoPlayerModal.jsx'
 import { shows, castByShowId, people } from '../../data/index.js'
@@ -80,6 +80,17 @@ export default function MovieDetailsPage() {
   const { id }     = useParams()
   const navigate   = useNavigate()
   const location   = useLocation()
+
+  // ── Global Context ────────────────────────────────────────────────────────
+  const {
+    isInWatchlist,
+    toggleWatchlist,
+    isWatched,
+    addToWatched,
+    removeFromWatched,
+    getWatchedDate,
+  } = useWatchlist()
+  const { toast } = useToast()
 
   // ── Determine if this is a TMDB ID ────────────────────────────────────────
   const isTmdbId       = id?.startsWith('tmdb-')
@@ -160,9 +171,6 @@ export default function MovieDetailsPage() {
   const recommendations = isTmdbId ? [] : localRecs   // TMDB recs would need extra API call
 
   // ── User interaction state ────────────────────────────────────────────────
-  const [inWatchlist,  setInWatchlist]  = useState(false)
-  const [watchedState, setWatchedState] = useState(false)
-  const [watchedDate,  setWatchedDate]  = useState(null)
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
 
   // Rating & Review State
@@ -176,12 +184,14 @@ export default function MovieDetailsPage() {
   const [actorDetailsLoading,  setActorDetailsLoading]  = useState(false)
   const [showAllCast,          setShowAllCast]          = useState(false)
 
-  // Initialise user-state from localStorage when movie loads or changes
+  // Derive watchlist/watched state from context (reactive)
+  const inWatchlist  = movie ? isInWatchlist(movie.id) : false
+  const watchedState = movie ? isWatched(movie.id)     : false
+  const watchedDate  = movie ? getWatchedDate(movie.id): null
+
+  // Load rating/review from localStorage when movie changes
   useEffect(() => {
     if (!movie) return
-    setInWatchlist(isInWatchlist(movie.id))
-    setWatchedState(isWatched(movie.id))
-    setWatchedDate(getWatchedDate(movie.id))
     setUserRating(getUserRating(movie.id))
 
     const review = getUserReview(movie.id)
@@ -193,22 +203,6 @@ export default function MovieDetailsPage() {
       setReviewText('')
     }
   }, [movie, id])
-
-  // Sync watchlist & watched badges in real time
-  useEffect(() => {
-    if (!movie) return
-    const handleWl = () => setInWatchlist(isInWatchlist(movie.id))
-    const handleWd = () => {
-      setWatchedState(isWatched(movie.id))
-      setWatchedDate(getWatchedDate(movie.id))
-    }
-    window.addEventListener('watchlistUpdated', handleWl)
-    window.addEventListener('watchedUpdated',   handleWd)
-    return () => {
-      window.removeEventListener('watchlistUpdated', handleWl)
-      window.removeEventListener('watchedUpdated',   handleWd)
-    }
-  }, [movie])
 
   // ── Loading state (TMDB fetch in progress) ────────────────────────────────
   if (tmdbLoading) {
@@ -268,36 +262,48 @@ export default function MovieDetailsPage() {
   }
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleWatchlistToggle = () => toggleWatchlist(movie)
+  // Context functions handle state + localStorage + event dispatch
+  const handleWatchlistToggle = () => {
+    const movieTitle = movie.title || movie.name || 'Movie'
+    const willAdd = !inWatchlist
+    toggleWatchlist(movie)
+    if (willAdd) {
+      toast.addedToWatchlist(movieTitle)
+    } else {
+      toast.info(`Removed '${movieTitle}' from your Watchlist`)
+    }
+  }
 
   const handleWatchedToggle = () => {
+    const movieTitle = movie.title || movie.name || 'Movie'
     if (watchedState) {
       removeFromWatched(movie.id)
-      setWatchedState(false)
-      setWatchedDate(null)
+      toast.info(`Removed '${movieTitle}' from Watched`)
     } else {
       const today   = new Date()
       const dateStr = today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
       addToWatched(movie, dateStr)
-      setWatchedState(true)
-      setWatchedDate(dateStr)
+      toast.markedAsWatched(movieTitle)
     }
   }
 
   const handleRatingClick = (rate) => {
     setUserRating(rate)
     saveUserRating(movie.id, rate)
+    toast.success(`Rated ${rate} ★`)
   }
 
   const handleReviewSubmit = (e) => {
     e.preventDefault()
     if (!reviewText.trim()) return
-    saveUserReview(movie.id, reviewText, movie.title)
+    const movieTitle = movie.title || movie.name || 'Movie'
+    saveUserReview(movie.id, reviewText, movieTitle)
     setSavedReview({
       reviewText,
       reviewDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
     })
     setIsReviewFormOpen(false)
+    toast.reviewSubmitted()
   }
 
   // Actor click — all data is already embedded in cast records (fully offline)

@@ -9,9 +9,8 @@
             /watched   (no "mark watched" btn, shows watched date ribbon)
 */
 
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isInWatchlist } from '../../../utils/watchlist.js'
+import { useWatchlist } from '../../../context/index.js'
 import Rating from '../Rating/Rating.jsx'
 import ReviewCard from '../ReviewCard/ReviewCard.jsx'
 import styles from './WatchlistCard2.module.css'
@@ -86,6 +85,7 @@ export default function WatchlistCard2({
   removeLabel = 'Remove from Watchlist',
 }) {
   const navigate = useNavigate()
+  const { isInWatchlist } = useWatchlist()
 
   const id          = show?.id
   const title       = show?.name || show?.title || 'Unknown'
@@ -98,15 +98,8 @@ export default function WatchlistCard2({
   const duration    = runtime ? (String(runtime).includes('min') || String(runtime).includes('h') ? runtime : `${runtime} min`) : null
   const watchedDate = show?.watchedDate       ?? null
 
-  const [_inWatchlist, setInWatchlist] = useState(false)
-
-  useEffect(() => {
-    setInWatchlist(isInWatchlist(id?.toString()))
-
-    const handleUpdate = () => setInWatchlist(isInWatchlist(id?.toString()))
-    window.addEventListener('watchlistUpdated', handleUpdate)
-    return () => window.removeEventListener('watchlistUpdated', handleUpdate)
-  }, [id])
+  // Context is reactive — no manual event listener needed
+  const _inWatchlist = isInWatchlist(id?.toString())
 
   const imageUrl = poster || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80'
 
@@ -120,7 +113,7 @@ export default function WatchlistCard2({
 
   const handleRemoveClick = (e) => {
     e.stopPropagation()
-    onRemove(id)
+    onRemove(id, title)
   }
 
   const handleMarkWatchedClick = (e) => {

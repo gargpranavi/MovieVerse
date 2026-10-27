@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { shows } from '../../data/index.js'
 import { fallbackAnime } from '../../member2/data/animeData.js'
-import { signOut as localSignOut } from '../../member2/services/localAuth.js'
-import { getWatchlist } from '../../utils/watchlist.js'
-import { getWatched } from '../../utils/watched.js'
+import { useWatchlist, useAuth } from '../../context/index.js'
+import { useDebounce } from '../../hooks/useDebounce.js'
+import { searchMulti } from '../../member2/services/tmdbApi.js'
+import { searchAnime } from '../../member2/services/animeApi.js'
 import styles from './TopNavbar.module.css'
 
 const NAV_ITEMS = [
@@ -74,33 +75,23 @@ export default function TopNavbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
+
+  // Custom 300ms debounce hook — zero input lag while typing, zero network flooding
+  const debouncedSearchTerm = useDebounce(searchQuery, 300)
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
-  const [watchlistCount, setWatchlistCount] = useState(0)
-  const [watchedCount,   setWatchedCount]   = useState(0)
+
+  const { watchlistCount, watchedCount } = useWatchlist()
+  const { user, signOut: authSignOut } = useAuth()
 
   const navigate = useNavigate()
-
-  useEffect(() => {
-    const updateCounts = () => {
-      setWatchlistCount(getWatchlist().length)
-      setWatchedCount(getWatched().length)
-    }
-    updateCounts()
-    window.addEventListener('watchlistUpdated', updateCounts)
-    window.addEventListener('watchedUpdated',   updateCounts)
-    return () => {
-      window.removeEventListener('watchlistUpdated', updateCounts)
-      window.removeEventListener('watchedUpdated',   updateCounts)
-    }
-  }, [])
 
   const handleLogout = async () => {
     setLoggingOut(true)
     setIsProfileOpen(false)
-    localSignOut()
+    authSignOut()
     navigate('/home', { replace: true })
     setLoggingOut(false)
   }
@@ -124,52 +115,131 @@ export default function TopNavbar() {
     }
   }, [searchOpen])
 
+  // ── Debounced Search Effect (queries TMDB + Anime seamlessly) ───────────────
   useEffect(() => {
-    const q = searchQuery.trim().toLowerCase()
+    const q = debouncedSearchTerm.trim().toLowerCase()
     if (!q) {
       setSearchResults([])
       setIsSearching(false)
       return
     }
+
+    let isCancelled = false
     setIsSearching(true)
-    // Local instant search — no network needed
-    const matchedShows = shows
-      .filter(s =>
-        s.title.toLowerCase().includes(q) ||
-        s.genres.some(g => g.toLowerCase().includes(q)) ||
-        s.year.includes(q) ||
-        (s.language || '').toLowerCase().includes(q)
-      )
-      .map(s => ({
-        id:     s.id,
-        title:  s.title,
-        year:   s.year,
-        rating: s.rating || null,
-        image:  s.image || null,
-        type:   'movie'
-      }))
 
-    const matchedAnime = fallbackAnime
-      .filter(a => 
-        a.title.toLowerCase().includes(q) ||
-        (a.titleJP && a.titleJP.toLowerCase().includes(q)) ||
-        (a.genres && a.genres.some(g => g.toLowerCase().includes(q))) ||
-        (a.year && a.year.toString().includes(q))
-      )
-      .map(a => ({
-        id:     a.id,
-        title:  a.title,
-        year:   a.year,
-        rating: a.rating || null,
-        image:  a.image || null,
-        type:   'anime'
-      }))
+    async function executeSearch() {
+      try {
+        // Query TMDB and Anime databases concurrently
+        const [tmdbRes, animeRes] = await Promise.allSettled([
+          searchMulti(debouncedSearchTerm),
+          searchAnime(debouncedSearchTerm, 8),
+        ])
 
-    const combined = [...matchedShows, ...matchedAnime].slice(0, 8)
-    
-    setSearchResults(combined)
-    setIsSearching(false)
-  }, [searchQuery])
+        if (isCancelled) return
+
+        // 1. Process TMDB Results
+        let tmdbItems = []
+        if (tmdbRes.status === 'fulfilled' && tmdbRes.value?.success) {
+          tmdbItems = (tmdbRes.value.data || []).map(item => ({
+            id: item.id,
+            title: item.title || item.name,
+            year: item.year || '',
+            rating: item.rating ? Number(item.rating).toFixed(1) : null,
+            image: item.image || null,
+            type: item.mediaType === 'tv' ? 'tv' : 'movie',
+            badge: item.mediaType === 'tv' ? 'TV' : 'MOVIE',
+            source: 'tmdb',
+          }))
+        }
+
+        // 2. Process Anime Results (API results or fallback dataset)
+        let animeItems = []
+        if (animeRes.status === 'fulfilled' && Array.isArray(animeRes.value) && animeRes.value.length > 0) {
+          animeItems = animeRes.value.map(a => ({
+            id: a.id || (a.malId ? `mal-${a.malId}` : `anime-${a.title}`),
+            title: a.title,
+            year: a.year || '',
+            rating: a.rating ? Number(a.rating).toFixed(1) : null,
+            image: a.image || null,
+            type: 'anime',
+            badge: 'ANIME',
+            source: 'animeApi',
+          }))
+        } else {
+          // Local fallback anime search
+          animeItems = fallbackAnime
+            .filter(a =>
+              (a.title || '').toLowerCase().includes(q) ||
+              (a.titleJP && a.titleJP.toLowerCase().includes(q)) ||
+              (a.genres && a.genres.some(g => g.toLowerCase().includes(q))) ||
+              (a.year && String(a.year).includes(q))
+            )
+            .map(a => ({
+              id: a.id,
+              title: a.title,
+              year: a.year || '',
+              rating: a.rating ? Number(a.rating).toFixed(1) : null,
+              image: a.image || null,
+              type: 'anime',
+              badge: 'ANIME',
+              source: 'fallbackAnime',
+            }))
+        }
+
+        // 3. Process local shows dataset (ensures instant offline fidelity)
+        const localMatches = shows
+          .filter(s =>
+            (s.title || '').toLowerCase().includes(q) ||
+            (s.genres && s.genres.some(g => g.toLowerCase().includes(q))) ||
+            (s.year && String(s.year).includes(q))
+          )
+          .map(s => ({
+            id: s.id,
+            title: s.title,
+            year: s.year || '',
+            rating: s.rating ? Number(s.rating).toFixed(1) : null,
+            image: s.image || null,
+            type: 'movie',
+            badge: 'MOVIE',
+            source: 'local',
+          }))
+
+        // Deduplicate and combine
+        const seenTitles = new Set()
+        const merged = []
+
+        const addItem = (item) => {
+          if (!item || !item.title) return
+          const key = item.title.toLowerCase().trim()
+          if (!seenTitles.has(key)) {
+            seenTitles.add(key)
+            merged.push(item)
+          }
+        }
+
+        // Combine anime, live TMDB, and local results
+        animeItems.forEach(addItem)
+        tmdbItems.forEach(addItem)
+        localMatches.forEach(addItem)
+
+        if (!isCancelled) {
+          setSearchResults(merged.slice(0, 10))
+          setIsSearching(false)
+        }
+      } catch (err) {
+        console.error('[TopNavbar] Search error:', err)
+        if (!isCancelled) {
+          setIsSearching(false)
+        }
+      }
+    }
+
+    executeSearch()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [debouncedSearchTerm])
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -290,34 +360,55 @@ export default function TopNavbar() {
           {searchOpen && searchQuery && (
             <div className={styles.searchResults}>
               {isSearching ? (
-                <div className={styles.searchNoResults}>Searching...</div>
+                <div className={styles.searchNoResults}>
+                  <div className={styles.searchLoadingSpinner} />
+                  <span>Searching TMDB & Anime...</span>
+                </div>
               ) : searchResults.length > 0 ? (
-                searchResults.map(show => (
-                  <NavLink
-                    key={show.id}
-                    to={`/${show.type === 'anime' ? 'anime' : 'movie'}/${show.id}`}
-                    className={styles.searchResultItem}
-                    onClick={() => {
-                      setSearchResults([])
-                      setSearchOpen(false)
-                      setSearchQuery('')
-                    }}
-                  >
-                    <img
-                      src={show.image || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=200&q=80&auto=format&fit=crop'}
-                      alt={show.title}
-                      className={styles.searchResultImage}
-                    />
-                    <div className={styles.searchResultInfo}>
-                      <span className={styles.searchResultTitle}>{show.title}</span>
-                      <span className={styles.searchResultMeta}>
-                        {show.year} {show.rating ? `• ★ ${show.rating}` : ''}
-                      </span>
-                    </div>
-                  </NavLink>
-                ))
+                searchResults.map(show => {
+                  const targetPath = show.type === 'anime'
+                    ? `/anime/${show.id}`
+                    : (show.type === 'tv' ? `/movie/${show.id}?type=tv` : `/movie/${show.id}`)
+
+                  const badgeClass = show.type === 'anime'
+                    ? styles.badgeAnime
+                    : (show.type === 'tv' ? styles.badgeTv : styles.badgeMovie)
+
+                  return (
+                    <NavLink
+                      key={`${show.type}-${show.id}`}
+                      to={targetPath}
+                      className={styles.searchResultItem}
+                      onClick={() => {
+                        setSearchResults([])
+                        setSearchOpen(false)
+                        setSearchQuery('')
+                      }}
+                    >
+                      <img
+                        src={show.image || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=200&q=80&auto=format&fit=crop'}
+                        alt={show.title}
+                        className={styles.searchResultImage}
+                      />
+                      <div className={styles.searchResultInfo}>
+                        <div className={styles.searchHeaderRow}>
+                          <span className={styles.searchResultTitle}>{show.title}</span>
+                          <span className={`${styles.searchResultBadge} ${badgeClass}`}>
+                            {show.badge}
+                          </span>
+                        </div>
+                        <span className={styles.searchResultMeta}>
+                          {show.year && <span>{show.year}</span>}
+                          {show.rating && <span>• ★ {show.rating}</span>}
+                        </span>
+                      </div>
+                    </NavLink>
+                  )
+                })
               ) : (
-                <div className={styles.searchNoResults}>No results found</div>
+                <div className={styles.searchNoResults}>
+                  No results found for "{debouncedSearchTerm || searchQuery}"
+                </div>
               )}
             </div>
           )}
@@ -500,11 +591,11 @@ export default function TopNavbar() {
             type="button"
           >
             <img
-              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"
-              alt="Piyush's avatar"
+              src={user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"}
+              alt={`${user?.name || 'User'}'s avatar`}
               className={styles.avatar}
             />
-            <span className={styles.profileName}>Piyush</span>
+            <span className={styles.profileName}>{user?.name || 'Piyush'}</span>
             <svg
               width="16" height="16" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2.5"
@@ -522,14 +613,14 @@ export default function TopNavbar() {
               {/* Header */}
               <div className={styles.profileDropdownHeader}>
                 <img
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"
-                  alt="Piyush"
+                  src={user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"}
+                  alt={user?.name || 'User'}
                   className={styles.profileDropdownAvatar}
                 />
                 <div className={styles.profileDropdownInfo}>
-                  <span className={styles.profileDropdownName}>Piyush</span>
-                  <span className={styles.profileDropdownRole}>Movie Explorer</span>
-                  <span className={styles.profileDropdownEmail}>piyush@movieverse.com</span>
+                  <span className={styles.profileDropdownName}>{user?.name || 'Piyush'}</span>
+                  <span className={styles.profileDropdownRole}>{user?.role || 'Movie Explorer'}</span>
+                  <span className={styles.profileDropdownEmail}>{user?.email || 'piyush@movieverse.com'}</span>
                 </div>
               </div>
 

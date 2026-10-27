@@ -344,13 +344,69 @@
 .searchResultMeta {
   font-size: 12px;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.searchHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.searchResultBadge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.badgeMovie {
+  background: rgba(212, 160, 23, 0.18);
+  color: #f5c842;
+  border: 1px solid rgba(212, 160, 23, 0.35);
+}
+
+.badgeTv {
+  background: rgba(14, 165, 233, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+}
+
+.badgeAnime {
+  background: rgba(139, 92, 246, 0.18);
+  color: #c084fc;
+  border: 1px solid rgba(139, 92, 246, 0.35);
 }
 
 .searchNoResults {
   padding: 20px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 13.5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.searchLoadingSpinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(212, 160, 23, 0.2);
+  border-top-color: #f5c842;
+  border-radius: 50%;
+  animation: searchSpin 0.7s linear infinite;
+  margin: 4px auto;
+}
+
+@keyframes searchSpin {
+  to { transform: rotate(360deg); }
 }
 
 .notificationsContainer {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isInWatchlist, toggleWatchlist } from '../../utils/watchlist.js'
-import { isWatched, toggleWatched } from '../../utils/watched.js'
+import { useWatchlist } from '../../context/index.js'
+import { useToast } from '../common/Toast/index.js'
 import { isLiked, toggleLike } from '../../utils/likes.js'
 import styles from './MovieCard.module.css'
 
@@ -60,28 +60,22 @@ function ChevronDownIcon() {
 
 export default function MovieCard({ movie, rank }) {
   const navigate = useNavigate()
-  const [inWatchlist, setInWatchlist] = useState(false)
-  const [isWatchedMovie, setIsWatchedMovie] = useState(false)
+  const { isInWatchlist, isWatched, toggleWatchlist, toggleWatched } = useWatchlist()
+  const { toast } = useToast()
+
+  const inWatchlist = isInWatchlist(movie?.id)
+  const isWatchedMovie = isWatched(movie?.id)
+
   const [liked, setLiked] = useState(false)
   const [likeAnimate, setLikeAnimate] = useState(false)
   const [imgError, setImgError] = useState(false)
 
   useEffect(() => {
-    setInWatchlist(isInWatchlist(movie.id))
-    setIsWatchedMovie(isWatched(movie.id))
     setLiked(isLiked(movie.id))
-
-    const handleWatchlistUpdate = () => setInWatchlist(isInWatchlist(movie.id))
-    const handleWatchedUpdate   = () => setIsWatchedMovie(isWatched(movie.id))
-    const handleLikesUpdate     = () => setLiked(isLiked(movie.id))
-
-    window.addEventListener('watchlistUpdated', handleWatchlistUpdate)
-    window.addEventListener('watchedUpdated',   handleWatchedUpdate)
-    window.addEventListener('likesUpdated',     handleLikesUpdate)
+    const handleLikesUpdate = () => setLiked(isLiked(movie.id))
+    window.addEventListener('likesUpdated', handleLikesUpdate)
     return () => {
-      window.removeEventListener('watchlistUpdated', handleWatchlistUpdate)
-      window.removeEventListener('watchedUpdated',   handleWatchedUpdate)
-      window.removeEventListener('likesUpdated',     handleLikesUpdate)
+      window.removeEventListener('likesUpdated', handleLikesUpdate)
     }
   }, [movie.id])
 
@@ -101,12 +95,26 @@ export default function MovieCard({ movie, rank }) {
 
   const handleWatchlistToggle = (e) => {
     e.stopPropagation()
+    const willAdd = !inWatchlist
     toggleWatchlist(movie)
+    const title = movie.title || movie.name || 'Movie'
+    if (willAdd) {
+      toast.addedToWatchlist(title)
+    } else {
+      toast.info(`Removed '${title}' from Watchlist`)
+    }
   }
 
   const handleWatchedToggle = (e) => {
     e.stopPropagation()
+    const willMark = !isWatchedMovie
     toggleWatched(movie)
+    const title = movie.title || movie.name || 'Movie'
+    if (willMark) {
+      toast.markedAsWatched(title)
+    } else {
+      toast.info(`Removed '${title}' from Watched`)
+    }
   }
 
   const handleLikeToggle = (e) => {

@@ -1,24 +1,8 @@
 /* 
    MovieVerse – WatchlistPage2.jsx
    Member 2 | Watchlist Page
-   Day 2 – TVMaze API  |  localStorage-backed
-
-   localStorage keys
-   
-   "watchlist"         → Array of full TVMaze show objects
-   "movieverse_watched"  → Array of shows marked as watched
-
-   Default Shows
-   
-   6 popular TVMaze shows are ALWAYS seeded back into the watchlist
-   on every page load — even after the user deletes or watches them.
-
-   Flow
-   
-   Page load  →  fetch defaults  →  merge into localStorage  →  show grid
-   Add show   →  saves to localStorage  →  survives refresh  
-   Remove / Mark watched  →  localStorage updated immediately
-   Refresh    →  defaults re-merged + user additions preserved  
+   Refactored to use centralized WatchlistContext (useWatchlist hook)
+   instead of direct localStorage calls.
 */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -29,8 +13,8 @@ import EmptyState2     from '../../components/EmptyState2/EmptyState2.jsx'
 import styles          from './WatchlistPage2.module.css'
 
 import { shows } from '../../../data/index.js'
-import { getWatchlist, saveWatchlist, removeFromWatchlist } from '../../../utils/watchlist.js'
-import { addToWatched } from '../../../utils/watched.js'
+import { useWatchlist } from '../../../store/useWatchlist.js'
+import { useToast } from '../../../components/common/Toast/index.js'
 
 /* Default show IDs 
    These 6 popular shows are seeded into watchlist if user has not removed them.
@@ -74,25 +58,21 @@ function Toast({ message, visible }) {
 
 /* Main WatchlistPage2 Component */
 export default function WatchlistPage2() {
-  /* State */
-  const [watchlist,   setWatchlist]   = useState([])   // show objects
-  const [search,      setSearch]      = useState('')
-  const [sortBy,      setSortBy]      = useState('default')
-  const [toast,       setToast]       = useState({ message: '', visible: false })
+  // ── Redux Hook ────────────────────────────────────────────────────────────
+  const {
+    watchlist,
+    addToWatchlist,
+    removeFromWatchlist,
+    addToWatched,
+  } = useWatchlist()
+  const { toast } = useToast()
 
-  /* On mount: fetch default shows + merge into watchlist 
-     Default shows are seeded once on first load.
-     If the user removes a default show, it won't come back.
-     User-added shows are always preserved.
-  */
-  /* On mount: seed default shows (if needed) & listen for updates */
+  /* Local UI state */
+  const [search,  setSearch]  = useState('')
+  const [sortBy,  setSortBy]  = useState('default')
+
+  /* On mount: seed default shows into Redux store if not already present */
   useEffect(() => {
-    const syncWatchlist = () => {
-      setWatchlist(getWatchlist())
-    }
-
-    // Initial load
-    const existing = getWatchlist()
     let removedDefaults
     try {
       removedDefaults = new Set(JSON.parse(localStorage.getItem(LS_REMOVED_DEFAULTS) || '[]'))
@@ -103,38 +83,19 @@ export default function WatchlistPage2() {
     const idsToFetch = DEFAULT_SHOW_IDS.filter(id => !removedDefaults.has(id))
     if (idsToFetch.length > 0) {
       const defaults = shows.filter(show => idsToFetch.includes(show.id))
-      const map = new Map(existing.map(s => [String(s.id), s]))
-      let hasNew = false
+      const existingIds = new Set(watchlist.map(s => String(s.id)))
       defaults.forEach(show => {
-        if (show?.id && !map.has(String(show.id))) {
-          map.set(String(show.id), show)
-          hasNew = true
+        if (show?.id && !existingIds.has(String(show.id))) {
+          addToWatchlist(show)
         }
       })
-      if (hasNew) {
-        const merged = Array.from(map.values())
-        saveWatchlist(merged)
-        setWatchlist(merged)
-      } else {
-        setWatchlist(existing)
-      }
-    } else {
-      setWatchlist(existing)
     }
-
-    // Listen for live updates from anywhere in the app
-    window.addEventListener('watchlistUpdated', syncWatchlist)
-    return () => window.removeEventListener('watchlistUpdated', syncWatchlist)
+    // Only run on mount — watchlist as dep would cause infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  /* Toast helper */
-  function showToast(msg) {
-    setToast({ message: msg, visible: true })
-    setTimeout(() => setToast(t => ({ ...t, visible: false })), 2800)
-  }
-
   /* Remove show from watchlist */
-  function handleRemove(id) {
+  function handleRemove(id, title) {
     if (DEFAULT_SHOW_IDS.includes(String(id))) {
       try {
         const removed = new Set(JSON.parse(localStorage.getItem(LS_REMOVED_DEFAULTS) || '[]'))
@@ -143,14 +104,23 @@ export default function WatchlistPage2() {
       } catch { /* ignore */ }
     }
     removeFromWatchlist(id)
-    showToast('Removed from watchlist')
+    const showTitle = title || 'Show'
+    toast.info(`Removed '${showTitle}' from Watchlist`)
   }
 
-  /* Mark as watched (moves to watched list) */
+  /* Mark as watched (moves to watched list via Redux) */
   function handleMarkWatched(show) {
     addToWatched(show)
-    handleRemove(show.id)
-    showToast('✓ Moved to Watched')
+    if (DEFAULT_SHOW_IDS.includes(String(show.id))) {
+      try {
+        const removed = new Set(JSON.parse(localStorage.getItem(LS_REMOVED_DEFAULTS) || '[]'))
+        removed.add(String(show.id))
+        localStorage.setItem(LS_REMOVED_DEFAULTS, JSON.stringify([...removed]))
+      } catch { /* ignore */ }
+    }
+    removeFromWatchlist(show.id)
+    const showTitle = show.name || show.title || 'Show'
+    toast.markedAsWatched(showTitle)
   }
 
   /* Filtered + sorted watchlist */
@@ -258,17 +228,14 @@ export default function WatchlistPage2() {
                 >
                   <WatchlistCard2
                     show={show}
-                    onRemove={handleRemove}
-                    onMarkWatched={handleMarkWatched}
+                    onRemove={() => handleRemove(show.id, show.name || show.title)}
+                    onMarkWatched={() => handleMarkWatched(show)}
                   />
                 </div>
               ))}
             </div>
           )}
         </main>
-
-        {/* Toast */}
-        <Toast message={toast.message} visible={toast.visible} />
       </div>
     </DashboardLayout>
   )

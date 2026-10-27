@@ -11,8 +11,7 @@ plus an optional `rank` prop.
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isInWatchlist, toggleWatchlist } from '../../../utils/watchlist.js'
-import { isWatched, toggleWatched } from '../../../utils/watched.js'
+import { useWatchlist } from '../../../context/index.js'
 import { isLiked, toggleLike } from '../../../utils/likes.js'
 import styles from './AnimeCard.module.css'
 
@@ -79,29 +78,20 @@ export default function AnimeCard({ movie, rank }) {
 
   //Use movie.id for storage — this is the normalised ID (e.g. 'fb-5114' or '5114')
   const itemId = movie?.id
+  const { isInWatchlist, isWatched, toggleWatchlist, toggleWatched } = useWatchlist()
 
-  const [inWatchlist,    setInWatchlist]    = useState(false)
-  const [isWatchedAnime, setIsWatchedAnime] = useState(false)
+  const inWatchlist = isInWatchlist(itemId)
+  const isWatchedAnime = isWatched(itemId)
   const [liked,          setLiked]          = useState(false)
   const [likeAnimate,    setLikeAnimate]    = useState(false)
 
   useEffect(() => {
     if (!itemId) return
-    setInWatchlist(isInWatchlist(itemId))
-    setIsWatchedAnime(isWatched(itemId))
     setLiked(isLiked(itemId))
-
-    const handleWatchlistUpdate = () => setInWatchlist(isInWatchlist(itemId))
-    const handleWatchedUpdate   = () => setIsWatchedAnime(isWatched(itemId))
-    const handleLikesUpdate     = () => setLiked(isLiked(itemId))
-
-    window.addEventListener('watchlistUpdated', handleWatchlistUpdate)
-    window.addEventListener('watchedUpdated',   handleWatchedUpdate)
-    window.addEventListener('likesUpdated',     handleLikesUpdate)
+    const handleLikesUpdate = () => setLiked(isLiked(itemId))
+    window.addEventListener('likesUpdated', handleLikesUpdate)
     return () => {
-      window.removeEventListener('watchlistUpdated', handleWatchlistUpdate)
-      window.removeEventListener('watchedUpdated',   handleWatchedUpdate)
-      window.removeEventListener('likesUpdated',     handleLikesUpdate)
+      window.removeEventListener('likesUpdated', handleLikesUpdate)
     }
   }, [itemId])
 
