@@ -11,6 +11,11 @@ import {
   fetchTvDetails,
   fetchMovieCredits,
 } from '../../member2/services/tmdbApi.js'
+// Member 3 components
+import MovieDetailsTabs from '../../member3/components/MovieDetailsTabs/MovieDetailsTabs.jsx'
+import CommunityReviewForm from '../../member3/components/CommunityReviewForm/CommunityReviewForm.jsx'
+import CommunityReviewsList from '../../member3/components/CommunityReviewsList/CommunityReviewsList.jsx'
+import { getReviewsForMovie } from '../../member3/utils/communityReviews.js'
 import styles from './MovieDetailsPage.module.css'
 
 function PlayIcon() {
@@ -173,6 +178,12 @@ export default function MovieDetailsPage() {
   // ── User interaction state ────────────────────────────────────────────────
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
 
+  // Member 3: Tab navigation state
+  const [activeTab, setActiveTab] = useState('overview')
+
+  // Member 3: Community reviews state
+  const [communityReviews, setCommunityReviews] = useState([])
+
   // Rating & Review State
   const [userRating,       setUserRating]       = useState(0)
   const [reviewText,       setReviewText]        = useState('')
@@ -202,6 +213,12 @@ export default function MovieDetailsPage() {
       setSavedReview(null)
       setReviewText('')
     }
+  }, [movie, id])
+
+  // Member 3: Load community reviews when movie changes
+  useEffect(() => {
+    if (!movie) return
+    setCommunityReviews(getReviewsForMovie(movie.id))
   }, [movie, id])
 
   // ── Loading state (TMDB fetch in progress) ────────────────────────────────
@@ -332,6 +349,17 @@ export default function MovieDetailsPage() {
         <button className={styles.backBtn} onClick={() => navigate(-1)}>
           <ArrowLeftIcon /> Back to Browse
         </button>
+
+        {/* Member 3: Tab Navigation */}
+        <MovieDetailsTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {/* ── Overview Tab ───────────────────────────────────────────────── */}
+        <div
+          id="details-panel-overview"
+          role="tabpanel"
+          aria-labelledby="details-tab-overview"
+          hidden={activeTab !== 'overview'}
+        >
 
         <div className={styles.contentWrapper}>
           {/* Poster with play overlay */}
@@ -524,6 +552,15 @@ export default function MovieDetailsPage() {
           </div>
         )}
 
+        </div>{/* end Overview tab panel */}
+
+        {/* ── Cast & Crew Tab ─────────────────────────────────────────────── */}
+        <div
+          id="details-panel-cast"
+          role="tabpanel"
+          aria-labelledby="details-tab-cast"
+          hidden={activeTab !== 'cast'}
+        >
         {/* Cast & Crew Section */}
         {cast.length > 0 && (
           <section className={styles.castSection}>
@@ -568,7 +605,20 @@ export default function MovieDetailsPage() {
             </div>
           </section>
         )}
+        {cast.length === 0 && (
+          <div style={{ color: 'rgba(255,255,255,0.5)', padding: '40px 0', textAlign: 'center' }}>
+            No cast information available.
+          </div>
+        )}
+        </div>{/* end Cast & Crew tab panel */}
 
+        {/* ── Trailers & Media Tab ────────────────────────────────────────── */}
+        <div
+          id="details-panel-trailers"
+          role="tabpanel"
+          aria-labelledby="details-tab-trailers"
+          hidden={activeTab !== 'trailers'}
+        >
         {/* Similar Titles / You Might Also Like */}
         {recommendations.length > 0 && (
           <section className={styles.recommendationsSection}>
@@ -593,6 +643,25 @@ export default function MovieDetailsPage() {
             </div>
           </section>
         )}
+        <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(255,255,255,0.4)' }}>
+          <span style={{ fontSize: '2rem' }}>🎬</span>
+          <p style={{ marginTop: '12px' }}>Trailers & media coming soon.</p>
+        </div>
+        </div>{/* end Trailers & Media tab panel */}
+
+        {/* ── User Reviews & Ratings Tab (Member 3) ────────────────────── */}
+        <div
+          id="details-panel-reviews"
+          role="tabpanel"
+          aria-labelledby="details-tab-reviews"
+          hidden={activeTab !== 'reviews'}
+        >
+          <CommunityReviewForm
+            movieId={movie.id}
+            onReviewAdded={() => setCommunityReviews(getReviewsForMovie(movie.id))}
+          />
+          <CommunityReviewsList reviews={communityReviews} />
+        </div>{/* end User Reviews tab panel */}
 
         {/* Actor Detail Modal */}
         {selectedActor && (
