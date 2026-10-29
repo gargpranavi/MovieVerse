@@ -35,7 +35,7 @@ function App() {
         <ProtectedRoute><TvSeriesPage /></ProtectedRoute>
       } />
       <Route path="/movie/:id" element={
-        <ProtectedRoute><MovieDetailsPage /></ProtectedRoute>
+        <MovieDetailsPage />
       } />
       <Route path="/ai-features" element={
         <ProtectedRoute><AiFeaturesPage /></ProtectedRoute>
